@@ -83,9 +83,9 @@ const createComponent = (tagName: string) => {
         if (typeof item === 'function') {
           const builtItem = item();
           if (typeof builtItem === 'string') return builtItem;
-          return builtItem.render(context, this.lifeCycleCallbacks);
+          return builtItem.render(context, null);
         }
-        return item.render(context, this.lifeCycleCallbacks);
+        return item.render(context, null);
       }));
     }
   })(primaryComponentData)
