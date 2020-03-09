@@ -42,9 +42,9 @@ class Component {
   render(context: Context): VNode {
     this.context = context;
     this.vnode = (this.build(context)).render(context, {
-      onDidMount: this.didMount.bind(this),
-      onDidUpdate: this.didUpdate.bind(this),
-      onDidDestroy: this.didDestroy.bind(this),
+      didMount: this.didMount.bind(this),
+      didUpdate: this.didUpdate.bind(this),
+      didDestroy: this.didDestroy.bind(this),
     });
     return this.vnode;
   }
