@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Duze</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="style.css" rel="stylesheet">
+    <script src="./../dist/duze.js"></script>
+  </head>
+
+  <body>
+    <div renderBox></div>
+
+    <label class="zust-checkbox themeToggle">
+      <input type="checkbox" name="themeSwitch" id="themeSwitch" />
+      <span></span>
+      <span class="zust-unselectable">Dark Theme</span>
+    </label>
+
+    <script src="base.js"></script>
+    <script type="text/javascript">
+      window.addEventListener('DOMContentLoaded', () => {
+        const { render, elements, Component, baseComponents } = duze;
+        const { div, p, button, a } = elements;
+        const { Builder, AsyncBuilder } = baseComponents;
+
+        let count = 1000;
+
+        class CounterComponent extends Component {
+          didMount() {
+            console.log(`CounterComponent mounted`)
+          }
+
+          build(context) {
+            return p({
+              style: {
+                color: context.color,
+                cursor: 'pointer',
+                userSelect: 'none',
+              },
+              events: {
+                click: () => {
+                  this.setState(() => count += 1);
+                }
+              },
+              children: [
+                `Count is ${count}`,
+                this.componentData.child,
+              ]
+            })
+          }
+        }
+
+        class ChildComponent extends Component {
+          didMount() {
+            console.log(`ChildComponent mounted`)
+          }
+
+          build(context) {
+            return p({
+              child: 'Child Component'
+            })
+          }
+        }
+
+        const functionComponent = () => {
+          let toggleState = false;
+          return p({
+            events: {
+              click() {
+                this.setState(() => toggleState = !toggleState);
+                console.log(toggleState);
+              }
+            },
+            child: () => toggleState ? button({ child: 'Button' }) : a({ child: 'Anchor' })
+          })
+        }
+
+        class ToggleComponent extends Component {
+          init() {
+            this.toggled = false;
+          }
+
+          didMount() {
+            console.log(`Mounted as ${this.toggled ? 'Button' : 'Anchor'}`)
+          }
+
+          didUpdate() {
+            console.log(`Updated`);
+          }
+
+          didDestroy() {
+            console.log(`Destroyed`);
+          }
+
+          build(context) {
+            return this.toggled ? button({
+              child: 'Toggle to Anchor',
+              events: {
+                click: () => this.setState(() => (this.toggled = !this.toggled))
+              }
+            }) : a({
+              child: 'Toggle to Button',
+              events: {
+                click: () => this.setState(() => (this.toggled = !this.toggled))
+              }
+            })
+          }
+        }
+
+        const builderComponent = () => {
+          return Builder({
+            builder: (context) => p({
+              child: `Color is ${context.color}`
+            })
+          })
+        }
+
+        const asyncFunc = () => new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve('Job Done!');
+          }, 2000);
+        })
+
+        const asyncComponent = AsyncBuilder({
+          getter: asyncFunc(),
+          builder: (context, snapshot) => {
+            if (snapshot.hasData) {
+              return p({
+                child: snapshot.data
+              })
+            }
+            return p({
+              style: {
+                color: 'var(--link-color)'
+              },
+              child: 'Data is loading...'
+            })
+          }
+        });
+
+        let divComp;
+
+        render(div({
+          getComponent: (component) => divComp = component,
+          children: [
+            p({
+              child: 'Hi There'
+            }),
+            button({
+              events: {
+                click: () => divComp.setState(),
+              },
+              child: 'Rebuild div'
+            }),
+            new CounterComponent({
+              child: new ChildComponent()
+            }),
+            [
+              functionComponent(),
+              builderComponent(),
+            ],
+            () => 'Hi There again',
+            asyncComponent,
+            new ToggleComponent(),
+          ]
+        }), document.querySelector('[renderBox]'));
+      });
+    </script>
+  </body>
+
+</html>

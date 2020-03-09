@@ -1,0 +1,30 @@
+@import 'zusty.min.css';
+
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 400;
+  src: url('lexend.ttf') format('truetype');
+}
+
+* {
+  font-family: 'Lexend', sans-serif;
+}
+
+[files] a {
+  display: block;
+  margin-top: 10px;
+}
+
+.pos-mid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.themeToggle {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+}
