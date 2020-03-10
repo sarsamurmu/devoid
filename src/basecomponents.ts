@@ -40,7 +40,7 @@ export const AsyncBuilder = (asyncBuilderOptions: {
         this.snapshot.hasData = typeof data !== 'undefined';
         this.snapshot.resolved = true;
       }, (error) => (this.snapshot.error = error))
-      .catch((error) => log(this) || (this.snapshot.error = error))
+      .catch((error) => (this.snapshot.error = error))
       .finally(() => this.setState());
   }
 
