@@ -12,7 +12,7 @@ interface ComponentData {
   children?: (Component | string)[];
 }
 
-class Component {
+abstract class Component {
   componentData: ComponentData;
   context: Context;
   vnode: VNode;
@@ -35,9 +35,7 @@ class Component {
 
   didDestroy() {}
 
-  build(context: Context): anyComp {
-    return null
-  }
+  abstract build(context: Context): anyComp;
 
   render(context: Context): VNode {
     this.context = context;
