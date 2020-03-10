@@ -18,7 +18,7 @@ interface AsyncSnapshot {
 }
 
 export const AsyncBuilder = (asyncBuilderOptions: {
-  getter: Promise<unknown>
+  getter: () => Promise<unknown>,
   builder: (context: Context, snapshot: AsyncSnapshot) => (anyComp)
 }) => new (class extends Component {
   snapshot: AsyncSnapshot;
@@ -33,7 +33,7 @@ export const AsyncBuilder = (asyncBuilderOptions: {
   }
 
   didMount() {
-    asyncBuilderOptions.getter
+    asyncBuilderOptions.getter()
       .then((data) => {
         this.snapshot.data = data;
         this.snapshot.hasData = typeof data !== 'undefined';
