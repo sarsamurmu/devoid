@@ -1,6 +1,6 @@
 import { Component } from './component';
 import { log, anyComp } from './utils';
-import { h } from 'snabbdom/h';
+import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { patch } from './render';
 import { DuzeNode } from './duzenode';
