@@ -1,6 +1,7 @@
-import Component from './component';
-import Context from './context';
+import { Component } from './component';
 import { anyComp, log } from './utils';
+import { Context } from './context';
+import { DuzeNode } from './duzenode';
 
 export const Builder = (builderOptions: {
   builder: (context: Context) => (anyComp)
@@ -47,3 +48,24 @@ export const AsyncBuilder = (asyncBuilderOptions: {
     return asyncBuilderOptions.builder(context, this.snapshot);
   }
 });
+
+const themeKey = 'DuzeDefaultThemeKey';
+
+const Theme = (themeOptions: {
+  themeData: any,
+  child: anyComp | ((context: Context) => anyComp)
+}) => new (class extends Component {
+  build(context: Context): anyComp {
+    return typeof themeOptions.child === 'function' ? themeOptions.child(context) : themeOptions.child;
+  }
+
+  render(context: Context): DuzeNode {
+    this.context = context ? context.copy() : new Context();
+    this.context.set(themeKey, themeOptions.themeData);
+    return super.render(this.context);
+  }
+});
+
+Theme.of = (context: Context) => context.get(themeKey);
+
+export { Theme }

@@ -1,9 +1,9 @@
-import Component from './component';
+import { Component } from './component';
 import { log, anyComp } from './utils';
-import { VNode } from 'snabbdom/vnode';
 import { h } from 'snabbdom/h';
-import Context from './context';
+import { Context } from './context';
 import { patch } from './render';
+import { DuzeNode } from './duzenode';
 
 type EventMap = {
   [N in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[N]) => void;
@@ -11,7 +11,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-type ChildType = anyComp | string | (() => (anyComp));
+type ChildType = anyComp | string | ((context: Context) => anyComp);
 
 interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: (ChildrenArray | ChildType);
@@ -21,8 +21,7 @@ interface PrimaryComponentData {
   props?: Record<string, any>;
   attrs?: Record<string, string | number | boolean>;
   style?: Record<string, string>;
-  child?: ChildType | ChildrenArray;
-  children?: ChildrenArray;
+  children?: ChildType | ChildrenArray;
   events?: EventMap;
   getComponent?: (component: anyComp) => void;
 }
@@ -30,11 +29,12 @@ interface PrimaryComponentData {
 class PrimaryComponent {
   elementData: PrimaryComponentData;
   context: Context;
-  vnode: VNode;
+  duzeNode: DuzeNode;
   lifeCycleCallbacks: Record<string, () => void>;
 
-  constructor(elementData: PrimaryComponentData) {
+  constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
+    if (!elementData.children) this.elementData.children = [];
     if (this.elementData.events) {
       for (const key in this.elementData.events) {
         this.elementData.events[key] = this.elementData.events[key].bind(this);
@@ -44,27 +44,28 @@ class PrimaryComponent {
 
   setState(callback: () => void = () => {}) {
     callback();
-    patch(this.vnode, this.render(this.context, this.lifeCycleCallbacks));
+    patch(this.duzeNode, this.render(this.context, this.lifeCycleCallbacks));
   }
 
-  build(context: Context): VNode {
+  build(context: Context): DuzeNode {
     return null
   }
 
-  render(context: Context, lifeCycleCallbacks: Record<string, () => void>): VNode {
+  render(context: Context, lifeCycleCallbacks: Record<string, () => void>): DuzeNode {
     this.lifeCycleCallbacks = lifeCycleCallbacks || {};
     this.context = context;
-    this.vnode = this.build(context);
-    return this.vnode;
+    this.duzeNode = this.build(context);
+    return this.duzeNode;
   }
 }
 
 const createComponent = (tagName: string) => {
   return (primaryComponentData: PrimaryComponentData) => new (class extends PrimaryComponent {
     build(context: object) {
-      if (this.elementData.child) this.elementData.children = [this.elementData.child];
-      if (!this.elementData.children) this.elementData.children = [];
+      this.elementData.children = [this.elementData.children];
+
       if (this.elementData.getComponent) this.elementData.getComponent(this);
+
       return h(tagName, {
         style: this.elementData.style,
         attrs: this.elementData.attrs,
@@ -72,21 +73,25 @@ const createComponent = (tagName: string) => {
         on: this.elementData.events,
         hook: {
           insert: (vnode) => {
-            this.vnode = vnode;
+            this.duzeNode = vnode;
             if (this.lifeCycleCallbacks.didMount) this.lifeCycleCallbacks.didMount();
           },
           update: () => this.lifeCycleCallbacks.didUpdate ? this.lifeCycleCallbacks.didUpdate() : null,
           destroy: () => this.lifeCycleCallbacks.didDestroy ? this.lifeCycleCallbacks.didDestroy() : null,
         },
-      }, this.elementData.children.flat(Infinity).map((item) => {
-        if (typeof item === 'string') return item;
-        if (typeof item === 'function') {
-          const builtItem = item();
-          if (typeof builtItem === 'string') return builtItem;
-          return builtItem.render(context, null);
-        }
-        return item.render(context, null);
-      }));
+      }, this.elementData.children
+          .flat(Infinity)
+          .filter((item) => ['string', 'function'].includes(typeof item) || item instanceof Component || item instanceof PrimaryComponent)
+          .map((item) => {
+            if (typeof item === 'string') return item;
+            if (typeof item === 'function') {
+              const builtItem = item(context);
+              if (typeof builtItem === 'string') return builtItem;
+              return builtItem.render(context, null);
+            }
+            return item.render(context, null);
+          })
+      );
     }
   })(primaryComponentData)
 }
@@ -100,4 +105,4 @@ const elements = (() => {
   return elementsObject;
 })();
 
-export { PrimaryComponent as default, PrimaryComponent, elements };
+export { PrimaryComponent, elements }

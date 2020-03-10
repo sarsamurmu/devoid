@@ -1,5 +1,5 @@
-import Component from './component';
-import PrimaryComponent from './elements';
+import { Component } from './component';
+import { PrimaryComponent } from './elements';
 
 export type anyComp = Component | PrimaryComponent;
 

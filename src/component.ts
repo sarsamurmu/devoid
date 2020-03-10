@@ -1,8 +1,7 @@
-import PrimaryComponent from './elements';
 import { log, anyComp } from './utils';
-import { VNode } from 'snabbdom/vnode';
 import { patch } from './render';
-import Context from './context';
+import { Context } from './context';
+import { DuzeNode } from './duzenode';
 
 interface ComponentData {
   props?: object;
@@ -15,7 +14,7 @@ interface ComponentData {
 abstract class Component {
   componentData: ComponentData;
   context: Context;
-  vnode: VNode;
+  duzeNode: DuzeNode;
 
   constructor(componentData: ComponentData = {}) {
     this.componentData = componentData;
@@ -26,7 +25,7 @@ abstract class Component {
 
   setState(callback: () => void = () => {}) {
     callback();
-    patch(this.vnode, this.render(this.context));
+    patch(this.duzeNode, this.render(this.context));
   }
 
   didMount() {}
@@ -37,15 +36,15 @@ abstract class Component {
 
   abstract build(context: Context): anyComp;
 
-  render(context: Context): VNode {
+  render(context: Context): DuzeNode {
     this.context = context;
-    this.vnode = (this.build(context)).render(context, {
+    this.duzeNode = (this.build(context)).render(context, {
       didMount: this.didMount.bind(this),
       didUpdate: this.didUpdate.bind(this),
       didDestroy: this.didDestroy.bind(this),
     });
-    return this.vnode;
+    return this.duzeNode;
   }
 }
 
-export { Component as default, Component, ComponentData }
+export { Component, ComponentData }

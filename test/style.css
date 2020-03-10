@@ -28,3 +28,11 @@
   right: 30px;
   bottom: 30px;
 }
+
+.animated {
+  transition: 0.5s;
+}
+
+.transform {
+  transform: translateX(100px);
+}
