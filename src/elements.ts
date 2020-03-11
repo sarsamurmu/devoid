@@ -60,9 +60,26 @@ class PrimaryComponent {
   }
 }
 
+const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
+  const children = new Set<DuzeNode | string | number>();
+  for (const child of childrenArray.flat(Infinity)) {
+    if (typeof child === 'string') children.add(child);
+    if (typeof child === 'function') {
+      const built = child(context);
+      if (typeof built === 'string') children.add(built);
+      if (Array.isArray(built)) {
+        for (const item of buildChildren(context, built)) children.add(item);
+      }
+      if (built instanceof Component || built instanceof PrimaryComponent) children.add(built.render(context, null));
+    }
+    if (child instanceof Component || child instanceof PrimaryComponent) children.add(child.render(context, null));
+  }
+  return [...children];
+}
+
 const createComponent = (tagName: string) => {
   return (primaryComponentData: PrimaryComponentData) => new (class extends PrimaryComponent {
-    build(context: object) {
+    build(context: Context) {
       this.elementData.children = [this.elementData.children];
 
       if (this.elementData.getComponent) this.elementData.getComponent(this);
@@ -81,19 +98,7 @@ const createComponent = (tagName: string) => {
           update: () => this.lifeCycleCallbacks.didUpdate ? this.lifeCycleCallbacks.didUpdate() : null,
           destroy: () => this.lifeCycleCallbacks.didDestroy ? this.lifeCycleCallbacks.didDestroy() : null,
         },
-      }, this.elementData.children
-          .flat(Infinity)
-          .filter((item) => ['string', 'function'].includes(typeof item) || item instanceof Component || item instanceof PrimaryComponent)
-          .map((item) => {
-            if (typeof item === 'string') return item;
-            if (typeof item === 'function') {
-              const builtItem = item(context);
-              if (typeof builtItem === 'string') return builtItem;
-              return builtItem.render(context, null);
-            }
-            return item.render(context, null);
-          })
-      );
+      }, buildChildren(context, this.elementData.children));
     }
   })(primaryComponentData)
 }
