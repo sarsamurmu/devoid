@@ -2,12 +2,14 @@ import { Component } from './component';
 import { PrimaryComponent } from './elements';
 import { init } from 'snabbdom/es/snabbdom';
 import { toVNode } from 'snabbdom/es/tovnode';
+import classModule from 'snabbdom/es/modules/class';
 import styleModule from 'snabbdom/es/modules/style';
 import eventModule from 'snabbdom/es/modules/eventlisteners';
 import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
 
 export const patch = init([
+  classModule,
   styleModule,
   eventModule,
   attributeModule,

@@ -39,7 +39,7 @@
                 cursor: 'pointer',
                 userSelect: 'none',
               },
-              events: {
+              on: {
                 click: () => {
                   this.setState(() => count += 1);
                 }
@@ -85,12 +85,12 @@
             return div({
               children: this.toggled ? button({
                 children: 'Toggle to Anchor',
-                events: {
+                on: {
                   click: () => this.setState(() => (this.toggled = !this.toggled))
                 }
               }) : a({
                 children: 'Toggle to Button',
-                events: {
+                on: {
                   click: () => this.setState(() => (this.toggled = !this.toggled))
                 }
               })
@@ -125,14 +125,18 @@
         const functionComponent = () => {
           let toggleState = false;
           return p({
-            events: {
+            on: {
               click() {
                 this.setState(() => toggleState = !toggleState);
               }
             },
             children: () => button({
+              class: {
+                transform: toggleState
+              },
               attrs: {
-                class: [toggleState && 'transform', 'animated'],
+                class: `zust-btn animated`,
+                tabindex: -1,
               },
               children: toggleState ? 'Toggled' : 'Not toggled'
             })
@@ -145,8 +149,11 @@
           getComponent: (component) => divComp = component,
           children: [
             button({
-              events: {
+              on: {
                 click: () => divComp.setState(),
+              },
+              attrs: {
+                class: 'zust-btn',
               },
               children: 'Rebuild div'
             }),

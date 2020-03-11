@@ -19,10 +19,11 @@ interface ChildrenArray extends Array<ChildrenArray | ChildType> {
 
 interface PrimaryComponentData {
   props?: Record<string, any>;
+  class?: Record<string, boolean>;
   attrs?: Record<string, string | number | boolean>;
   style?: Record<string, string>;
   children?: ChildType | ChildrenArray;
-  events?: EventMap;
+  on?: EventMap;
   getComponent?: (component: anyComp) => void;
 }
 
@@ -35,9 +36,9 @@ class PrimaryComponent {
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
     if (!elementData.children) this.elementData.children = [];
-    if (this.elementData.events) {
-      for (const key in this.elementData.events) {
-        this.elementData.events[key] = this.elementData.events[key].bind(this);
+    if (this.elementData.on) {
+      for (const key in this.elementData.on) {
+        this.elementData.on[key] = this.elementData.on[key].bind(this);
       }
     }
   }
@@ -67,10 +68,11 @@ const createComponent = (tagName: string) => {
       if (this.elementData.getComponent) this.elementData.getComponent(this);
 
       return h(tagName, {
+        class: this.elementData.class,
         style: this.elementData.style,
         attrs: this.elementData.attrs,
         props: this.elementData.props,
-        on: this.elementData.events,
+        on: this.elementData.on,
         hook: {
           insert: (vnode) => {
             this.duzeNode = vnode;
