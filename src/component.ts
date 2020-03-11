@@ -15,11 +15,7 @@ abstract class Component {
   context: Context;
   duzeNode: DuzeNode;
 
-  constructor(...args: any) {
-    this.init(...args);
-  }
-
-  init(...args: any) {}
+  constructor() {}
 
   setState(callback: () => void = () => {}) {
     callback();

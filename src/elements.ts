@@ -11,7 +11,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-export type ChildType = anyComp | string | ((context: Context) => anyComp);
+export type ChildType = anyComp | string | number | ((context: Context) => anyComp);
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: (ChildrenArray | ChildType);
@@ -61,7 +61,6 @@ abstract class PrimaryComponent {
 const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
   const children = new Set<DuzeNode | string | number>();
   for (const child of childrenArray.flat(Infinity)) {
-    if (typeof child === 'string') children.add(child);
     if (typeof child === 'function') {
       const built = child(context);
       if (typeof built === 'string') children.add(built);
@@ -69,8 +68,11 @@ const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
         for (const item of buildChildren(context, built)) children.add(item);
       }
       if (built instanceof Component || built instanceof PrimaryComponent) children.add(built.render(context, null));
+    } else if (child instanceof Component || child instanceof PrimaryComponent) {
+      children.add(child.render(context, null));
+    } else {
+      children.add(child);
     }
-    if (child instanceof Component || child instanceof PrimaryComponent) children.add(child.render(context, null));
   }
   return [...children];
 }

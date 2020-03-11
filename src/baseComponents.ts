@@ -51,7 +51,7 @@ export const AsyncBuilder = (asyncBuilderOptions: {
 
 const themeKey = 'DuzeDefaultThemeKey';
 
-const Theme = (themeOptions: {
+export const Theme = (themeOptions: {
   themeData: any,
   child: anyComp | ((context: Context) => anyComp)
 }) => new (class extends Component {
@@ -68,4 +68,62 @@ const Theme = (themeOptions: {
 
 Theme.of = (context: Context) => context.get(themeKey);
 
-export { Theme }
+class Notifier {
+  listeners: Map<any, () => void>;
+
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  setListener(key: any, callback: () => void) {
+    this.listeners.set(key, callback);
+  }
+
+  removeListener(key: any) {
+    this.listeners.delete(key);
+  }
+
+  notifyListeners() {
+    for (const [key, callback] of this.listeners) callback();
+  }
+}
+
+export const ValueNotifier = (initialValue: any) => new (class extends Notifier {
+  _value: any;
+
+  constructor() {
+    super();
+    this._value = initialValue;
+  }
+
+  set value(newValue: any) {
+    this._value = newValue;
+    this.notifyListeners();
+  }
+
+  get value() {
+    return this._value;
+  }
+});
+
+export const ListenerBuilder = (listenerBuilderOptions: {
+  listenTo: Notifier[],
+  child: anyComp | ((context: Context) => anyComp)
+}) => new (class extends Component {
+  constructor() {
+    super();
+    for (const notifier of listenerBuilderOptions.listenTo) {
+      notifier.setListener(this, () => this.setState());
+    }
+  }
+
+  didDestroy() {
+    for (const notifier of listenerBuilderOptions.listenTo) {
+      notifier.removeListener(this);
+    }
+  }
+
+  build(context: Context): anyComp {
+    return typeof listenerBuilderOptions.child === 'function' ? listenerBuilderOptions.child(context) : listenerBuilderOptions.child;
+  }
+});

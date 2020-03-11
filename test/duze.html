@@ -23,12 +23,17 @@
     <script type="text/javascript">
       window.addEventListener('DOMContentLoaded', () => {
         const { render, elements, Component, baseComponents } = Duze;
-        const { div, p, button, a, br } = elements;
-        const { Builder, AsyncBuilder, Theme } = baseComponents;
+        const { div, p, button, a, br, textarea } = elements;
+        const { Builder, AsyncBuilder, Theme, ValueNotifier, ListenerBuilder } = baseComponents;
 
         let count = 1000;
 
         class CounterComponent extends Component {
+          constructor({ child }) {
+            super();
+            this.child = child;
+          }
+
           didMount() {
             console.log(`CounterComponent mounted`)
           }
@@ -46,7 +51,7 @@
               },
               children: [
                 `Count is ${count}`,
-                this.componentData.child,
+                this.child,
               ]
             })
           }
@@ -144,8 +149,7 @@
         }
 
         let divComp;
-
-        render(div({
+        const baseElement = div({
           getComponent: (component) => divComp = component,
           children: [
             button({
@@ -194,8 +198,39 @@
                   })
                 ]
               })
-            })
+            }),
           ]
+        });
+
+        const valueListenerWidget = (context) => {
+          const boxText = ValueNotifier('This is initial value');
+
+          return ListenerBuilder({
+            listenTo: [boxText],
+            child: div({
+              children: [
+                textarea({
+                  on: {
+                    input: (e) => {
+                      boxText.value = e.target.value;
+                    },
+                  },
+                  props: {
+                    value: boxText.value,
+                    classList: ['zust-textarea'],
+                    placeholder: 'Enter some text'
+                  }
+                }),
+                p({
+                  children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
+                }),
+              ]
+            })
+          })
+        }
+        
+        render(div({
+          children: valueListenerWidget
         }), document.querySelector('[renderBox]'));
       });
     </script>
