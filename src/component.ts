@@ -12,16 +12,14 @@ interface ComponentData {
 }
 
 abstract class Component {
-  componentData: ComponentData;
   context: Context;
   duzeNode: DuzeNode;
 
-  constructor(componentData: ComponentData = {}) {
-    this.componentData = componentData;
-    this.init();
+  constructor(...args: any) {
+    this.init(...args);
   }
 
-  init() {}
+  init(...args: any) {}
 
   setState(callback: () => void = () => {}) {
     callback();
