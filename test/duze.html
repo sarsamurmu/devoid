@@ -39,7 +39,7 @@
           }
 
           build(context) {
-            return p({
+            return new p({
               style: {
                 cursor: 'pointer',
                 userSelect: 'none',
@@ -63,7 +63,7 @@
           }
 
           build(context) {
-            return p({
+            return new p({
               children: 'Child Component'
             })
           }
@@ -87,13 +87,13 @@
           }
 
           build(context) {
-            return div({
-              children: this.toggled ? button({
+            return new div({
+              children: this.toggled ? new button({
                 children: 'Toggle to Anchor',
                 on: {
                   click: () => this.setState(() => (this.toggled = !this.toggled))
                 }
-              }) : a({
+              }) : new a({
                 children: 'Toggle to Button',
                 on: {
                   click: () => this.setState(() => (this.toggled = !this.toggled))
@@ -110,15 +110,15 @@
           }, 2000);
         });
 
-        const asyncComponent = AsyncBuilder({
+        const asyncComponent = new AsyncBuilder({
           getter: () => promiseGetter(),
           builder: (context, snapshot) => {
             if (snapshot.hasData) {
-              return p({
+              return new p({
                 children: snapshot.data
               })
             }
-            return p({
+            return new p({
               style: {
                 color: 'var(--link-color)'
               },
@@ -129,13 +129,13 @@
 
         const functionComponent = () => {
           let toggleState = false;
-          return p({
+          return new p({
             on: {
               click() {
                 this.setState(() => toggleState = !toggleState);
               }
             },
-            children: () => button({
+            children: () => new button({
               class: {
                 transform: toggleState
               },
@@ -149,10 +149,10 @@
         }
 
         let divComp;
-        const baseElement = div({
+        const baseElement = new div({
           getComponent: (component) => divComp = component,
           children: [
-            button({
+            new button({
               on: {
                 click: () => divComp.setState(),
               },
@@ -167,27 +167,27 @@
             functionComponent,
             new ToggleComponent(),
             asyncComponent,
-            Theme({
+            new Theme({
               themeData: {
                 color: 'blue',
               },
-              child: (context) => p({
+              child: (context) => new p({
                 style: {
                   color: Theme.of(context).color
                 },
                 children: [
                   `Theme is cool`,
-                  Theme({
+                  new Theme({
                     themeData: {
                       color: 'tomato',
                     },
-                    child: (aContext) => p({
+                    child: (aContext) => new p({
                       style: {
                         color: Theme.of(aContext).color
                       },
                       children: [
                         `Nested Theme`,
-                        p({
+                        new p({
                           style: {
                             color: Theme.of(context).color
                           },
@@ -205,11 +205,11 @@
         const valueListenerWidget = (context) => {
           const boxText = ValueNotifier('This is initial value');
 
-          return ListenerBuilder({
+          return new ListenerBuilder({
             listenTo: [boxText],
-            child: div({
+            child: new div({
               children: [
-                textarea({
+                new textarea({
                   on: {
                     input: (e) => {
                       boxText.value = e.target.value;
@@ -221,7 +221,7 @@
                     placeholder: 'Enter some text'
                   }
                 }),
-                p({
+                new p({
                   children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
                 }),
               ]
@@ -229,7 +229,7 @@
           })
         }
         
-        render(div({
+        render(new div({
           children: valueListenerWidget
         }), document.querySelector('[renderBox]'));
       });

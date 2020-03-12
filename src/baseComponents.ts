@@ -18,13 +18,18 @@ interface AsyncSnapshot {
   error: object;
 }
 
-export const AsyncBuilder = (asyncBuilderOptions: {
-  getter: () => Promise<unknown>,
-  builder: (context: Context, snapshot: AsyncSnapshot) => (anyComp)
-}) => new (class extends Component {
-  snapshot: AsyncSnapshot;
+interface AsyncBuilderOptions {
+  getter: () => Promise<unknown>;
+  builder: (context: Context, snapshot: AsyncSnapshot) => (anyComp);
+}
 
-  init() {
+export class AsyncBuilder extends Component {
+  snapshot: AsyncSnapshot;
+  options: AsyncBuilderOptions;
+
+  constructor(asyncBuilderOptions: AsyncBuilderOptions) {
+    super();
+    this.options = asyncBuilderOptions;
     this.snapshot = {
       data: undefined,
       hasData: false,
@@ -34,7 +39,7 @@ export const AsyncBuilder = (asyncBuilderOptions: {
   }
 
   didMount() {
-    asyncBuilderOptions.getter()
+    this.options.getter()
       .then((data) => {
         this.snapshot.data = data;
         this.snapshot.hasData = typeof data !== 'undefined';
@@ -45,28 +50,39 @@ export const AsyncBuilder = (asyncBuilderOptions: {
   }
 
   build(context: Context): anyComp {
-    return asyncBuilderOptions.builder(context, this.snapshot);
+    return this.options.builder(context, this.snapshot);
   }
-});
+}
 
 const themeKey = 'DuzeDefaultThemeKey';
 
-export const Theme = (themeOptions: {
-  themeData: any,
-  child: anyComp | ((context: Context) => anyComp)
-}) => new (class extends Component {
+interface ThemeOptions {
+  themeData: any;
+  child: anyComp | ((context: Context) => anyComp);
+}
+
+export class Theme extends Component {
+  options: ThemeOptions;
+
+  constructor(themeOptions: ThemeOptions) {
+    super();
+    this.options = themeOptions;
+  }
+
+  static of(context: Context) {
+    return context.get(themeKey);
+  }
+
   build(context: Context): anyComp {
-    return typeof themeOptions.child === 'function' ? themeOptions.child(context) : themeOptions.child;
+    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
   }
 
   render(context: Context): DuzeNode {
     this.context = context.copy();
-    this.context.set(themeKey, themeOptions.themeData);
+    this.context.set(themeKey, this.options.themeData);
     return super.render(this.context);
   }
-});
-
-Theme.of = (context: Context) => context.get(themeKey);
+}
 
 class Notifier {
   listeners: Map<any, () => void>;
@@ -89,41 +105,46 @@ class Notifier {
 }
 
 export const ValueNotifier = (initialValue: any) => new (class extends Notifier {
-  _value: any;
+  _$: any;
 
   constructor() {
     super();
-    this._value = initialValue;
+    this._$ = initialValue;
   }
 
   set value(newValue: any) {
-    this._value = newValue;
+    this._$ = newValue;
     this.notifyListeners();
   }
 
   get value() {
-    return this._value;
+    return this._$;
   }
 });
 
-export const ListenerBuilder = (listenerBuilderOptions: {
-  listenTo: Notifier[],
-  child: anyComp | ((context: Context) => anyComp)
-}) => new (class extends Component {
-  constructor() {
+interface ListenerBuilderOptions {
+  listenTo: Notifier[];
+  child: anyComp | ((context: Context) => anyComp);
+}
+
+export class ListenerBuilder extends Component {
+  options: ListenerBuilderOptions;
+
+  constructor(listenerBuilderOptions: ListenerBuilderOptions) {
     super();
+    this.options = listenerBuilderOptions;
     for (const notifier of listenerBuilderOptions.listenTo) {
       notifier.setListener(this, () => this.setState());
     }
   }
 
   didDestroy() {
-    for (const notifier of listenerBuilderOptions.listenTo) {
+    for (const notifier of this.options.listenTo) {
       notifier.removeListener(this);
     }
   }
 
   build(context: Context): anyComp {
-    return typeof listenerBuilderOptions.child === 'function' ? listenerBuilderOptions.child(context) : listenerBuilderOptions.child;
+    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
   }
-});
+}
