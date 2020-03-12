@@ -11,7 +11,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-export type ChildType = anyComp | string | number | ((context: Context) => anyComp);
+export type ChildType = anyComp | string | number | ((context: Context) => anyComp) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: (ChildrenArray | ChildType);
@@ -43,6 +43,10 @@ abstract class PrimaryComponent {
     }
   }
 
+  static create(props: Record<string, any>): PrimaryComponent {
+    return null
+  }
+
   setState(callback: () => void = () => {}) {
     callback();
     patch(this.duzeNode, this.render(this.context, this.lifeCycleCallbacks));
@@ -70,7 +74,7 @@ const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
       if (built instanceof Component || built instanceof PrimaryComponent) children.add(built.render(context, null));
     } else if (child instanceof Component || child instanceof PrimaryComponent) {
       children.add(child.render(context, null));
-    } else {
+    } else if (typeof child === 'string' || typeof child === 'number') {
       children.add(child);
     }
   }
@@ -78,7 +82,11 @@ const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
 }
 
 const createComponent = (tagName: string) => {
-  return class extends PrimaryComponent {
+  return class elClass extends PrimaryComponent {
+    static create(props: Record<string, any>): PrimaryComponent {
+      return new elClass(props);
+    }
+
     build(context: Context): DuzeNode {
       this.elementData.children = [this.elementData.children];
 

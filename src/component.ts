@@ -28,6 +28,10 @@ abstract class Component {
 
   didDestroy() {}
 
+  static create(props: Record<string, any>): Component {
+    return null
+  }
+
   abstract build(context: Context): anyComp;
 
   render(context: Context): DuzeNode {
