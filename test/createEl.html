@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Duze</title>
+    <title>createEl</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href="style.css" rel="stylesheet">
@@ -47,61 +47,7 @@
           ValueNotifier,
           ListenerBuilder
         } = baseComponents;
-
-        class FragTest extends Component {
-          build() {
-            return new Fragment([
-              new p({
-                style: {
-                  color: 'aqua'
-                },
-                children: 'First paragraph'
-              }),
-              new a({
-                children: 'Link'
-              })
-            ]);
-          }
-        }
-
-        const eventTest = new div({
-          children: new (class extends Component {
-            didMount() {
-              console.log(`Mounted Level 1`);
-            }
-
-            build() {
-              return new (class extends Component {
-                didMount() {
-                  console.log(`Mounted Level 2`)
-                }
-
-                build() {
-                  return new (class extends Component {
-                    didMount() {
-                      console.log(`Mounted Level 3`)
-                    }
-
-                    build() {
-                      return new (class extends Component {
-                        didMount() {
-                          console.log(`Mounted Level 4`)
-                        }
-
-                        build() {
-                          return new p({
-                            children: 'Link works'
-                          })
-                        }
-                      })
-                    }
-                  })
-                }
-              })
-            }
-          }),
-        })
-
+        
         const myComp = createEl("div", null, createEl(AsyncBuilder, {
           getter: function getter() {
             return new Promise(function (resolve, reject) {
@@ -121,7 +67,7 @@
             }, hasData ? data : 'Data is loading');
           }
         }));
-        
+
         render(myComp, document.querySelector('[renderBox]'));
       });
     </script>

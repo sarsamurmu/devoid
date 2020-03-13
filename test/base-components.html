@@ -77,35 +77,43 @@
           children: [
             new Theme({
               themeData: {
-                color: 'blue',
+                color: 'deepskyblue',
               },
-              child: (context) => new p({
-                style: {
-                  color: Theme.of(context).color
-                },
-                children: [
-                  `Theme is cool`,
-                  new Theme({
-                    themeData: {
-                      color: 'tomato',
-                    },
-                    child: (aContext) => new p({
-                      style: {
-                        color: Theme.of(aContext).color
+              child: (context) => new Fragment([
+                new p({
+                  style: {
+                    color: Theme.of(context).color
+                  },
+                  children: [
+                    `Theme is cool`,
+                    new Theme({
+                      themeData: {
+                        color: 'tomato',
                       },
-                      children: [
-                        `Nested Theme`,
-                        new p({
-                          style: {
-                            color: Theme.of(context).color
-                          },
-                          children: `Deeply nested but using grandparent's color`
-                        })
-                      ]
+                      child: (aContext) => new p({
+                        style: {
+                          color: Theme.of(aContext).color
+                        },
+                        children: [
+                          `Nested Theme`,
+                          new p({
+                            style: {
+                              color: Theme.of(context).color
+                            },
+                            children: `Deeply nested but using grandparent's color`
+                          })
+                        ]
+                      })
                     })
-                  })
-                ]
-              })
+                  ],
+                }),
+                new p({
+                  style: {
+                    color: Theme.of(context).color
+                  },
+                  children: `Another element which is using theme`
+                })
+              ])
             }),
             new AsyncBuilder({
               getter: () =>  new Promise((resolve, reject) => {
