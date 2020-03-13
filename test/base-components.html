@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Duze</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="style.css" rel="stylesheet">
+    <script src="./../dist/duze.js"></script>
+  </head>
+
+  <body>
+    <div renderBox></div>
+
+    <label class="zust-checkbox themeToggle">
+      <input type="checkbox" name="themeSwitch" id="themeSwitch" />
+      <span></span>
+      <span class="zust-unselectable">Dark Theme</span>
+    </label>
+
+    <script src="base.js"></script>
+    <script type="text/javascript">
+      window.addEventListener('DOMContentLoaded', () => {
+        const {
+          render,
+          elements,
+          Component,
+          Fragment,
+          baseComponents,
+          createElement
+        } = Duze;
+
+        const {
+          div,
+          p,
+          button,
+          a,
+          br,
+          textarea
+        } = elements;
+
+        const {
+          Builder,
+          AsyncBuilder,
+          Theme,
+          ValueNotifier,
+          ListenerBuilder
+        } = baseComponents;
+
+        const valueListenerWidget = (context) => {
+          const boxText = ValueNotifier('This is initial value');
+
+          return new ListenerBuilder({
+            listenTo: [boxText],
+            child: new Fragment([
+              new textarea({
+                on: {
+                  input: (e) => {
+                    boxText.value = e.target.value;
+                  },
+                },
+                props: {
+                  value: boxText.value,
+                  classList: ['zust-textarea'],
+                  placeholder: 'Enter some text'
+                }
+              }),
+              new p({
+                children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
+              }),
+            ])
+          })
+        }
+        
+        render(new div({
+          children: [
+            new Theme({
+              themeData: {
+                color: 'blue',
+              },
+              child: (context) => new p({
+                style: {
+                  color: Theme.of(context).color
+                },
+                children: [
+                  `Theme is cool`,
+                  new Theme({
+                    themeData: {
+                      color: 'tomato',
+                    },
+                    child: (aContext) => new p({
+                      style: {
+                        color: Theme.of(aContext).color
+                      },
+                      children: [
+                        `Nested Theme`,
+                        new p({
+                          style: {
+                            color: Theme.of(context).color
+                          },
+                          children: `Deeply nested but using grandparent's color`
+                        })
+                      ]
+                    })
+                  })
+                ]
+              })
+            }),
+            new AsyncBuilder({
+              getter: () =>  new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  resolve('Job Done!');
+                  console.log(`Really Done`);
+                }, 2000);
+              }),
+              builder: (context, snapshot) => {
+                if (snapshot.hasData) {
+                  return new p({
+                    children: snapshot.data
+                  })
+                }
+                return new p({
+                  style: {
+                    color: 'var(--link-color)'
+                  },
+                  children: 'Data is loading...'
+                })
+              }
+            }),
+            valueListenerWidget,
+          ],
+        }), document.querySelector('[renderBox]'));
+      });
+    </script>
+  </body>
+
+</html>

@@ -5,7 +5,6 @@ import { DuzeNode } from './duzeNode';
 export class Fragment {
   context: Context;
   children: anyComp[];
-  duzeNodes: DuzeNode[];
   eventManager: EventManager;
 
   constructor(children: anyComp[]) {

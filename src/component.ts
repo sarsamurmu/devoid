@@ -46,19 +46,21 @@ abstract class Component {
   render(context: Context): compNodeTypes {
     this.context = context;
     this.child = this.build(context);
-    this.child.eventManager.set('mount', this, () => {
-      this.didMount.bind(this)();
-      this.eventManager.trigger('mount');
-    });
-    this.child.eventManager.set('update', this, () => {
-      this.didUpdate.bind(this)();
-      this.eventManager.trigger('update');
-    });
-    this.child.eventManager.set('destroy', this, () => {
-      this.didUpdate.bind(this)();
-      this.eventManager.trigger('destroy');
-      this.child.eventManager.removeKey(this);
-    });
+    if (this.child.eventManager) {
+      this.child.eventManager.set('mount', this, () => {
+        this.didMount.bind(this)();
+        this.eventManager.trigger('mount');
+      });
+      this.child.eventManager.set('update', this, () => {
+        this.didUpdate.bind(this)();
+        this.eventManager.trigger('update');
+      });
+      this.child.eventManager.set('destroy', this, () => {
+        this.didUpdate.bind(this)();
+        this.eventManager.trigger('destroy');
+        this.child.eventManager.removeKey(this);
+      });
+    }
     return this.child.render(context);
   }
 }
