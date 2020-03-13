@@ -1,6 +1,5 @@
 import { anyComp, buildChildren, EventManager } from './utils';
 import { Context } from './context';
-import { DuzeNode } from './duzeNode';
 
 export class Fragment {
   context: Context;

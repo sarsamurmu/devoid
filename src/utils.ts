@@ -24,16 +24,16 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
         if (typeof built === 'string') children.add(built);
         if (Array.isArray(built)) addAll(children, buildChildren(context, built));
         if (built instanceof Component || built instanceof PrimaryComponent) {
-          addAll(children, [(built as anyComp).render(context, null)].flat(Infinity));
+          addAll(children, [(built as anyComp).render(context)].flat(Infinity));
         }
         break;
 
       case child instanceof Component || child instanceof PrimaryComponent:
-        addAll(children, [(child as anyComp).render(context, null)].flat(Infinity));
+        addAll(children, [(child as anyComp).render(context)].flat(Infinity));
         break;
 
       case child instanceof Fragment:
-        addAll(children, [(child as anyComp).render(context, null)].flat(Infinity));
+        addAll(children, [(child as anyComp).render(context)].flat(Infinity));
         break;
       
       case typeof child === 'string' || typeof child === 'number':

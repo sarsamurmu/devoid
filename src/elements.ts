@@ -1,4 +1,3 @@
-import { Component } from './component';
 import { log, anyComp, buildChildren, EventManager } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
@@ -14,7 +13,7 @@ type EventMap = {
 export type ChildType = anyComp | string | number | ((context: Context) => anyComp) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
-  [index: number]: (ChildrenArray | ChildType);
+  [index: number]: ChildrenArray | ChildType;
 }
 
 interface PrimaryComponentData {
