@@ -16,6 +16,7 @@ type compNodeTypes = DuzeNode | (string | number | DuzeNode)[];
 abstract class Component {
   context: Context;
   child: anyComp;
+  duzeNode: compNodeTypes;
   eventManager: EventManager;
 
   constructor() {
@@ -27,8 +28,9 @@ abstract class Component {
     this.rebuild();
   }
 
-  rebuild() {
-    this.child.rebuild();
+  rebuild(): void {
+    if (Array.isArray(this.duzeNode)) return this.child.rebuild();
+    patch(this.duzeNode as DuzeNode, this.render(this.context) as DuzeNode);
   }
 
   didMount() {}
@@ -61,7 +63,8 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    return this.child.render(context);
+    this.duzeNode = this.child.render(context)
+    return this.duzeNode;
   }
 }
 

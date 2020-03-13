@@ -38,6 +38,10 @@ export class AsyncBuilder extends Component {
     }
   }
 
+  static create(props: AsyncBuilderOptions) {
+    return new AsyncBuilder(props);
+  }
+
   didMount() {
     this.options.getter()
       .then((data) => {
@@ -46,7 +50,7 @@ export class AsyncBuilder extends Component {
         this.snapshot.resolved = true;
       }, (error) => (this.snapshot.error = error))
       .catch((error) => (this.snapshot.error = error))
-      .finally(() => this.setState());
+      .finally(() => this.rebuild());
   }
 
   build(context: Context): anyComp {
@@ -134,7 +138,7 @@ export class ListenerBuilder extends Component {
     super();
     this.options = listenerBuilderOptions;
     for (const notifier of listenerBuilderOptions.listenTo) {
-      notifier.setListener(this, () => this.setState());
+      notifier.setListener(this, () => this.rebuild());
     }
   }
 
