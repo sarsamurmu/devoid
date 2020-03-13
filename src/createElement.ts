@@ -10,10 +10,10 @@ interface protoClass {
 export const createElement = (
   component: anyComp | ((context: Context, props: Record<string, any>) => ChildType),
   props: Record<string, any>,
-  children: any[],
+  ...children: (anyComp | ((context: Context) => ChildType))[]
 ) => {
   if (!props) props = {};
-  props.children = [children].flat(Infinity);
+  props.children = children.flat(Infinity);
 
   if (
     (component as protoClass).prototype instanceof PrimaryComponent ||

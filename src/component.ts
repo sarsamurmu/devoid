@@ -1,4 +1,4 @@
-import { log, anyComp } from './utils';
+import { log, anyComp, EventManager } from './utils';
 import { patch } from './render';
 import { Context } from './context';
 import { DuzeNode } from './duzeNode';
@@ -11,15 +11,24 @@ interface ComponentData {
   children?: (Component | string)[];
 }
 
+type compNodeTypes = DuzeNode | (string | number | DuzeNode)[];
+
 abstract class Component {
   context: Context;
-  duzeNode: DuzeNode;
+  child: anyComp;
+  eventManager: EventManager;
 
-  constructor() {}
+  constructor() {
+    this.eventManager = new EventManager();
+  }
 
   setState(callback: () => void = () => {}) {
     callback();
-    patch(this.duzeNode, this.render(this.context));
+    this.rebuild();
+  }
+
+  rebuild() {
+    this.child.rebuild();
   }
 
   didMount() {}
@@ -34,14 +43,23 @@ abstract class Component {
 
   abstract build(context: Context): anyComp;
 
-  render(context: Context): DuzeNode {
+  render(context: Context): compNodeTypes {
     this.context = context;
-    this.duzeNode = (this.build(context)).render(context, {
-      didMount: this.didMount.bind(this),
-      didUpdate: this.didUpdate.bind(this),
-      didDestroy: this.didDestroy.bind(this),
+    this.child = this.build(context);
+    this.child.eventManager.set('mount', this, () => {
+      this.didMount.bind(this)();
+      this.eventManager.trigger('mount');
     });
-    return this.duzeNode;
+    this.child.eventManager.set('update', this, () => {
+      this.didUpdate.bind(this)();
+      this.eventManager.trigger('update');
+    });
+    this.child.eventManager.set('destroy', this, () => {
+      this.didUpdate.bind(this)();
+      this.eventManager.trigger('destroy');
+      this.child.eventManager.removeKey(this);
+    });
+    return this.child.render(context);
   }
 }
 

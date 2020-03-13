@@ -22,9 +22,31 @@
     <script src="base.js"></script>
     <script type="text/javascript">
       window.addEventListener('DOMContentLoaded', () => {
-        const { render, elements, Component, baseComponents } = Duze;
-        const { div, p, button, a, br, textarea } = elements;
-        const { Builder, AsyncBuilder, Theme, ValueNotifier, ListenerBuilder } = baseComponents;
+        const {
+          render,
+          elements,
+          Component,
+          Fragment,
+          baseComponents,
+          createElement
+        } = Duze;
+
+        const {
+          div,
+          p,
+          button,
+          a,
+          br,
+          textarea
+        } = elements;
+
+        const {
+          Builder,
+          AsyncBuilder,
+          Theme,
+          ValueNotifier,
+          ListenerBuilder
+        } = baseComponents;
 
         let count = 1000;
 
@@ -207,30 +229,94 @@
 
           return new ListenerBuilder({
             listenTo: [boxText],
-            child: new div({
-              children: [
-                new textarea({
-                  on: {
-                    input: (e) => {
-                      boxText.value = e.target.value;
-                    },
+            child: new Fragment([
+              new textarea({
+                on: {
+                  input: (e) => {
+                    boxText.value = e.target.value;
                   },
-                  props: {
-                    value: boxText.value,
-                    classList: ['zust-textarea'],
-                    placeholder: 'Enter some text'
-                  }
-                }),
-                new p({
-                  children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
-                }),
-              ]
-            })
+                },
+                props: {
+                  value: boxText.value,
+                  classList: ['zust-textarea'],
+                  placeholder: 'Enter some text'
+                }
+              }),
+              new p({
+                children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
+              }),
+            ])
           })
+        }
+
+        /*
+        new div({
+          children: valueListenerWidget
+        })
+        */
+
+        window.AsyncBuilder = AsyncBuilder;
+        window.Component = Component;
+
+        /*
+        createElement(div, {}, [
+          createElement(p, {}, 'Hola amigo'),
+          createElement(button, {}, 'Click me'),
+        ])
+        */
+
+        class FragTest extends Component {
+          build() {
+            return new Fragment([
+              new p({
+                style: {
+                  color: 'aqua'
+                },
+                children: 'First paragraph'
+              }),
+              new a({
+                children: 'Link'
+              })
+            ]);
+          }
         }
         
         render(new div({
-          children: valueListenerWidget
+          children: new (class extends Component {
+            didMount() {
+              console.log(`Mounted Level 1`);
+            }
+
+            build() {
+              return new (class extends Component {
+                didMount() {
+                  console.log(`Mounted Level 2`)
+                }
+
+                build() {
+                  return new (class extends Component {
+                    didMount() {
+                      console.log(`Mounted Level 3`)
+                    }
+
+                    build() {
+                      return new (class extends Component {
+                        didMount() {
+                          console.log(`Mounted Level 4`)
+                        }
+
+                        build() {
+                          return new p({
+                            children: 'Link works'
+                          })
+                        }
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          }),
         }), document.querySelector('[renderBox]'));
       });
     </script>

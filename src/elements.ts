@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { log, anyComp } from './utils';
+import { log, anyComp, buildChildren, EventManager } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { patch } from './render';
@@ -31,7 +31,7 @@ abstract class PrimaryComponent {
   elementData: PrimaryComponentData;
   context: Context;
   duzeNode: DuzeNode;
-  lifeCycleCallbacks: Record<string, () => void>;
+  eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
@@ -41,44 +41,25 @@ abstract class PrimaryComponent {
         this.elementData.on[key] = this.elementData.on[key].bind(this);
       }
     }
+    this.eventManager = new EventManager();
   }
 
   static create(props: Record<string, any>): PrimaryComponent {
     return null
   }
 
-  setState(callback: () => void = () => {}) {
-    callback();
-    patch(this.duzeNode, this.render(this.context, this.lifeCycleCallbacks));
+  rebuild() {
+    patch(this.duzeNode, this.render(this.context));
   }
 
   abstract build(context: Context): DuzeNode;
 
-  render(context: Context, lifeCycleCallbacks: Record<string, () => void>): DuzeNode {
-    this.lifeCycleCallbacks = lifeCycleCallbacks || {};
+  render(context: Context): DuzeNode {
     this.context = context;
+    if (!this.eventManager) this.eventManager = new EventManager();
     this.duzeNode = this.build(context);
     return this.duzeNode;
   }
-}
-
-const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
-  const children = new Set<DuzeNode | string | number>();
-  for (const child of childrenArray.flat(Infinity)) {
-    if (typeof child === 'function') {
-      const built = child(context);
-      if (typeof built === 'string') children.add(built);
-      if (Array.isArray(built)) {
-        for (const item of buildChildren(context, built)) children.add(item);
-      }
-      if (built instanceof Component || built instanceof PrimaryComponent) children.add(built.render(context, null));
-    } else if (child instanceof Component || child instanceof PrimaryComponent) {
-      children.add(child.render(context, null));
-    } else if (typeof child === 'string' || typeof child === 'number') {
-      children.add(child);
-    }
-  }
-  return [...children];
 }
 
 const createComponent = (tagName: string) => {
@@ -101,10 +82,10 @@ const createComponent = (tagName: string) => {
         hook: {
           insert: (vnode) => {
             this.duzeNode = vnode;
-            if (this.lifeCycleCallbacks.didMount) this.lifeCycleCallbacks.didMount();
+            this.eventManager.trigger('mount');
           },
-          update: () => this.lifeCycleCallbacks.didUpdate ? this.lifeCycleCallbacks.didUpdate() : null,
-          destroy: () => this.lifeCycleCallbacks.didDestroy ? this.lifeCycleCallbacks.didDestroy() : null,
+          update: () => this.eventManager.trigger('update'),
+          destroy: () => this.eventManager.trigger('destroy'),
         },
       }, buildChildren(context, this.elementData.children));
     }
