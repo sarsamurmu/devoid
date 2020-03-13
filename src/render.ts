@@ -5,8 +5,9 @@ import styleModule from 'snabbdom/es/modules/style';
 import eventModule from 'snabbdom/es/modules/eventlisteners';
 import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
-import { anyComp } from './utils';
+import { anyComp, buildChildren } from './utils';
 import { Context } from './context';
+import { DuzeNode } from './duzeNode';
 
 export const patch = init([
   classModule,
@@ -18,7 +19,7 @@ export const patch = init([
 
 const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
-  elementVNode.children = [component.render(new Context(), null)];
+  elementVNode.children = buildChildren(new Context(), [component]) as (string | DuzeNode)[];
   patch(element, elementVNode);
 }
 
