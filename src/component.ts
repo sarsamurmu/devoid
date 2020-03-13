@@ -1,15 +1,7 @@
-import { log, anyComp, EventManager } from './utils';
+import { anyComp, EventManager } from './utils';
 import { patch } from './render';
 import { Context } from './context';
 import { DuzeNode } from './duzeNode';
-
-interface ComponentData {
-  props?: object;
-  style?: { [key: string]: string | number };
-  events?: { [key: string]: () => void };
-  child?: Component | string;
-  children?: (Component | string)[];
-}
 
 type compNodeTypes = DuzeNode | (string | number | DuzeNode)[];
 
@@ -68,4 +60,4 @@ abstract class Component {
   }
 }
 
-export { Component, ComponentData }
+export { Component }
