@@ -7,7 +7,7 @@ interface protoClass {
   prototype: any;
 }
 
-export const createElement = (
+export const createEl = (
   component: anyComp | ((context: Context, props: Record<string, any>) => ChildType),
   props: Record<string, any>,
   ...children: (anyComp | ((context: Context) => ChildType))[]
