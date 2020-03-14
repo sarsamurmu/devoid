@@ -17,6 +17,7 @@ export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
 }
 
 interface PrimaryComponentData {
+  key?: any;
   props?: Record<string, any>;
   class?: Record<string, boolean>;
   attrs?: Record<string, string | number | boolean>;
@@ -73,6 +74,7 @@ const createComponent = (tagName: string) => {
       if (this.elementData.getComponent) this.elementData.getComponent(this);
 
       return h(tagName, {
+        key: this.elementData.key,
         class: this.elementData.class,
         style: this.elementData.style,
         attrs: this.elementData.attrs,

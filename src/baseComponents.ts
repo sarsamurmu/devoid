@@ -1,7 +1,6 @@
 import { Component } from './component';
 import { anyComp, log } from './utils';
 import { Context } from './context';
-import { DuzeNode } from './duzeNode';
 
 export const Builder = (builderOptions: {
   builder: (context: Context) => (anyComp)

@@ -59,7 +59,6 @@ export class EventManager {
 
   removeKey(key: any) {
     this.events.forEach((eventMap) => eventMap.delete(key));
-    log(this.events);
   }
 
   trigger(eventName: string) {
