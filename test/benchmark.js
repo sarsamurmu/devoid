@@ -83,7 +83,10 @@ class Main extends Component {
     console.log('Keyed benchmark ended');
 
     this.addKey = false;
-    this.data.items = [];
+    this.data = {
+      items: [],
+      selected: 0,
+    }
     this.rebuild();
 
     console.log('Starting non keyed benchmark');
