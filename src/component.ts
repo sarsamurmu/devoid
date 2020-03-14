@@ -15,8 +15,10 @@ abstract class Component {
     this.eventManager = new EventManager();
   }
 
+  /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
+
   setState(callback: () => void = () => {}) {
-    callback();
+    if (callback) callback();
     this.rebuild();
   }
 
@@ -31,9 +33,12 @@ abstract class Component {
 
   didDestroy() {}
 
+
   static create(props: Record<string, any>): Component {
     return null
   }
+
+  /* eslint-enable */
 
   abstract build(context: Context): anyComp;
 

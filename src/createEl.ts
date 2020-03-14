@@ -1,10 +1,10 @@
-import { anyComp, log } from './utils';
+import { anyComp } from './utils';
 import { Context } from './context';
 import { PrimaryComponent, ChildType } from './elements';
 import { Component } from './component';
 import { elements } from './elements';
 
-interface protoClass {
+interface ProtoClass {
   prototype: any;
 }
 
@@ -19,8 +19,8 @@ export const createEl = (
   if (elements[component as any]) {
     return (elements[component as any] as any).create(props);
   } else if (
-    (component as protoClass).prototype instanceof PrimaryComponent ||
-    (component as protoClass).prototype instanceof Component
+    (component as ProtoClass).prototype instanceof PrimaryComponent ||
+    (component as ProtoClass).prototype instanceof Component
   ) {
     return (component as any).create(props);
   } else if (typeof component === 'function') {

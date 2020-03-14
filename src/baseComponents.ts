@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { anyComp, log } from './utils';
+import { anyComp } from './utils';
 import { Context } from './context';
 
 interface AsyncSnapshot {
@@ -87,7 +87,7 @@ export interface Notifier {
 
 export const ValueNotifier = (data?: Record<string, any> | any[]) => {
   interface NotifierObject extends Notifier, Record<string, any> {
-    listeners: Map<any, () => void>
+    listeners: Map<any, () => void>;
   }
   const obj = {} as NotifierObject;
 
@@ -112,7 +112,7 @@ export const ValueNotifier = (data?: Record<string, any> | any[]) => {
     notifyListeners: {
       ...def,
       get: () => () => {
-        for (const [key, callback] of obj.listeners) callback()
+        for (const [, callback] of obj.listeners) callback()
       },
     }
   });

@@ -6,6 +6,9 @@ import { Fragment } from './fragment';
 
 export type anyComp = Component | PrimaryComponent | Fragment;
 
+declare const window: Window;
+declare const console: Console;
+
 const debug = window.location.hostname === 'localhost';
 export const log = (...data: any): any => {
   if (debug) console.log(...data);
@@ -18,9 +21,10 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
   const children = new Set<DuzeNode | string | number>();
   for (const child of childrenArray.flat(Infinity)) {
+    let built;
     switch (true) {
       case typeof child === 'function':
-        const built = (child as (((context: Context) => anyComp)))(context);
+        built = (child as (((context: Context) => anyComp)))(context);
         if (typeof built === 'string') children.add(built);
         if (Array.isArray(built)) addAll(children, buildChildren(context, built));
         if (built instanceof Component || built instanceof PrimaryComponent) {
