@@ -124,14 +124,11 @@ export const ValueNotifier = (data?: Record<string, any> | any[]) => {
       }
       return new Proxy(data, {
         set: (obj, key, value) => {
-          try {
-            Reflect.set(obj, key, proxify(value));
-          } catch (e) {
-            console.error(e);
-            return false;
+          if (Reflect.set(obj, key, proxify(value))) {
+            obj.notifyListeners();
+            return true;
           }
-          obj.notifyListeners();
-          return true;
+          return false;
         }
       });
     }
@@ -144,14 +141,11 @@ export const ValueNotifier = (data?: Record<string, any> | any[]) => {
 
   return new Proxy(obj, {
     set: (obj, key, value) => {
-      try {
-        Reflect.set(obj, key, proxify(value));
-      } catch (e) {
-        console.error(e);
-        return false;
+      if (Reflect.set(obj, key, proxify(value))) {
+        obj.notifyListeners();
+        return true;
       }
-      obj.notifyListeners();
-      return true;
+      return false;
     }
   }) as Notifier;
 }
