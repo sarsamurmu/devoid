@@ -2,14 +2,6 @@ import { Component } from './component';
 import { anyComp, log } from './utils';
 import { Context } from './context';
 
-export const Builder = (builderOptions: {
-  builder: (context: Context) => (anyComp)
-}) => new (class extends Component {
-  build(context: Context): anyComp {
-    return builderOptions.builder(context);
-  }
-});
-
 interface AsyncSnapshot {
   data: any;
   hasData: boolean;
@@ -87,43 +79,82 @@ export class Theme extends Component {
   }
 }
 
-class Notifier {
-  listeners: Map<any, () => void>;
-
-  constructor() {
-    this.listeners = new Map();
-  }
-
-  setListener(key: any, callback: () => void) {
-    this.listeners.set(key, callback);
-  }
-
-  removeListener(key: any) {
-    this.listeners.delete(key);
-  }
-
-  notifyListeners() {
-    for (const [key, callback] of this.listeners) callback();
-  }
+export interface Notifier {
+  setListener(key: any, callback: () => void): void;
+  removeListener(key: any): void;
+  notifyListeners(): void;
 }
 
-export const ValueNotifier = (initialValue: any) => new (class extends Notifier {
-  _$: any;
+export const ValueNotifier = (data?: Record<string, any> | any[]) => {
+  interface NotifierObject extends Notifier, Record<string, any> {
+    listeners: Map<any, () => void>
+  }
+  const obj = {} as NotifierObject;
 
-  constructor() {
-    super();
-    this._$ = initialValue;
+  const def = {
+    configurable: false,
+    enumerable: false
   }
 
-  set value(newValue: any) {
-    this._$ = newValue;
-    this.notifyListeners();
+  Object.defineProperties(obj, {
+    listeners: {
+      ...def,
+      value: new Map(),
+    },
+    setListener: {
+      ...def,
+      get: () => (key: any, callback: () => void) => obj.listeners.set(key, callback),
+    },
+    removeListener: {
+      ...def,
+      get: () => (key: any) => obj.listeners.delete(key),
+    },
+    notifyListeners: {
+      ...def,
+      get: () => () => {
+        for (const [key, callback] of obj.listeners) callback()
+      },
+    }
+  });
+
+  const proxify = (data: any) => {
+    if (typeof data === 'object' && data !== null) {
+      for (const key in data) {
+        data[key] = proxify(data[key]);
+      }
+      return new Proxy(data, {
+        set: (obj, key, value) => {
+          try {
+            Reflect.set(obj, key, proxify(value));
+          } catch (e) {
+            console.error(e);
+            return false;
+          }
+          obj.notifyListeners();
+          return true;
+        }
+      });
+    }
+    return data;
   }
 
-  get value() {
-    return this._$;
+  for (const key in data) {
+    obj[key] = proxify((data as any)[key]);
   }
-});
+
+  return new Proxy(obj, {
+    set: (obj, key, value) => {
+      try {
+        Reflect.set(obj, key, proxify(value));
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+      obj.notifyListeners();
+      return true;
+    }
+  }) as Notifier;
+}
 
 interface ListenerBuilderOptions {
   listenTo: Notifier[];

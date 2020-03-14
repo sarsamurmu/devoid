@@ -49,7 +49,7 @@
         } = baseComponents;
 
         const valueListenerWidget = (context) => {
-          const boxText = ValueNotifier('This is initial value');
+          const boxText = ValueNotifier({ value: 'This is initial value' });
 
           return new ListenerBuilder({
             listenTo: [boxText],
