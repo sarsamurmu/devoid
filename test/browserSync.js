@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const chokidar = require('chokidar');
 
-const duze = path.resolve(__dirname, '../dist/duze.js');
+const strut = path.resolve(__dirname, '../dist/strut.js');
 
 browserSync.init({
   server: {
@@ -39,15 +39,15 @@ browserSync.init({
           `);
       });
 
-      bs.addMiddleware('/dist/duze.js', (req, res) => {
+      bs.addMiddleware('/dist/strut.js', (req, res) => {
         res.writeHead(200, {
           'Content-Type': 'text/javascript'
         });
-        fs.createReadStream(duze).pipe(res);
+        fs.createReadStream(strut).pipe(res);
       })
     }
   }
 });
-chokidar.watch(duze).on('change', () => browserSync.reload('*.js'));
+chokidar.watch(strut).on('change', () => browserSync.reload('*.js'));
 
 browserSync.watch('*').on('change', browserSync.reload);

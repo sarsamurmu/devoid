@@ -2,7 +2,7 @@ import { anyComp, buildChildren, EventManager } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { patch } from './render';
-import { DuzeNode } from './duzeNode';
+import { StrutNode } from './strutNode';
 
 type EventMap = {
   [N in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[N]) => void;
@@ -30,7 +30,7 @@ interface PrimaryComponentData {
 abstract class PrimaryComponent {
   elementData: PrimaryComponentData;
   context: Context;
-  duzeNode: DuzeNode;
+  strutNode: StrutNode;
   eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
@@ -50,16 +50,16 @@ abstract class PrimaryComponent {
   }
 
   rebuild() {
-    patch(this.duzeNode, this.render(this.context));
+    patch(this.strutNode, this.render(this.context));
   }
 
-  abstract build(context: Context): DuzeNode;
+  abstract build(context: Context): StrutNode;
 
-  render(context: Context): DuzeNode {
+  render(context: Context): StrutNode {
     this.context = context;
     if (!this.eventManager) this.eventManager = new EventManager();
-    this.duzeNode = this.build(context);
-    return this.duzeNode;
+    this.strutNode = this.build(context);
+    return this.strutNode;
   }
 }
 
@@ -69,7 +69,7 @@ const createComponent = (tagName: string) => {
       return new ElementClass(props);
     }
 
-    build(context: Context): DuzeNode {
+    build(context: Context): StrutNode {
       this.elementData.children = [this.elementData.children];
 
       if (this.elementData.getComponent) this.elementData.getComponent(this);
@@ -83,7 +83,7 @@ const createComponent = (tagName: string) => {
         on: this.elementData.on,
         hook: {
           insert: (vnode) => {
-            this.duzeNode = vnode;
+            this.strutNode = vnode;
             this.eventManager.trigger('mount');
           },
           update: () => this.eventManager.trigger('update'),

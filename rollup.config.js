@@ -6,10 +6,10 @@ import pkg from './package.json';
 
 const prod = process.env.BUILD === 'production';
 
-const duzeBanner = 
-`Duze v${pkg.version}
+const strutBanner = 
+`Strut v${pkg.version}
 Copyright (c) Sarsa Murmu 2020-present
-Repository https://github.com/sarsamurmu/duze
+Repository https://github.com/sarsamurmu/strut
 Licensed under The MIT License`;
 
 export default {
@@ -18,7 +18,7 @@ export default {
     {
       file: pkg.main,
       format: 'umd',
-      name: 'Duze',
+      name: 'Strut',
       sourcemap: !prod && 'inline',
     },
     prod && {
@@ -37,7 +37,7 @@ export default {
       }
     }),
     prod && terser(),
-    prod && banner(duzeBanner),
+    prod && banner(strutBanner),
   ],
   cache: !prod,
 }

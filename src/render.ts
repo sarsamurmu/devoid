@@ -7,7 +7,7 @@ import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
 import { anyComp, buildChildren } from './utils';
 import { Context } from './context';
-import { DuzeNode } from './duzeNode';
+import { StrutNode } from './strutNode';
 
 export const patch = init([
   classModule,
@@ -19,7 +19,7 @@ export const patch = init([
 
 const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
-  elementVNode.children = buildChildren(new Context(), [component]) as (string | DuzeNode)[];
+  elementVNode.children = buildChildren(new Context(), [component]) as (string | StrutNode)[];
   patch(element, elementVNode);
 }
 

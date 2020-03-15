@@ -1,9 +1,9 @@
 {
-  "name": "duze",
+  "name": "strut",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/duze.js",
-  "module": "dist/duze.es.js",
+  "main": "dist/strut.js",
+  "module": "dist/strut.es.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "rollup -c -w",

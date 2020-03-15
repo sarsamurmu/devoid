@@ -5,14 +5,14 @@
 const {
   render,
   Component,
-} = Duze;
+} = Strut;
 
 const {
   div,
   p,
   tr,
   table
-} = Duze.elements;
+} = Strut.elements;
 
 const random = (max) => Math.round(Math.random() * 1000) % max;
 

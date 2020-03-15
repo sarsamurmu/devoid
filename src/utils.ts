@@ -1,7 +1,7 @@
 import { Component } from './component';
 import { PrimaryComponent, ChildrenArray } from './elements';
 import { Context } from './context';
-import { DuzeNode } from './duzeNode';
+import { StrutNode } from './strutNode';
 import { Fragment } from './fragment';
 
 export type anyComp = Component | PrimaryComponent | Fragment;
@@ -19,7 +19,7 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
 }
 
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
-  const children = new Set<DuzeNode | string | number>();
+  const children = new Set<StrutNode | string | number>();
   for (const child of childrenArray.flat(Infinity)) {
     let built;
     switch (true) {

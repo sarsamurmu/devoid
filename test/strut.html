@@ -3,11 +3,11 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Duze</title>
+    <title>Strut</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href="style.css" rel="stylesheet">
-    <script src="./../dist/duze.js"></script>
+    <script src="./../dist/strut.js"></script>
   </head>
 
   <body>
@@ -29,7 +29,7 @@
           Fragment,
           baseComponents,
           createEl
-        } = Duze;
+        } = Strut;
 
         const {
           div,
@@ -101,28 +101,45 @@
             }
           }),
         })
-
-        const myComp = createEl("div", null, createEl(AsyncBuilder, {
-          getter: function getter() {
-            return new Promise(function (resolve, reject) {
-              setTimeout(function () {
-                return resolve('Done');
-              }, 1000);
-            });
-          },
-          builder: function builder(context, _ref) {
-            const hasData = _ref.hasData,
-              data = _ref.data;
-            console.log(hasData);
-            return createEl("div", {
-              props: {
-                classList: ['zust-container']
-              }
-            }, hasData ? data : 'Data is loading');
-          }
-        }));
         
-        render(myComp, document.querySelector('[renderBox]'));
+        render(new (class extends Component {
+          constructor() {
+            super();
+            this.state = { name: 'Flex' };
+          }
+
+          didUpdate() {
+            console.log(`Updated`);
+          }
+
+          pClick() {
+            this.rebuild()
+          }
+
+          buttonClick() {
+            this.state.name = 'Drex';
+            this.rebuild();
+          }
+
+          build() {
+            return new p({
+              on: {
+                //click: this.pClick,
+              },
+              children: [
+                'My name is ',
+                this.state.name,
+                new br(),
+                new button({
+                  on: {
+                    click: this.buttonClick
+                  },
+                  children: 'Change name'
+                })
+              ]
+            })
+          }
+        }), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

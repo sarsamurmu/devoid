@@ -1,14 +1,14 @@
 import { anyComp, EventManager } from './utils';
 import { patch } from './render';
 import { Context } from './context';
-import { DuzeNode } from './duzeNode';
+import { StrutNode } from './strutNode';
 
-type compNodeTypes = DuzeNode | (string | number | DuzeNode)[];
+type compNodeTypes = StrutNode | (string | number | StrutNode)[];
 
 abstract class Component {
   context: Context;
   child: anyComp;
-  duzeNode: compNodeTypes;
+  strutNode: compNodeTypes;
   eventManager: EventManager;
 
   constructor() {
@@ -23,8 +23,8 @@ abstract class Component {
   }
 
   rebuild(): void {
-    if (Array.isArray(this.duzeNode)) return this.child.rebuild();
-    patch(this.duzeNode as DuzeNode, this.render(this.context) as DuzeNode);
+    if (Array.isArray(this.strutNode)) return this.child.rebuild();
+    patch(this.strutNode as StrutNode, this.render(this.context) as StrutNode);
   }
 
   didMount() {}
@@ -60,8 +60,8 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    this.duzeNode = this.child.render(context)
-    return this.duzeNode;
+    this.strutNode = this.child.render(context)
+    return this.strutNode;
   }
 }
 

@@ -52,7 +52,7 @@ export class AsyncBuilder extends Component {
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
-const themeKey = 'DuzeDefaultThemeKey';
+const themeKey = 'StrutDefaultThemeKey';
 
 interface ThemeOptions {
   themeData: any;
