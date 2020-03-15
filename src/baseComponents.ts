@@ -49,6 +49,9 @@ export class AsyncBuilder extends Component {
   }
 }
 
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
 const themeKey = 'DuzeDefaultThemeKey';
 
 interface ThemeOptions {
@@ -79,13 +82,16 @@ export class Theme extends Component {
   }
 }
 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
 export interface Notifier {
   setListener(key: any, callback: () => void): void;
   removeListener(key: any): void;
   notifyListeners(): void;
 }
 
-export const ValueNotifier = <T extends Record<string, any>>(data?: T) => {
+export const ValueNotifier = <T extends (Record<string, any> | any)>(data?: T) => {
   interface NotifierObject extends Notifier, Record<string, any> {
     '#listeners#': Map<any, () => void>;
   }
@@ -135,8 +141,12 @@ export const ValueNotifier = <T extends Record<string, any>>(data?: T) => {
     return data;
   }
 
-  for (const key in data) {
-    obj[key] = proxify((data as any)[key]);
+  if (typeof data === 'object' && obj !== null) {
+    for (const key in data) {
+      obj[key] = proxify(data[key]);
+    }
+  } else {
+    obj.value = data;
   }
 
   return new Proxy(obj, {
@@ -170,6 +180,41 @@ export class ListenerBuilder extends Component {
     for (const notifier of this.options.listenTo) {
       notifier.removeListener(this);
     }
+  }
+
+  build(context: Context): anyComp {
+    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
+  }
+}
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+interface LifecycleBuilderOptions {
+  didMount(): void;
+  didUpdate(): void;
+  didDestroy(): void;
+  child: anyComp | ((context: Context) => anyComp);
+}
+
+export class LifecycleBuilder extends Component {
+  options: LifecycleBuilderOptions;
+
+  constructor(options: LifecycleBuilderOptions) {
+    super();
+    this.options = options;
+  }
+
+  didMount() {
+    this.options.didMount();
+  }
+
+  didUpdate() {
+    this.options.didUpdate();
+  }
+
+  didDestroy() {
+    this.options.didDestroy();
   }
 
   build(context: Context): anyComp {
