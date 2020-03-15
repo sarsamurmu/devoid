@@ -2,6 +2,7 @@ import { anyComp, EventManager } from './utils';
 import { patch } from './render';
 import { Context } from './context';
 import { StrutNode } from './strutNode';
+import { PrimaryComponent } from './elements';
 
 type compNodeTypes = StrutNode | (string | number | StrutNode)[];
 
@@ -60,7 +61,7 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    this.strutNode = this.child.render(context)
+    this.strutNode = this.child.render(context);
     return this.strutNode;
   }
 }

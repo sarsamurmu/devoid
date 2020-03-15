@@ -70,6 +70,7 @@
               new p({
                 children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
               }),
+              () => boxText.value,
             ])
           })
         }

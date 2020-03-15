@@ -53,12 +53,12 @@ abstract class PrimaryComponent {
     patch(this.strutNode, this.render(this.context));
   }
 
-  abstract build(context: Context): StrutNode;
+  abstract build(context: Context, parentPriComp?: PrimaryComponent): StrutNode;
 
-  render(context: Context): StrutNode {
+  render(context: Context, parentPriComp?: PrimaryComponent): StrutNode {
     this.context = context;
     if (!this.eventManager) this.eventManager = new EventManager();
-    this.strutNode = this.build(context);
+    this.strutNode = this.build(context, parentPriComp);
     return this.strutNode;
   }
 }

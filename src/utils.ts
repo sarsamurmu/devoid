@@ -3,6 +3,7 @@ import { PrimaryComponent, ChildrenArray } from './elements';
 import { Context } from './context';
 import { StrutNode } from './strutNode';
 import { Fragment } from './fragment';
+import vnode from 'snabbdom/es/vnode';
 
 export type anyComp = Component | PrimaryComponent | Fragment;
 
@@ -18,14 +19,16 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
   for (const item of toAdd) set.add(item);
 }
 
+const textVNode = (text: string | number) => vnode(undefined, undefined, undefined, text + '', undefined);
+
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
-  const children = new Set<StrutNode | string | number>();
+  const children = new Set<StrutNode>();
   for (const child of childrenArray.flat(Infinity)) {
     let built;
     switch (true) {
       case typeof child === 'function':
         built = (child as (((context: Context) => anyComp)))(context);
-        if (typeof built === 'string') children.add(built);
+        if (typeof built === 'string') children.add(textVNode(built));
         if (Array.isArray(built)) addAll(children, buildChildren(context, built));
         if (built instanceof Component || built instanceof PrimaryComponent) {
           addAll(children, [(built as anyComp).render(context)].flat(Infinity));
@@ -41,7 +44,7 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
         break;
       
       case typeof child === 'string' || typeof child === 'number':
-        children.add(child as string | number);
+        children.add(textVNode(child));
         break;
     }
   }

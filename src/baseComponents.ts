@@ -1,6 +1,7 @@
 import { Component } from './component';
 import { anyComp } from './utils';
 import { Context } from './context';
+import { PrimaryComponent } from './elements';
 
 interface AsyncSnapshot {
   data: any;
@@ -75,10 +76,10 @@ export class Theme extends Component {
     return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
   }
 
-  render(context: Context) {
+  render(context: Context, parentPriComp?: PrimaryComponent) {
     this.context = context.copy();
     this.context.set(themeKey, this.options.themeData);
-    return super.render(this.context);
+    return super.render(this.context, parentPriComp);
   }
 }
 

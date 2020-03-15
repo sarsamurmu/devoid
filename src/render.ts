@@ -1,4 +1,4 @@
-import { init } from 'snabbdom/es/snabbdom';
+//import { init } from 'snabbdom/es/snabbdom';
 import { toVNode } from 'snabbdom/es/tovnode';
 import classModule from 'snabbdom/es/modules/class';
 import styleModule from 'snabbdom/es/modules/style';
@@ -8,8 +8,9 @@ import propsModule from 'snabbdom/es/modules/props';
 import { anyComp, buildChildren } from './utils';
 import { Context } from './context';
 import { StrutNode } from './strutNode';
+import { init } from './vnode';
 
-export const patch = init([
+const { patch, updateChildren } = init([
   classModule,
   styleModule,
   eventModule,
@@ -17,9 +18,11 @@ export const patch = init([
   propsModule,
 ]);
 
+export { patch, updateChildren };
+
 const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
-  elementVNode.children = buildChildren(new Context(), [component]) as (string | StrutNode)[];
+  elementVNode.children = buildChildren(new Context(), [component], null) as (string | StrutNode)[];
   patch(element, elementVNode);
 }
 
