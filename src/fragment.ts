@@ -1,21 +1,7 @@
-import { anyComp, buildChildren, EventManager, log } from './utils';
+import { anyComp, buildChildren, EventManager } from './utils';
 import { Context } from './context';
 import { StrutNode } from './strutNode';
 import { updateChildren } from './render';
-
-const getIndexInParent = (strutNode: StrutNode, parentElement: Node) => {
-  if ((strutNode as StrutNode).elm) {
-    const childNodes = parentElement.childNodes;
-    for (let i = 0; i < childNodes.length; i++) {
-      if ((strutNode as StrutNode).elm === childNodes[i]) return i;
-    }
-  } else if (typeof strutNode === 'string') {
-    const childNodes = parentElement.childNodes;
-    for (let i = 0; i < childNodes.length; i++) {
-      if (strutNode === childNodes[i].textContent) return i;
-    }
-  }
-}
 
 export class Fragment {
   context: Context;

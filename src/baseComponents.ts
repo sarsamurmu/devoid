@@ -76,10 +76,10 @@ export class Theme extends Component {
     return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
   }
 
-  render(context: Context, parentPriComp?: PrimaryComponent) {
+  render(context: Context) {
     this.context = context.copy();
     this.context.set(themeKey, this.options.themeData);
-    return super.render(this.context, parentPriComp);
+    return super.render(this.context);
   }
 }
 
