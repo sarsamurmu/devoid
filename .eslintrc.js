@@ -25,5 +25,6 @@ module.exports = {
     '@typescript-eslint/require-await': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-for-in-array': 'error',
   }
 }

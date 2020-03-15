@@ -47,15 +47,15 @@ abstract class Component {
     this.child = this.build(context);
     if (this.child.eventManager) {
       this.child.eventManager.set('mount', this, () => {
-        this.didMount.bind(this)();
+        this.didMount();
         this.eventManager.trigger('mount');
       });
       this.child.eventManager.set('update', this, () => {
-        this.didUpdate.bind(this)();
+        this.didUpdate();
         this.eventManager.trigger('update');
       });
       this.child.eventManager.set('destroy', this, () => {
-        this.didUpdate.bind(this)();
+        this.didUpdate();
         this.eventManager.trigger('destroy');
         this.child.eventManager.removeKey(this);
       });

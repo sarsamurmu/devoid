@@ -85,42 +85,42 @@ export interface Notifier {
   notifyListeners(): void;
 }
 
-export const ValueNotifier = (data?: Record<string, any> | any[]) => {
+export const ValueNotifier = <T extends Record<string, any>>(data?: T) => {
   interface NotifierObject extends Notifier, Record<string, any> {
-    listeners: Map<any, () => void>;
+    '#listeners#': Map<any, () => void>;
   }
   const obj = {} as NotifierObject;
-
+  const listenerMap = new Map();
   const def = {
     configurable: false,
     enumerable: false
   }
 
   Object.defineProperties(obj, {
-    listeners: {
+    '#listeners#': {
       ...def,
-      value: new Map(),
+      get: () => listenerMap,
     },
     setListener: {
       ...def,
-      get: () => (key: any, callback: () => void) => obj.listeners.set(key, callback),
+      get: () => (key: any, callback: () => void) => obj['#listeners#'].set(key, callback),
     },
     removeListener: {
       ...def,
-      get: () => (key: any) => obj.listeners.delete(key),
+      get: () => (key: any) => obj['#listeners#'].delete(key),
     },
     notifyListeners: {
       ...def,
       get: () => () => {
-        for (const [, callback] of obj.listeners) callback()
+        for (const callback of obj['#listeners#'].values()) callback();
       },
     }
   });
 
   const proxify = (data: any) => {
     if (typeof data === 'object' && data !== null) {
-      for (const key in data) {
-        data[key] = proxify(data[key]);
+      for (const [key, value] of Object.entries(data)) {
+        data[key] = proxify(value);
       }
       return new Proxy(data, {
         set: (obj, key, value) => {
@@ -147,7 +147,7 @@ export const ValueNotifier = (data?: Record<string, any> | any[]) => {
       }
       return false;
     }
-  }) as Notifier;
+  }) as unknown as Notifier & T & Record<string, any>;
 }
 
 interface ListenerBuilderOptions {
