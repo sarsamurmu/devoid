@@ -5,9 +5,23 @@ export class Fragment {
   context: Context;
   children: anyComp[];
   eventManager: EventManager;
+  mountedChildren: number;
 
   constructor(children: anyComp[]) {
     this.children = children;
+    this.eventManager = new EventManager;
+    this.mountedChildren = 0;
+
+    for (const child of children) {
+      child.eventManager.set('mount', this, () => {
+        this.mountedChildren++;
+        if (this.mountedChildren === this.children.length) this.eventManager.trigger('mount');
+      });
+      child.eventManager.set('destroy', this, () => {
+        this.mountedChildren--;
+        child.eventManager.removeKey(this);
+      })
+    }
   }
 
   rebuild() {
