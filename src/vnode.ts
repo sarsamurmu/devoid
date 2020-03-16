@@ -98,16 +98,10 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       vnode.elm = api.createComment(vnode.text!);
     } else if (sel !== undefined) {
       // Parse selector
-      const hashIdx = sel.indexOf('#');
-      const dotIdx = sel.indexOf('.', hashIdx);
-      const hash = hashIdx > 0 ? hashIdx : sel.length;
-      const dot = dotIdx > 0 ? dotIdx : sel.length;
-      const tag = hashIdx !== -1 || dotIdx !== -1 ? sel.slice(0, Math.min(hash, dot)) : sel;
+      const tag = sel;
       const elm = vnode.elm = isDef(data) && isDef(i = data.ns)
         ? api.createElementNS(i, tag)
         : api.createElement(tag);
-      if (hash < dot) elm.setAttribute('id', sel.slice(hash + 1, dot));
-      if (dotIdx > 0) elm.setAttribute('class', sel.slice(dot + 1).replace(/\./g, ' '));
       for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vnode);
       if (is.array(children)) {
         for (i = 0; i < children.length; ++i) {
@@ -191,14 +185,14 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     }
   }
 
-  function updateChildren(parentElm: Node,
+  function updateChildren(
+    parentElm: Node,
     oldCh: VNode[],
     newCh: VNode[],
     insertedVnodeQueue: VNodeQueue,
-    oldStartIndex = 0,
   ) {
-    let oldStartIdx = oldStartIndex;
-    let newStartIdx = oldStartIndex;
+    let oldStartIdx = 0;
+    let newStartIdx = 0;
     let oldEndIdx = oldCh.length - 1;
     let oldStartVnode = oldCh[0];
     let oldEndVnode = oldCh[oldEndIdx];
@@ -330,6 +324,12 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
 
   return {
     patch,
-    updateChildren,
+    updateChildren: (parentElm: Node, oldCh: VNode[], newCh: VNode[]) => {
+      const insertedVNodeQueue: VNode[] = [];
+      updateChildren(parentElm, oldCh, newCh, insertedVNodeQueue);
+      for (const insertedVNode of insertedVNodeQueue) {
+        insertedVNode.data!.hook!.insert!(insertedVNode);
+      }
+    }
   }
 }

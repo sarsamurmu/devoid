@@ -9,15 +9,13 @@ import { Context } from './context';
 import { StrutNode } from './strutNode';
 import { init } from './vnode';
 
-const { patch, updateChildren } = init([
+export const { patch, updateChildren } = init([
   classModule,
   styleModule,
   eventModule,
   attributeModule,
   propsModule,
 ]);
-
-export { patch, updateChildren }
 
 const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);

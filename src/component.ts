@@ -1,18 +1,28 @@
 import { anyComp, EventManager } from './utils';
-import { patch } from './render';
+import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { StrutNode } from './strutNode';
-
-type compNodeTypes = StrutNode | (string | number | StrutNode)[];
 
 abstract class Component {
   context: Context;
   child: anyComp;
-  strutNode: compNodeTypes;
+  strutNode: StrutNode | StrutNode[];
   eventManager: EventManager;
 
   constructor() {
     this.eventManager = new EventManager();
+  }
+
+  rebuild() {
+    if (Array.isArray(this.strutNode)) { // Children is probably fragment so use different method
+      const newChildren = this.render(this.context, false) as StrutNode[];
+      updateChildren(this.strutNode[0].elm.parentElement, this.strutNode, newChildren);
+      this.strutNode = newChildren;
+    } else {
+      const newChildren = this.render(this.context, false) as StrutNode;
+      patch(this.strutNode, newChildren);
+      this.strutNode = newChildren;
+    }
   }
 
   /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
@@ -20,11 +30,6 @@ abstract class Component {
   setState(callback: () => void = () => {}) {
     if (callback) callback();
     this.rebuild();
-  }
-
-  rebuild(): void {
-    if (Array.isArray(this.strutNode)) return this.child.rebuild();
-    patch(this.strutNode as StrutNode, this.render(this.context) as StrutNode);
   }
 
   didMount() {}
@@ -42,7 +47,7 @@ abstract class Component {
 
   abstract build(context: Context): anyComp;
 
-  render(context: Context): compNodeTypes {
+  render(context: Context, setStrutNode = true): StrutNode | StrutNode[] {
     this.context = context;
     this.child = this.build(context);
     if (this.child.eventManager) {
@@ -60,8 +65,8 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    this.strutNode = this.child.render(context);
-    return this.strutNode;
+    if (setStrutNode) this.strutNode = this.child.render(context);
+    return setStrutNode ? this.strutNode : this.child.render(context);
   }
 }
 

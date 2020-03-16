@@ -1,7 +1,6 @@
 import { Component } from './component';
-import { anyComp } from './utils';
+import { anyComp, log } from './utils';
 import { Context } from './context';
-import { PrimaryComponent } from './elements';
 
 interface AsyncSnapshot {
   data: any;
@@ -92,7 +91,7 @@ export interface Notifier {
   notifyListeners(): void;
 }
 
-export const ValueNotifier = <T extends (Record<string, any> | any)>(data?: T) => {
+export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
   interface NotifierObject extends Notifier, Record<string, any> {
     '#listeners#': Map<any, () => void>;
   }
