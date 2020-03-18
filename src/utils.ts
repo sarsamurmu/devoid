@@ -1,9 +1,8 @@
 import { Component } from './component';
 import { PrimaryComponent, ChildrenArray } from './elements';
 import { Context } from './context';
-import { DevetoNode } from './devetoNode';
 import { Fragment } from './fragment';
-import vnode from 'snabbdom/es/vnode';
+import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export type anyComp = Component | PrimaryComponent | Fragment;
 
@@ -22,7 +21,7 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
 const textVNode = (text: string | number) => vnode(undefined, undefined, undefined, text + '', undefined);
 
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
-  const children = new Set<DevetoNode>();
+  const children = new Set<VNode>();
   for (const child of childrenArray.flat(Infinity)) {
     let built;
     switch (true) {

@@ -6,7 +6,6 @@ import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
 import { anyComp, buildChildren } from './utils';
 import { Context } from './context';
-import { DevetoNode } from './devetoNode';
 import { init } from './vnode';
 
 export const { patch, updateChildren } = init([
@@ -19,7 +18,7 @@ export const { patch, updateChildren } = init([
 
 const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
-  elementVNode.children = buildChildren(new Context(), [component]) as (string | DevetoNode)[];
+  elementVNode.children = buildChildren(new Context(), [component]);
   patch(element, elementVNode);
 }
 

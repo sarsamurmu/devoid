@@ -1,24 +1,25 @@
-import { anyComp, buildChildren, EventManager } from './utils';
+import { buildChildren, EventManager } from './utils';
 import { Context } from './context';
-import { DevetoNode } from './devetoNode';
+import { ChildType } from './elements';
+import { VNode } from 'snabbdom/es/vnode';
 
 export class Fragment {
   context: Context;
-  children: anyComp[];
+  children: ChildType[];
   eventManager: EventManager;
-  devetoNodes: DevetoNode[];
+  vNodes: VNode[];
 
-  constructor(children: anyComp[]) {
+  constructor(children: ChildType[]) {
     this.children = children;
     this.eventManager = new EventManager();
 
     for (const child of children) {
-      if (child.eventManager) {
-        child.eventManager.set('mount', this, () => {
+      if ((child as any).eventManager) {
+        (child as any).eventManager.set('mount', this, () => {
           this.eventManager.trigger('mount');
         });
-        child.eventManager.set('destroy', this, () => {
-          child.eventManager.removeKey(this);
+        (child as any).eventManager.set('destroy', this, () => {
+          (child as any).eventManager.removeKey(this);
         })
       }
     }
@@ -29,7 +30,7 @@ export class Fragment {
   }
 
   render(context: Context) {
-    this.devetoNodes = this.build(context);
-    return this.devetoNodes;
+    this.vNodes = this.build(context);
+    return this.vNodes;
   }
 }

@@ -1,12 +1,12 @@
 import { anyComp, EventManager } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
-import { DevetoNode } from './devetoNode';
+import { VNode } from 'snabbdom/es/vnode';
 
 abstract class Component {
   context: Context;
   child: anyComp;
-  devetoNode: DevetoNode | DevetoNode[];
+  vNode: VNode | VNode[];
   eventManager: EventManager;
 
   constructor() {
@@ -14,14 +14,14 @@ abstract class Component {
   }
 
   rebuild() {
-    if (Array.isArray(this.devetoNode)) { // Children is probably fragment so use different method
-      const newChildren = this.render(this.context, false) as DevetoNode[];
-      updateChildren(this.devetoNode[0].elm.parentElement, this.devetoNode, newChildren);
-      this.devetoNode = newChildren;
+    if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
+      const newChildren = this.render(this.context, false) as VNode[];
+      updateChildren(this.vNode[0].elm.parentElement, this.vNode, newChildren);
+      this.vNode = newChildren;
     } else {
-      const newChildren = this.render(this.context, false) as DevetoNode;
-      patch(this.devetoNode, newChildren);
-      this.devetoNode = newChildren;
+      const newChildren = this.render(this.context, false) as VNode;
+      patch(this.vNode, newChildren);
+      this.vNode = newChildren;
     }
   }
 
@@ -47,7 +47,7 @@ abstract class Component {
 
   abstract build(context: Context): anyComp;
 
-  render(context: Context, setDevetoNode = true): DevetoNode | DevetoNode[] {
+  render(context: Context, setVNode = true): VNode | VNode[] {
     this.context = context;
     this.child = this.build(context);
     if (this.child.eventManager) {
@@ -65,8 +65,8 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    if (setDevetoNode) this.devetoNode = this.child.render(context);
-    return setDevetoNode ? this.devetoNode : this.child.render(context);
+    if (setVNode) this.vNode = this.child.render(context);
+    return setVNode ? this.vNode : this.child.render(context);
   }
 }
 

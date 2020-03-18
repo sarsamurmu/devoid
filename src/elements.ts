@@ -2,7 +2,7 @@ import { anyComp, buildChildren, EventManager } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { patch } from './render';
-import { DevetoNode } from './devetoNode';
+import { VNode } from 'snabbdom/es/vnode';
 
 type EventMap = {
   [N in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[N]) => void;
@@ -10,7 +10,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-export type ChildType = anyComp | string | number | ((context: Context) => anyComp) | null | false | undefined;
+export type ChildType = anyComp | string | number | ((context: Context) => anyComp | string | number | null | false | undefined) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: ChildrenArray | ChildType;
@@ -30,7 +30,7 @@ interface PrimaryComponentData {
 abstract class PrimaryComponent {
   elementData: PrimaryComponentData;
   context: Context;
-  devetoNode: DevetoNode;
+  vNode: VNode;
   eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
@@ -45,16 +45,16 @@ abstract class PrimaryComponent {
   }
 
   rebuild() {
-    patch(this.devetoNode, this.render(this.context));
+    patch(this.vNode, this.render(this.context));
   }
 
-  abstract build(context: Context): DevetoNode;
+  abstract build(context: Context): VNode;
 
-  render(context: Context): DevetoNode {
+  render(context: Context): VNode {
     this.context = context;
     if (!this.eventManager) this.eventManager = new EventManager();
-    this.devetoNode = this.build(context);
-    return this.devetoNode;
+    this.vNode = this.build(context);
+    return this.vNode;
   }
 }
 
@@ -64,7 +64,7 @@ const createComponent = (tagName: string) => {
       return new ElementClass(props);
     }
 
-    build(context: Context): DevetoNode {
+    build(context: Context): VNode {
       this.elementData.children = [this.elementData.children];
 
       if (this.elementData.getComponent) this.elementData.getComponent(this);
@@ -78,7 +78,7 @@ const createComponent = (tagName: string) => {
         on: this.elementData.on,
         hook: {
           insert: (vnode) => {
-            this.devetoNode = vnode;
+            this.vNode = vnode;
             this.eventManager.trigger('mount');
           },
           update: () => this.eventManager.trigger('update'),
