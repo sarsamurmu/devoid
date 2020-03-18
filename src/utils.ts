@@ -28,7 +28,7 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
     switch (true) {
       case typeof child === 'function':
         built = (child as (((context: Context) => anyComp)))(context);
-        if (typeof built === 'string') children.add(textVNode(built));
+        if ((typeof built === 'string' && (built as string).trim() !== '') || typeof built === 'number') children.add(textVNode(built));
         if (Array.isArray(built)) addAll(children, buildChildren(context, built));
         if (built instanceof Component || built instanceof PrimaryComponent) {
           addAll(children, [(built as anyComp).render(context)].flat(Infinity));
@@ -43,7 +43,7 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
         addAll(children, [(child as anyComp).render(context)].flat(Infinity));
         break;
       
-      case typeof child === 'string' || typeof child === 'number':
+      case (typeof child === 'string' && (child as string).trim() !== '') || typeof child === 'number':
         children.add(textVNode(child));
         break;
     }

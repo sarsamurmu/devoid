@@ -112,11 +112,11 @@
             console.log(`Updated`);
           }
 
-          pClick() {
+          pClick = () => {
             this.rebuild()
           }
 
-          buttonClick() {
+          buttonClick = () => {
             this.state.name = 'Drex';
             this.rebuild();
           }
@@ -124,7 +124,7 @@
           build() {
             return new p({
               on: {
-                //click: this.pClick,
+                click: this.pClick,
               },
               children: [
                 'My name is ',
@@ -132,7 +132,7 @@
                 new br(),
                 new button({
                   on: {
-                    click: this.buttonClick
+                    click: this.buttonClick,
                   },
                   children: 'Change name'
                 })

@@ -36,11 +36,6 @@ abstract class PrimaryComponent {
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
     if (!elementData.children) this.elementData.children = [];
-    if (this.elementData.on) {
-      for (const key in this.elementData.on) {
-        this.elementData.on[key] = this.elementData.on[key].bind(this);
-      }
-    }
     this.eventManager = new EventManager();
   }
 
