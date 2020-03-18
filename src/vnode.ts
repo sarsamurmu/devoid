@@ -65,9 +65,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
   }
 
   function emptyNodeAt(elm: Element) {
-    const id = elm.id ? '#' + elm.id : '';
-    const c = elm.className ? '.' + elm.className.split(' ').join('.') : '';
-    return vnode(api.tagName(elm).toLowerCase() + id + c, {}, [], undefined, elm);
+    return vnode(api.tagName(elm).toLowerCase(), {}, [], undefined, elm);
   }
 
   function createRmCb(childElm: Node, listeners: number) {
@@ -97,7 +95,6 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       }
       vnode.elm = api.createComment(vnode.text!);
     } else if (sel !== undefined) {
-      // Parse selector
       const tag = sel;
       const elm = vnode.elm = isDef(data) && isDef(i = data.ns)
         ? api.createElementNS(i, tag)
@@ -189,7 +186,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     parentElm: Node,
     oldCh: VNode[],
     newCh: VNode[],
-    insertedVnodeQueue: VNodeQueue,
+    insertedVnodeQueue: VNodeQueue
   ) {
     let oldStartIdx = 0;
     let newStartIdx = 0;
@@ -202,7 +199,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     let oldKeyToIdx: KeyToIndexMap | undefined;
     let idxInOld: number;
     let elmToMove: VNode;
-    let before: any;
+    let before: Node;
 
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
       if (oldStartVnode == null) {
@@ -253,7 +250,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     }
     if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
       if (oldStartIdx > oldEndIdx) {
-        before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+        before = newCh[newEndIdx + 1] == null ? oldCh[oldCh.length - 1]?.elm.nextSibling : newCh[newEndIdx + 1].elm;
         addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
       } else {
         removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);

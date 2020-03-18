@@ -135,25 +135,29 @@
                   console.log(`Really Done`);
                 }, 2000);
               }),
-              builder: (context, snapshot) => {
-                if (snapshot.hasData) {
-                  return new p({
-                    children: snapshot.data
-                  })
-                }
-                return new p({
-                  style: {
-                    color: 'var(--link-color)'
-                  },
-                  children: 'Data is loading...'
-                })
-              }
+              builder: (context, snapshot) => new Fragment([
+                new p({ children: 'Item 1' }),
+                () => snapshot.hasData && new p({ key: 'aPara', children: 'Load completed' }),
+                //new p({ children: 'Item 2' }),
+              ])
             }),
             lifecycleComponent,
             valueListenerWidget,
           ],
         }), document.querySelector('[renderBox]'));
       });
+
+      // if (snapshot.hasData) {
+      //     return new p({
+      //       children: snapshot.data
+      //     })
+      //   }
+      //   return new p({
+      //     style: {
+      //       color: 'var(--link-color)'
+      //     },
+      //     children: 'Data is loading...'
+      //   })
     </script>
   </body>
 
