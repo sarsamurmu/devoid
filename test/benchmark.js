@@ -94,90 +94,81 @@ class Main extends Component {
     console.log('Non keyed benchmark ended');
   }
 
-  createRows() {
-    const label = 'Setting 1000 rows';
+  runTimed(label, callback) {
     console.time(label);
-    this.data.items = buildData(1000);
+    callback();
+    console.time('Only rebuild - ' + label);
     this.rebuild();
+    console.timeEnd('Only rebuild - ' + label);
     console.timeEnd(label);
+  }
+
+  createRows() {
+    this.runTimed('Setting 1000 rows', () => {
+      this.data.items = buildData(1000);
+    })
   }
 
   createManyRows() {
-    const label = 'Setting 10000 rows';
-    console.time(label);
-    this.data.items = buildData(10000);
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Setting 10000 rows', () => {
+      this.data.items = buildData(10000);
+    });
   }
 
   appendRows() {
-    const label = 'Appending 1000 rows';
-    console.time(label);
-    this.data.items = this.data.items.concat(buildData(1000));
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Appending 1000 rows', () => {
+      this.data.items = this.data.items.concat(buildData(1000));
+    });
   }
 
   updateRows() {
-    const label = 'Updating all rows';
-    console.time(label);
-    const { items } = this.data;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      items[i] = { id: item.id, label: item.label + ' !!!' };
-    }
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Updating all rows', () => {
+      const { items } = this.data;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        items[i] = { id: item.id, label: item.label + ' !!!' };
+      }
+    })
   }
 
   updateRowsPartial() {
-    const label = 'Updating every 10 rows';
-    console.time(label);
-    const { items } = this.data;
-    for (let i = 0; i < items.length; i += 10) {
-      const item = items[i];
-      items[i] = { id: item.id, label: item.label + ' !!!' };
-    }
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Updating every 10 rows', () => {
+      const { items } = this.data;
+      for (let i = 0; i < items.length; i += 10) {
+        const item = items[i];
+        items[i] = { id: item.id, label: item.label + ' !!!' };
+      }
+    });
   }
 
   removeRow() {
-    const label = 'Removing a random row';
-    console.time(label);
-    const { items } = this.data;
-    items.splice(items.indexOf(random(items.length)), 1);
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Removing a random row', () => {
+      const { items } = this.data;
+      items.splice(items.indexOf(random(items.length)), 1);
+    })
   }
 
   clearRows() {
-    const label = 'Clearing rows';
-    console.time(label);
-    this.data.items = [];
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Clearing rows', () => {
+      this.data.items = [];
+    })
   }
 
   swapRows() {
-    const label = 'Swapping 2 rows';
-    console.time(label);
-    const { items }= this.data;
-    if (items.length > 998) {
-      let temp = items[1];
-      items[1] = items[998];
-      items[998] = temp;
-    }
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Swapping 2 rows', () => {
+      const { items } = this.data;
+      if (items.length > 998) {
+        let temp = items[1];
+        items[1] = items[998];
+        items[998] = temp;
+      }
+    });
   }
 
   selectRow() {
-    const label = 'Selecting a random row';
-    console.time(label);
-    this.data.selected = random(this.data.items.length);
-    this.rebuild();
-    console.timeEnd(label);
+    this.runTimed('Selecting a random row', () => {
+      this.data.selected = random(this.data.items.length);
+    });
   }
 
   build() {
