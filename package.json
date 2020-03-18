@@ -1,9 +1,9 @@
 {
-  "name": "strut",
+  "name": "deveto",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/strut.js",
-  "module": "dist/strut.es.js",
+  "main": "dist/deveto.js",
+  "module": "dist/deveto.es.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "rollup -c -w",

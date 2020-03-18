@@ -6,11 +6,12 @@ import pkg from './package.json';
 
 const prod = process.env.BUILD === 'production';
 
-const strutBanner = 
-`Strut v${pkg.version}
+const devetoBanner = `
+Deveto v${pkg.version}
 Copyright (c) Sarsa Murmu 2020-present
-Repository https://github.com/sarsamurmu/strut
-Licensed under The MIT License`;
+Repository https://github.com/sarsamurmu/deveto
+Licensed under The MIT License
+`.trim();
 
 export default {
   input: 'src/index.ts',
@@ -18,7 +19,7 @@ export default {
     {
       file: pkg.main,
       format: 'umd',
-      name: 'Strut',
+      name: 'Deveto',
       sourcemap: !prod && 'inline',
     },
     prod && {
@@ -37,7 +38,7 @@ export default {
       }
     }),
     prod && terser(),
-    prod && banner(strutBanner),
+    prod && banner(devetoBanner),
   ],
   cache: !prod,
 }

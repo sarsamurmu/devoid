@@ -1,12 +1,12 @@
 import { anyComp, EventManager } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
-import { StrutNode } from './strutNode';
+import { DevetoNode } from './devetoNode';
 
 abstract class Component {
   context: Context;
   child: anyComp;
-  strutNode: StrutNode | StrutNode[];
+  devetoNode: DevetoNode | DevetoNode[];
   eventManager: EventManager;
 
   constructor() {
@@ -14,14 +14,14 @@ abstract class Component {
   }
 
   rebuild() {
-    if (Array.isArray(this.strutNode)) { // Children is probably fragment so use different method
-      const newChildren = this.render(this.context, false) as StrutNode[];
-      updateChildren(this.strutNode[0].elm.parentElement, this.strutNode, newChildren);
-      this.strutNode = newChildren;
+    if (Array.isArray(this.devetoNode)) { // Children is probably fragment so use different method
+      const newChildren = this.render(this.context, false) as DevetoNode[];
+      updateChildren(this.devetoNode[0].elm.parentElement, this.devetoNode, newChildren);
+      this.devetoNode = newChildren;
     } else {
-      const newChildren = this.render(this.context, false) as StrutNode;
-      patch(this.strutNode, newChildren);
-      this.strutNode = newChildren;
+      const newChildren = this.render(this.context, false) as DevetoNode;
+      patch(this.devetoNode, newChildren);
+      this.devetoNode = newChildren;
     }
   }
 
@@ -47,7 +47,7 @@ abstract class Component {
 
   abstract build(context: Context): anyComp;
 
-  render(context: Context, setStrutNode = true): StrutNode | StrutNode[] {
+  render(context: Context, setDevetoNode = true): DevetoNode | DevetoNode[] {
     this.context = context;
     this.child = this.build(context);
     if (this.child.eventManager) {
@@ -65,8 +65,8 @@ abstract class Component {
         this.child.eventManager.removeKey(this);
       });
     }
-    if (setStrutNode) this.strutNode = this.child.render(context);
-    return setStrutNode ? this.strutNode : this.child.render(context);
+    if (setDevetoNode) this.devetoNode = this.child.render(context);
+    return setDevetoNode ? this.devetoNode : this.child.render(context);
   }
 }
 

@@ -1,12 +1,12 @@
 import { anyComp, buildChildren, EventManager } from './utils';
 import { Context } from './context';
-import { StrutNode } from './strutNode';
+import { DevetoNode } from './devetoNode';
 
 export class Fragment {
   context: Context;
   children: anyComp[];
   eventManager: EventManager;
-  strutNodes: StrutNode[];
+  devetoNodes: DevetoNode[];
 
   constructor(children: anyComp[]) {
     this.children = children;
@@ -29,7 +29,7 @@ export class Fragment {
   }
 
   render(context: Context) {
-    this.strutNodes = this.build(context);
-    return this.strutNodes;
+    this.devetoNodes = this.build(context);
+    return this.devetoNodes;
   }
 }

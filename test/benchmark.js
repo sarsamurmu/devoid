@@ -5,14 +5,14 @@
 const {
   render,
   Component,
-} = Strut;
+} = Deveto;
 
 const {
   div,
   p,
   tr,
   table
-} = Strut.elements;
+} = Deveto.elements;
 
 const random = (max) => Math.round(Math.random() * 1000) % max;
 

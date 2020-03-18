@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { anyComp, log } from './utils';
+import { anyComp } from './utils';
 import { Context } from './context';
 
 interface AsyncSnapshot {
@@ -52,7 +52,7 @@ export class AsyncBuilder extends Component {
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
-const themeKey = 'StrutDefaultThemeKey';
+const themeKey = 'DevetoDefaultThemeKey';
 
 interface ThemeOptions {
   themeData: any;
