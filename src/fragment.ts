@@ -1,7 +1,7 @@
 import { buildChildren, EventManager } from './utils';
 import { Context } from './context';
 import { ChildType } from './elements';
-import { VNode } from 'snabbdom/es/vnode';
+import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export class Fragment {
   context: Context;
@@ -31,6 +31,8 @@ export class Fragment {
 
   render(context: Context) {
     this.vNodes = this.build(context);
+    // If VNodes is empty array replace it with a array of comment VNode to store it's position
+    if (this.vNodes.length === 0) this.vNodes = [vnode('!', undefined, undefined, `Fragment Placeholder ${Date.now()}`, undefined)];
     return this.vNodes;
   }
 }

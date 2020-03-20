@@ -11,7 +11,7 @@ interface AsyncSnapshot {
 
 interface AsyncBuilderOptions {
   getter: () => Promise<unknown>;
-  builder: (context: Context, snapshot: AsyncSnapshot) => (anyComp);
+  builder: (context: Context, snapshot: AsyncSnapshot) => anyComp;
 }
 
 export class AsyncBuilder extends Component {
@@ -162,7 +162,7 @@ export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
 
 interface ListenerBuilderOptions {
   listenTo: Notifier[];
-  child: anyComp | ((context: Context) => anyComp);
+  builder: (context: Context) => anyComp;
 }
 
 export class ListenerBuilder extends Component {
@@ -183,7 +183,7 @@ export class ListenerBuilder extends Component {
   }
 
   build(context: Context): anyComp {
-    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
+    return this.options.builder(context);
   }
 }
 

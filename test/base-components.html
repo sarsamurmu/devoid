@@ -52,27 +52,31 @@
         const valueListenerWidget = (context) => {
           const boxText = ValueNotifier({ value: 'This is initial value' });
 
-          return new ListenerBuilder({
-            listenTo: [boxText],
-            child: new Fragment([
-              new textarea({
-                on: {
-                  input: (e) => {
-                    boxText.value = e.target.value;
-                  },
+          return new Fragment([
+            new textarea({
+              on: {
+                input: (e) => {
+                  boxText.value = e.target.value;
                 },
-                props: {
-                  value: boxText.value,
-                  classList: ['zust-textarea'],
-                  placeholder: 'Enter some text'
-                }
-              }),
-              new p({
-                children: () => `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
-              }),
-              () => boxText.value,
-            ])
-          })
+              },
+              props: {
+                value: boxText.value,
+                classList: ['zust-textarea'],
+                placeholder: 'Enter some text'
+              }
+            }),
+            new ListenerBuilder({
+              listenTo: [boxText],
+              builder: () => new Fragment([
+                boxText.value !== '' && new Fragment([
+                  new p({
+                    children: `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
+                  }),
+                  boxText.value,
+                ])
+              ])
+            })
+          ]);
         }
 
         const lifecycleComponent = (context) => {

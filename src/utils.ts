@@ -32,6 +32,7 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
         if (built instanceof Component || built instanceof PrimaryComponent) {
           addAll(children, [(built as anyComp).render(context)].flat(Infinity));
         }
+        if (built instanceof Fragment) addAll(children, [(built as anyComp).render(context)].flat(Infinity));
         break;
 
       case child instanceof Component || child instanceof PrimaryComponent:

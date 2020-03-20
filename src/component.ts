@@ -16,7 +16,10 @@ abstract class Component {
   rebuild() {
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
       const newChildren = this.render(this.context, false) as VNode[];
-      updateChildren(this.vNode[0].elm.parentElement, this.vNode, newChildren);
+      const oldChildren: VNode[] = this.vNode.length === 1 && this.vNode[0].sel === '!' ? [] : this.vNode;
+      updateChildren(this.vNode[0].elm.parentElement, oldChildren, newChildren);
+      // Apparently updateChildren can't replace comment nodes so do it manually
+      if (oldChildren.length === 0) this.vNode[0].elm.parentElement.removeChild(this.vNode[0].elm);
       this.vNode = newChildren;
     } else {
       const newChildren = this.render(this.context, false) as VNode;
