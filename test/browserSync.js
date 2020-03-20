@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const chokidar = require('chokidar');
 
-const deveto = path.resolve(__dirname, '../dist/deveto.js');
+const devoid = path.resolve(__dirname, '../dist/devoid.js');
 
 browserSync.init({
   server: {
@@ -39,15 +39,15 @@ browserSync.init({
           `);
       });
 
-      bs.addMiddleware('/dist/deveto.js', (req, res) => {
+      bs.addMiddleware('/dist/devoid.js', (req, res) => {
         res.writeHead(200, {
           'Content-Type': 'text/javascript'
         });
-        fs.createReadStream(deveto).pipe(res);
+        fs.createReadStream(devoid).pipe(res);
       })
     }
   }
 });
-chokidar.watch(deveto).on('change', () => browserSync.reload('*.js'));
+chokidar.watch(devoid).on('change', () => browserSync.reload('*.js'));
 
 browserSync.watch('*').on('change', browserSync.reload);

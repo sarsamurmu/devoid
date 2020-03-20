@@ -5,14 +5,14 @@
 const {
   render,
   Component,
-} = Deveto;
+} = Devoid;
 
 const {
   div,
   p,
   tr,
   table
-} = Deveto.elements;
+} = Devoid.elements;
 
 const random = (max) => Math.round(Math.random() * 1000) % max;
 

@@ -6,10 +6,10 @@ import pkg from './package.json';
 
 const prod = process.env.BUILD === 'production';
 
-const devetoBanner = `
-Deveto v${pkg.version}
+const devoidBanner = `
+Devoid v${pkg.version}
 Copyright (c) Sarsa Murmu 2020-present
-Repository https://github.com/sarsamurmu/deveto
+Repository https://github.com/sarsamurmu/devoid
 Licensed under The MIT License
 `.trim();
 
@@ -19,7 +19,7 @@ export default {
     {
       file: pkg.main,
       format: 'umd',
-      name: 'Deveto',
+      name: 'Devoid',
       sourcemap: !prod && 'inline',
     },
     prod && {
@@ -38,7 +38,7 @@ export default {
       }
     }),
     prod && terser(),
-    prod && banner(devetoBanner),
+    prod && banner(devoidBanner),
   ],
   cache: !prod,
 }

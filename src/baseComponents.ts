@@ -52,7 +52,7 @@ export class AsyncBuilder extends Component {
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
-const themeKey = 'DevetoDefaultThemeKey';
+const themeKey = 'DevoidDefaultThemeKey';
 
 interface ThemeOptions {
   themeData: any;

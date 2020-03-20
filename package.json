@@ -1,9 +1,9 @@
 {
-  "name": "deveto",
+  "name": "devoid",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/deveto.js",
-  "module": "dist/deveto.es.js",
+  "main": "dist/devoid.js",
+  "module": "dist/devoid.es.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "rollup -c -w",
