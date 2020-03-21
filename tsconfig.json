@@ -3,6 +3,7 @@
     "target": "ES2019",
     "module": "ESNext",
     "declaration": true,
+    "declarationDir": "./types",
     "outDir": "./dist",
     "sourceMap": true,
     "noImplicitAny": true,
