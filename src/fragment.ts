@@ -11,6 +11,10 @@ export class Fragment {
     this.children = children;
   }
 
+  static create({ children }: { children: ChildrenArray }) {
+    return new Fragment(children);
+  }
+
   build(context: Context) {
     return buildChildren(context, this.children);
   }

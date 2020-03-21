@@ -3,6 +3,7 @@ import { Context } from './context';
 import { PrimaryComponent, ChildType } from './elements';
 import { Component } from './component';
 import { elements } from './elements';
+import { Fragment } from './fragment';
 
 interface ProtoClass {
   prototype: any;
@@ -20,7 +21,8 @@ export const createEl = (
     return (elements[component as any] as any).create(props);
   } else if (
     (component as ProtoClass).prototype instanceof PrimaryComponent ||
-    (component as ProtoClass).prototype instanceof Component
+    (component as ProtoClass).prototype instanceof Component ||
+    (component as ProtoClass).prototype instanceof Fragment
   ) {
     return (component as any).create(props);
   } else if (typeof component === 'function') {
