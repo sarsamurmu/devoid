@@ -1,4 +1,4 @@
-class Context {
+export class Context {
   contextData: Map<any, any>;
 
   constructor(fromMap?: Map<any, any>) {
@@ -23,5 +23,3 @@ class Context {
     return new Context(this.contextData);
   }
 }
-
-export { Context }

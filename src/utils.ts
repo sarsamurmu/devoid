@@ -13,11 +13,45 @@ export const log = (...data: any): any => {
   if (debug) console.log(...data);
 }
 
+export class EventManager {
+  events: Map<string, Map<any, () => void>>;
+
+  set(eventName: string, key: any, callback: () => void) {
+    if (!this.events) this.events = new Map();
+    if (!this.events.has(eventName)) this.events.set(eventName, new Map());
+    const currEvent = this.events.get(eventName);
+    currEvent.set(key, callback);
+  }
+
+  removeKey(key: any) {
+    if (this.events) this.events.forEach((eventMap) => eventMap.delete(key));
+  }
+
+  trigger(eventName: string) {
+    if (!this.events) return;
+    const callbacks = this.events.get(eventName);
+    if (callbacks) callbacks.forEach((callback) => callback())
+  }
+}
+
 const addAll = (set: Set<any>, toAdd: any[]) => {
   for (const item of toAdd) set.add(item);
 }
 
-const textVNode = (text: string | number) => vnode(undefined, { hook: { insert: () => 1 } }, undefined, text + '', undefined);
+const textVNode = (text: string | number) => {
+  const eventManager = new EventManager();
+
+  return vnode(undefined, {
+    hook: {
+      insert: () => {
+        eventManager.trigger('mount');
+      },
+      update: () => eventManager.trigger('update'),
+      destroy: () => eventManager.trigger('destroy'),
+    },
+    eventManager
+  }, undefined, text + '', undefined)
+}
 
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
   const children = new Set<VNode>();

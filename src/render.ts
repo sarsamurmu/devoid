@@ -16,10 +16,8 @@ export const { patch, updateChildren } = init([
   propsModule,
 ]);
 
-const render = (component: anyComp, element: HTMLElement) => {
+export const render = (component: anyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
   elementVNode.children = buildChildren(new Context(), [component]);
   patch(element, elementVNode);
 }
-
-export { render }

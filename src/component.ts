@@ -1,9 +1,8 @@
-import { anyComp } from './utils';
+import { anyComp, log } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 
-const emptyFun = () => 1;
 
 interface Hooks {
   insert: () => void;
@@ -11,7 +10,7 @@ interface Hooks {
   destroy: () => void;
 }
 
-abstract class Component {
+export abstract class Component {
   context: Context;
   vNode: VNode | VNode[];
   hooks: Hooks;
@@ -63,32 +62,19 @@ abstract class Component {
     this.context = context;
     const vNode = this.build(context).render(context);
     const aVNode = Array.isArray(vNode) ? vNode[0] : vNode;
-    if (aVNode.data) {
-      if (!aVNode.data.hook) aVNode.data.hook = {};
-      if (!this.hooks) {
-        const prevInsertHook = (aVNode.data.hook.insert || emptyFun) as () => void;
-        const prevUpdateHook = (aVNode.data.hook.update || emptyFun) as () => void;
-        const prevDestroyHook = (aVNode.data.hook.destroy || emptyFun) as () => void;
-        this.hooks = {
-          insert: () => {
-            prevInsertHook();
-            this.didMount();
-          },
-          update: () => {
-            prevUpdateHook();
-            this.didUpdate();
-          },
-          destroy: () => {
-            prevDestroyHook();
-            this.didDestroy();
-          }
-        }
-      }
-      aVNode.data.hook = this.hooks;
+    if (aVNode.data.eventManager) {
+      aVNode.data.eventManager.set('mount', this, () => {
+        this.didMount();
+      });
+      aVNode.data.eventManager.set('update', this, () => {
+        this.didUpdate();
+      });
+      aVNode.data.eventManager.set('destroy', this, () => {
+        this.didUpdate();
+        aVNode.data.eventManager.removeKey(this);
+      });
     }
     if (setVNode) this.vNode = vNode;
     return vNode;
   }
 }
-
-export { Component }

@@ -21,7 +21,7 @@ export class Fragment {
 
   render(context: Context) {
     this.vNodes = this.build(context);
-    // If VNodes is empty array replace it with a array of comment VNode to store it's position
+    // If VNodes is empty array replace it with a array of comment DVNode to store it's position
     if (this.vNodes.length === 0) this.vNodes = [vnode('!', undefined, undefined, `Empty Frag ${Date.now()}`, undefined)];
     return this.vNodes;
   }
