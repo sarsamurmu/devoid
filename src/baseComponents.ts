@@ -1,6 +1,8 @@
 import { Component } from './component';
 import { anyComp } from './utils';
 import { Context } from './context';
+import { ChildType, ChildrenArray } from './elements';
+import { Fragment } from './fragment';
 
 interface AsyncSnapshot {
   data: any;
@@ -44,7 +46,7 @@ export class AsyncBuilder extends Component {
       .finally(() => this.rebuild());
   }
 
-  build(context: Context): anyComp {
+  build(context: Context) {
     return this.options.builder(context, this.snapshot);
   }
 }
@@ -56,7 +58,7 @@ const themeKey = 'DevoidDefaultThemeKey';
 
 interface ThemeOptions {
   themeData: any;
-  child: anyComp | ((context: Context) => anyComp);
+  children: ChildType | ChildrenArray;
 }
 
 export class Theme extends Component {
@@ -67,12 +69,16 @@ export class Theme extends Component {
     this.options = themeOptions;
   }
 
+  static create(props: ThemeOptions) {
+    return new Theme(props);
+  }
+
   static of(context: Context) {
     return context.get(themeKey);
   }
 
-  build(context: Context): anyComp {
-    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
+  build() {
+    return new Fragment([this.options.children]);
   }
 
   render(context: Context) {
@@ -176,13 +182,17 @@ export class ListenerBuilder extends Component {
     }
   }
 
+  static create(props: ListenerBuilderOptions) {
+    return new ListenerBuilder(props);
+  }
+
   didDestroy() {
     for (const notifier of this.options.listenTo) {
       notifier.removeListener(this);
     }
   }
 
-  build(context: Context): anyComp {
+  build(context: Context) {
     return this.options.builder(context);
   }
 }
@@ -217,7 +227,7 @@ export class LifecycleBuilder extends Component {
     this.options.didDestroy();
   }
 
-  build(context: Context): anyComp {
+  build(context: Context) {
     return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
   }
 }

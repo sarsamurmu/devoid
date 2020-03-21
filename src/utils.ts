@@ -6,8 +6,7 @@ import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export type anyComp = Component | PrimaryComponent | Fragment;
 
-declare const window: Window;
-declare const console: Console;
+/* global window, console */
 
 const debug = window.location.hostname === 'localhost';
 export const log = (...data: any): any => {
@@ -18,7 +17,7 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
   for (const item of toAdd) set.add(item);
 }
 
-const textVNode = (text: string | number) => vnode(undefined, undefined, undefined, text + '', undefined);
+const textVNode = (text: string | number) => vnode(undefined, { hook: { insert: () => 1 } }, undefined, text + '', undefined);
 
 export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
   const children = new Set<VNode>();
@@ -49,27 +48,4 @@ export const buildChildren = (context: Context, childrenArray: ChildrenArray) =>
     }
   }
   return [...children];
-}
-
-export class EventManager {
-  events: Map<string, Map<any, () => void>>;
-
-  constructor() {
-    this.events = new Map();
-  }
-
-  set(eventName: string, key: any, callback: () => void) {
-    if (!this.events.has(eventName)) this.events.set(eventName, new Map());
-    const currEvent = this.events.get(eventName);
-    currEvent.set(key, callback);
-  }
-
-  removeKey(key: any) {
-    this.events.forEach((eventMap) => eventMap.delete(key));
-  }
-
-  trigger(eventName: string) {
-    const callbacks = this.events.get(eventName);
-    if (callbacks) callbacks.forEach((callback) => callback())
-  }
 }

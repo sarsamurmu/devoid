@@ -84,11 +84,15 @@
             didMount: () => {
               console.log(`Mounted Lifecycle Component`)
             },
-            child: new p({
-              children: 'Lifecycle Component'
-            })
+            child: new Fragment(['Just String'])
           });
         }
+
+        /*
+        new p({
+              children: 'Lifecycle Component'
+            })
+        */
         
         render(new div({
           children: [
@@ -96,7 +100,7 @@
               themeData: {
                 color: 'deepskyblue',
               },
-              child: (context) => new Fragment([
+              children: (context) => [
                 new p({
                   style: {
                     color: Theme.of(context).color
@@ -107,7 +111,7 @@
                       themeData: {
                         color: 'tomato',
                       },
-                      child: (aContext) => new p({
+                      children: (aContext) => new p({
                         style: {
                           color: Theme.of(aContext).color
                         },
@@ -130,7 +134,7 @@
                   },
                   children: `Another element which is using theme`
                 })
-              ])
+              ]
             }),
             new AsyncBuilder({
               getter: () =>  new Promise((resolve, reject) => {
@@ -147,6 +151,8 @@
             }),
             lifecycleComponent,
             valueListenerWidget,
+            new br(),
+            'Simple Text Node',
           ],
         }), document.querySelector('[renderBox]'));
       });

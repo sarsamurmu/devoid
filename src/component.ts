@@ -1,23 +1,32 @@
-import { anyComp, EventManager } from './utils';
+import { anyComp } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 
+const emptyFun = () => 1;
+
+interface Hooks {
+  insert: () => void;
+  update: () => void;
+  destroy: () => void;
+}
+
 abstract class Component {
   context: Context;
-  child: anyComp;
   vNode: VNode | VNode[];
-  eventManager: EventManager;
-
-  constructor() {
-    this.eventManager = new EventManager();
-  }
+  hooks: Hooks;
+  mounted: boolean;
 
   rebuild() {
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
       const newChildren = this.render(this.context, false) as VNode[];
       const oldChildren: VNode[] = this.vNode.length === 1 && this.vNode[0].sel === '!' ? [] : this.vNode;
-      updateChildren(this.vNode[0].elm.parentElement, oldChildren, newChildren);
+      updateChildren({
+        parentElm: this.vNode[0].elm.parentElement,
+        oldCh: oldChildren,
+        newCh: newChildren,
+        insertBefore: this.vNode[this.vNode.length - 1].elm.nextSibling
+      });
       // Apparently updateChildren can't replace comment nodes so do it manually
       if (oldChildren.length === 0) this.vNode[0].elm.parentElement.removeChild(this.vNode[0].elm);
       this.vNode = newChildren;
@@ -52,24 +61,33 @@ abstract class Component {
 
   render(context: Context, setVNode = true): VNode | VNode[] {
     this.context = context;
-    this.child = this.build(context);
-    if (this.child.eventManager) {
-      this.child.eventManager.set('mount', this, () => {
-        this.didMount();
-        this.eventManager.trigger('mount');
-      });
-      this.child.eventManager.set('update', this, () => {
-        this.didUpdate();
-        this.eventManager.trigger('update');
-      });
-      this.child.eventManager.set('destroy', this, () => {
-        this.didUpdate();
-        this.eventManager.trigger('destroy');
-        this.child.eventManager.removeKey(this);
-      });
+    const vNode = this.build(context).render(context);
+    const aVNode = Array.isArray(vNode) ? vNode[0] : vNode;
+    if (aVNode.data) {
+      if (!aVNode.data.hook) aVNode.data.hook = {};
+      if (!this.hooks) {
+        const prevInsertHook = (aVNode.data.hook.insert || emptyFun) as () => void;
+        const prevUpdateHook = (aVNode.data.hook.update || emptyFun) as () => void;
+        const prevDestroyHook = (aVNode.data.hook.destroy || emptyFun) as () => void;
+        this.hooks = {
+          insert: () => {
+            prevInsertHook();
+            this.didMount();
+          },
+          update: () => {
+            prevUpdateHook();
+            this.didUpdate();
+          },
+          destroy: () => {
+            prevDestroyHook();
+            this.didDestroy();
+          }
+        }
+      }
+      aVNode.data.hook = this.hooks;
     }
-    if (setVNode) this.vNode = this.child.render(context);
-    return setVNode ? this.vNode : this.child.render(context);
+    if (setVNode) this.vNode = vNode;
+    return vNode;
   }
 }
 

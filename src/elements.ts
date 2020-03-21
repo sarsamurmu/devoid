@@ -1,7 +1,6 @@
-import { anyComp, buildChildren, EventManager } from './utils';
+import { anyComp, buildChildren } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
-import { patch } from './render';
 import { VNode } from 'snabbdom/es/vnode';
 
 type EventMap = {
@@ -29,14 +28,10 @@ interface PrimaryComponentData {
 
 abstract class PrimaryComponent {
   elementData: PrimaryComponentData;
-  context: Context;
-  vNode: VNode;
-  eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
     if (!elementData.children) this.elementData.children = [];
-    this.eventManager = new EventManager();
   }
 
   /* eslint-disable-next-line */
@@ -44,17 +39,10 @@ abstract class PrimaryComponent {
     return null
   }
 
-  rebuild() {
-    patch(this.vNode, this.render(this.context));
-  }
-
   abstract build(context: Context): VNode;
 
   render(context: Context): VNode {
-    this.context = context;
-    if (!this.eventManager) this.eventManager = new EventManager();
-    this.vNode = this.build(context);
-    return this.vNode;
+    return this.build(context);
   }
 }
 
@@ -76,14 +64,7 @@ const createComponent = (tagName: string) => {
         attrs: this.elementData.attrs,
         props: this.elementData.props,
         on: this.elementData.on,
-        hook: {
-          insert: (vnode) => {
-            this.vNode = vnode;
-            this.eventManager.trigger('mount');
-          },
-          update: () => this.eventManager.trigger('update'),
-          destroy: () => this.eventManager.trigger('destroy'),
-        },
+        hook: { insert: () => 1 }
       }, buildChildren(context, this.elementData.children));
     }
   }
