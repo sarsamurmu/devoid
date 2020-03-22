@@ -4,9 +4,9 @@ import styleModule from 'snabbdom/es/modules/style';
 import eventModule from 'snabbdom/es/modules/eventlisteners';
 import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
-import { anyComp, buildChildren } from './utils';
+import { AnyComp, buildChildren } from './utils';
 import { Context } from './context';
-import { init } from './vnode';
+import { init } from './vdom';
 
 export const { patch, updateChildren } = init([
   classModule,
@@ -16,7 +16,7 @@ export const { patch, updateChildren } = init([
   propsModule,
 ]);
 
-export const render = (component: anyComp, element: HTMLElement) => {
+export const render = (component: AnyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
   elementVNode.children = buildChildren(new Context(), [component]);
   patch(element, elementVNode);

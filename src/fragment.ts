@@ -4,8 +4,8 @@ import { ChildrenArray } from './elements';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export class Fragment {
-  children: ChildrenArray;
-  vNodes: VNode[];
+  private children: ChildrenArray;
+  private vNodes: VNode[];
 
   constructor(children: ChildrenArray) {
     this.children = children;

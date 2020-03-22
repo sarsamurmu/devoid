@@ -1,4 +1,4 @@
-import { anyComp, buildChildren, EventManager } from './utils';
+import { AnyComp, buildChildren, EventManager } from './utils';
 import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -9,7 +9,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-export type ChildType = anyComp | string | number | ((context: Context) => anyComp | string | number | null | false | undefined) | null | false | undefined;
+export type ChildType = AnyComp | string | number | ((context: Context) => AnyComp | string | number | null | false | undefined) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: ChildrenArray | ChildType;
@@ -23,12 +23,12 @@ interface PrimaryComponentData {
   style?: Record<string, string>;
   children?: ChildType | ChildrenArray;
   on?: EventMap;
-  getComponent?: (component: anyComp) => void;
+  getComponent?: (component: AnyComp) => void;
 }
 
 export abstract class PrimaryComponent {
-  elementData: PrimaryComponentData;
-  eventManager: EventManager;
+  private elementData: PrimaryComponentData;
+  private eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
@@ -48,7 +48,7 @@ export abstract class PrimaryComponent {
   }
 }
 
-const createComponent = (tagName: string) => {
+export const createComponent = (tagName: string) => {
   return class ElementClass extends PrimaryComponent {
     static create(props: Record<string, any>): PrimaryComponent {
       return new ElementClass(props);
@@ -80,10 +80,10 @@ const createComponent = (tagName: string) => {
 }
 
 export const elements = (() => {
-  const elementsObject: Record<string, PrimaryComponent> = {};
+  const elementsObject: Record<string, typeof PrimaryComponent> = {};
   const tags = ['a', 'abbr', 'address', 'area', 'article', 'aside', 'audio', 'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'legend', 'li', 'link', 'main', 'map', 'mark', 'meta', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var', 'video', 'wbr'];
   for (const tag of tags) {
-    elementsObject[tag] = createComponent(tag) as any;
+    elementsObject[tag] = createComponent(tag);
   }
   return elementsObject;
 })();

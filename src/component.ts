@@ -1,20 +1,12 @@
-import { anyComp, log } from './utils';
+import { AnyComp } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 
-
-interface Hooks {
-  insert: () => void;
-  update: () => void;
-  destroy: () => void;
-}
-
 export abstract class Component {
-  context: Context;
-  vNode: VNode | VNode[];
-  hooks: Hooks;
-  mounted: boolean;
+  protected context: Context;
+  protected vNode: VNode | VNode[];
+  protected mounted: boolean;
 
   rebuild() {
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
@@ -36,12 +28,12 @@ export abstract class Component {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
-
-  setState(callback: () => void = () => {}) {
+  setState(callback: () => void) {
     if (callback) callback();
     this.rebuild();
   }
+
+  /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
 
   didMount() {}
 
@@ -56,7 +48,7 @@ export abstract class Component {
 
   /* eslint-enable */
 
-  abstract build(context: Context): anyComp;
+  abstract build(context: Context): AnyComp;
 
   render(context: Context, setVNode = true): VNode | VNode[] {
     this.context = context;
@@ -64,12 +56,14 @@ export abstract class Component {
     const aVNode = Array.isArray(vNode) ? vNode[0] : vNode;
     if (aVNode.data.eventManager) {
       aVNode.data.eventManager.set('mount', this, () => {
+        this.mounted = true;
         this.didMount();
       });
       aVNode.data.eventManager.set('update', this, () => {
         this.didUpdate();
       });
       aVNode.data.eventManager.set('destroy', this, () => {
+        this.mounted = false;
         this.didUpdate();
         aVNode.data.eventManager.removeKey(this);
       });

@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { anyComp } from './utils';
+import { AnyComp } from './utils';
 import { Context } from './context';
 import { ChildType, ChildrenArray } from './elements';
 import { Fragment } from './fragment';
@@ -13,7 +13,7 @@ interface AsyncSnapshot {
 
 interface AsyncBuilderOptions {
   getter: () => Promise<unknown>;
-  builder: (context: Context, snapshot: AsyncSnapshot) => anyComp;
+  builder: (context: Context, snapshot: AsyncSnapshot) => AnyComp;
 }
 
 export class AsyncBuilder extends Component {
@@ -168,7 +168,7 @@ export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
 
 interface ListenerBuilderOptions {
   listenTo: Notifier[];
-  builder: (context: Context) => anyComp;
+  builder: (context: Context) => AnyComp;
 }
 
 export class ListenerBuilder extends Component {
@@ -204,7 +204,7 @@ interface LifecycleBuilderOptions {
   didMount(): void;
   didUpdate(): void;
   didDestroy(): void;
-  child: anyComp | ((context: Context) => anyComp);
+  child: AnyComp | ((context: Context) => AnyComp);
 }
 
 export class LifecycleBuilder extends Component {

@@ -1,14 +1,10 @@
 export class Context {
-  contextData: Map<any, any>;
+  protected contextData: Map<any, any>;
 
   constructor(fromMap?: Map<any, any>) {
     this.contextData = new Map();
 
-    if (fromMap) {
-      fromMap.forEach((key, value) => {
-        this.contextData.set(key, value);
-      });
-    }
+    if (fromMap) fromMap.forEach(this.contextData.set);
   }
 
   set(key: any, value: any) {
