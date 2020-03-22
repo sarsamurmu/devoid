@@ -27,8 +27,8 @@ interface PrimaryComponentData {
 }
 
 export abstract class PrimaryComponent {
-  private elementData: PrimaryComponentData;
-  private eventManager: EventManager;
+  elementData: PrimaryComponentData;
+  eventManager: EventManager;
 
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;

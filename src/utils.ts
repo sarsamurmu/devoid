@@ -6,15 +6,15 @@ import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export type AnyComp = Component | PrimaryComponent | Fragment;
 
-/* global window, console */
+/* global console, process */
 
-const debug = window.location.hostname === 'localhost';
+export const debug = process.env.NODE_ENV;
 export const log = (...data: any): any => {
   if (debug) console.log(...data);
 }
 
 export class EventManager {
-  events: Map<string, Map<any, () => void>>;
+  private events: Map<string, Map<any, () => void>>;
 
   set(eventName: string, key: any, callback: () => void) {
     if (!this.events) this.events = new Map();
