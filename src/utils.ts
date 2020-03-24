@@ -8,10 +8,11 @@ export type AnyComp = Component | PrimaryComponent | Fragment;
 
 /* global console, process */
 
-export const debug = process.env.NODE_ENV;
+export const debug = process.env.NODE_ENV !== 'production';
 export const log = (...data: any): any => {
   if (debug) console.log(...data);
 }
+uniLog(process.env.NODE_ENV);
 
 export class EventManager {
   private events: Map<string, Map<any, () => void>>;
