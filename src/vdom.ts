@@ -1,6 +1,12 @@
+/**
+ * Modified version of snabbdom.js
+ * Original author Simon Friis Vindum
+ * Licensed under MIT License - https://github.com/snabbdom/snabbdom/blob/master/LICENSE
+ */
+
+
 import { Module } from 'snabbdom/es/modules/module';
 import vnode, { VNode } from 'snabbdom/es/vnode';
-import * as is from 'snabbdom/es/is';
 import htmlDomApi, { DOMAPI } from 'snabbdom/es/htmldomapi';
 
 /* eslint-disable */
@@ -80,6 +86,8 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
   function createElm(vnode: VNode, insertedVnodeQueue: VNodeQueue): Node {
     let i: any;
     let data = vnode.data;
+    // We don't use init hook so it's disabled
+    /*
     if (data !== undefined) {
       const init = data.hook?.init;
       if (isDef(init)) {
@@ -87,41 +95,46 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
         data = vnode.data;
       }
     }
+    */
     const children = vnode.children;
     const sel = vnode.sel;
     if (sel === '!') {
-      if (isUndef(vnode.text)) {
-        vnode.text = '';
-      }
+      if (isUndef(vnode.text)) vnode.text = '';
       vnode.elm = api.createComment(vnode.text!);
-    } else if (sel !== undefined) {
+      insertedVnodeQueue.push(vnode);
+    } else if (isDef(sel)) {
       const tag = sel;
       const elm = vnode.elm = isDef(data) && isDef(i = data.ns)
         ? api.createElementNS(i, tag)
         : api.createElement(tag);
       for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vnode);
-      if (is.array(children)) {
-        for (i = 0; i < children.length; ++i) {
-          const ch = children[i];
-          if (ch != null) {
-            api.appendChild(elm, createElm(ch as VNode, insertedVnodeQueue));
-          }
+      // Code `ifChildren` start
+      for (i = 0; i < children.length; ++i) {
+        const ch = children[i];
+        if (ch != null) {
+          api.appendChild(elm, createElm(ch as VNode, insertedVnodeQueue));
         }
+      }
+      // Code `ifChildren` end
+
+      // Children is always array in Devoid so it's disabled
+      /*
+      if (is.array(children)) {
+        // Refactored `ifChildren` code
       } else if (is.primitive(vnode.text)) {
         api.appendChild(elm, api.createTextNode(vnode.text));
       }
+      */
       const hook = vnode.data!.hook;
       if (isDef(hook)) {
-        hook.create?.(emptyNode, vnode);
+        // We don't use init hook
+        // hook.create?.(emptyNode, vnode);
         if (hook.insert) {
           insertedVnodeQueue.push(vnode);
         }
       }
     } else {
       vnode.elm = api.createTextNode(vnode.text!);
-      if (vnode.data!.hook.insert) {
-        insertedVnodeQueue.push(vnode);
-      }
     }
     return vnode.elm;
   }
@@ -264,12 +277,13 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
 
   function patchVnode(oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQueue) {
     const hook = vnode.data?.hook;
-    hook?.prepatch?.(oldVnode, vnode);
+    // We don't use prepatch hook
+    // hook?.prepatch?.(oldVnode, vnode);
     const elm = vnode.elm = oldVnode.elm!;
     const oldCh = oldVnode.children as VNode[];
     const ch = vnode.children as VNode[];
     if (oldVnode === vnode) return;
-    if (vnode.data !== undefined) {
+    if (isDef(vnode.data)) {
       for (let i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode);
       vnode.data.hook?.update?.(oldVnode, vnode);
     }
@@ -290,7 +304,8 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       }
       api.setTextContent(elm, vnode.text!);
     }
-    hook?.postpatch?.(oldVnode, vnode);
+    // We don't use prepatch hook
+    // hook?.postpatch?.(oldVnode, vnode);
   }
 
   function patch(oldVnode: VNode | Element, vnode: VNode): VNode {
