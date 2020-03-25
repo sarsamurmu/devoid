@@ -84,15 +84,11 @@
             didMount: () => {
               console.log(`Mounted Lifecycle Component`)
             },
-            child: new Fragment(['Just String'])
-          });
-        }
-
-        /*
-        new p({
+            child: new p({
               children: 'Lifecycle Component'
             })
-        */
+          });
+        }
         
         render(new div({
           children: [
