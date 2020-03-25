@@ -4,7 +4,7 @@ export class Context {
   constructor(fromMap?: Map<any, any>) {
     this.contextData = new Map();
 
-    if (fromMap) fromMap.forEach(this.contextData.set);
+    if (fromMap) fromMap.forEach((value, key) => this.contextData.set(key, value));
   }
 
   set(key: any, value: any) {
