@@ -22,7 +22,7 @@ export const createEl = (
     (component as ProtoClass).prototype instanceof Component ||
     (component as ProtoClass).prototype instanceof Fragment
   ) {
-    return (component as any).create(props);
+    return (component as any).create(props) || new (component as any)(props);
   } else if (typeof component === 'function') {
     return (context: Context) => component(context, props);
   } else if (elements[component as any]) {
