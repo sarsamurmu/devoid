@@ -9,7 +9,7 @@ type EventMap = {
   [event: string]: EventListener;
 };
 
-export type ChildType = AnyComp | string | number | ((context: Context) => AnyComp | string | number | null | false | undefined) | null | false | undefined;
+export type ChildType = AnyComp | string | number | ((context: Context) => ChildType) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: ChildrenArray | ChildType;

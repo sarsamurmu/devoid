@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { PrimaryComponent, ChildrenArray } from './elements';
+import { PrimaryComponent, ChildrenArray, ChildType } from './elements';
 import { Context } from './context';
 import { Fragment } from './fragment';
 import vnode, { VNode } from 'snabbdom/es/vnode';
@@ -12,7 +12,6 @@ export const debug = process.env.NODE_ENV !== 'production';
 export const log = (...data: any): any => {
   if (debug) console.log(...data);
 }
-uniLog(process.env.NODE_ENV);
 
 export class EventManager {
   private events: Map<string, Map<any, () => void>>;
@@ -39,48 +38,28 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
   for (const item of toAdd) set.add(item);
 }
 
-const textVNode = (text: string | number) => {
-  const eventManager = new EventManager();
+/* eslint-disable @typescript-eslint/no-use-before-define */
 
-  return vnode(undefined, {
-    hook: {
-      insert: () => {
-        eventManager.trigger('mount');
-      },
-      update: () => eventManager.trigger('update'),
-      destroy: () => eventManager.trigger('destroy'),
-    },
-    eventManager
-  }, undefined, text + '', undefined)
+function buildChild(context: Context, child: ChildType): VNode[] {
+  if (typeof child === 'function') {
+    const builtChild = child(context);
+    return buildChild(context, builtChild);
+  } else if (Array.isArray(child)) {
+    return buildChildren(context, child);
+  } else if ((typeof child === 'string' && child.trim() !== '') || typeof child === 'number') {
+    return [vnode(undefined, undefined, undefined, String(child), undefined)];
+  } else if (child instanceof Component || child instanceof PrimaryComponent || child instanceof Fragment) {
+    return [child.render(context)].flat(Infinity);
+  }
+  return [];
 }
 
-export const buildChildren = (context: Context, childrenArray: ChildrenArray) => {
+export function buildChildren(context: Context, childrenArray: ChildrenArray): VNode[] {
   const children = new Set<VNode>();
-  for (const child of childrenArray.flat(Infinity)) {
-    let built;
-    switch (true) {
-      case typeof child === 'function':
-        built = (child as (((context: Context) => AnyComp)))(context);
-        if ((typeof built === 'string' && (built as string).trim() !== '') || typeof built === 'number') children.add(textVNode(built));
-        if (Array.isArray(built)) addAll(children, buildChildren(context, built));
-        if (built instanceof Component || built instanceof PrimaryComponent) {
-          addAll(children, [(built as AnyComp).render(context)].flat(Infinity));
-        }
-        if (built instanceof Fragment) addAll(children, [(built as AnyComp).render(context)].flat(Infinity));
-        break;
-
-      case child instanceof Component || child instanceof PrimaryComponent:
-        addAll(children, [(child as AnyComp).render(context)].flat(Infinity));
-        break;
-
-      case child instanceof Fragment:
-        addAll(children, [(child as AnyComp).render(context)].flat(Infinity));
-        break;
-      
-      case (typeof child === 'string' && (child as string).trim() !== '') || typeof child === 'number':
-        children.add(textVNode(child));
-        break;
-    }
-  }
+  for (const child of childrenArray.flat(Infinity)) addAll(children, buildChild(context, child));
   return [...children];
 }
+
+/* eslint-enable */
+
+export const generateUniqueId = () => Array(16).fill(' ').join('').replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
