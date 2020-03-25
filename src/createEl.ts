@@ -13,7 +13,7 @@ export const createEl = (
   component: AnyComp | ((context: Context, props: Record<string, any>) => ChildType) | string,
   props: Record<string, any>,
   ...children: (AnyComp | ((context: Context) => ChildType))[]
-) => {
+): ChildType => {
   if (!props) props = {};
   props.children = children.flat(Infinity);
 
@@ -25,9 +25,8 @@ export const createEl = (
     return (component as any).create(props) || new (component as any)(props);
   } else if (typeof component === 'function') {
     return (context: Context) => component(context, props);
-  } else if (elements[component as any]) {
-    return (elements[component as any] as any).create(props);
   } else if (typeof component === 'string') {
+    if (component in elements) return ((elements as any)[component] as typeof PrimaryComponent).create(props);
     return createComponent(component).create(props);
   }
 }

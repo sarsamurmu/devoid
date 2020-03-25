@@ -9,9 +9,7 @@ export type AnyComp = Component | PrimaryComponent | Fragment;
 /* global console, process */
 
 export const debug = process.env.NODE_ENV !== 'production';
-export const log = (...data: any): any => {
-  if (debug) console.log(...data);
-}
+export const log = console.log.bind(console);
 
 export class EventManager {
   private events: Map<string, Map<any, () => void>>;
@@ -42,8 +40,7 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
 
 function buildChild(context: Context, child: ChildType): VNode[] {
   if (typeof child === 'function') {
-    const builtChild = child(context);
-    return buildChild(context, builtChild);
+    return buildChild(context, child(context));
   } else if (Array.isArray(child)) {
     return buildChildren(context, child);
   } else if ((typeof child === 'string' && child.trim() !== '') || typeof child === 'number') {
