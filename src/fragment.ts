@@ -1,28 +1,40 @@
-import { buildChildren } from './utils';
+import { buildChildren, EventManager, generateUniqueId } from './utils';
 import { Context } from './context';
 import { ChildrenArray } from './elements';
-import vnode, { VNode } from 'snabbdom/es/vnode';
+import vnode from 'snabbdom/es/vnode';
 
 export class Fragment {
   private children: ChildrenArray;
-  private vNodes: VNode[];
+  private fallbackData: {
+    hook: {
+      insert: () => void;
+      destroy: () => void;
+    };
+    eventManager: EventManager;
+  };
 
   constructor(children: ChildrenArray) {
     this.children = children;
+    const evM = new EventManager();
+    this.fallbackData = {
+      hook: {
+        insert: () => evM.trigger('mount'),
+        destroy: () => evM.trigger('destroy'),
+      },
+      eventManager: evM,
+    }
   }
 
   static create({ children }: { children: ChildrenArray }) {
     return new Fragment(children);
   }
 
-  build(context: Context) {
-    return buildChildren(context, this.children);
-  }
-
   render(context: Context) {
-    this.vNodes = this.build(context);
+    const vNodes = buildChildren(context, this.children);
     // If VNodes is empty array replace it with a array of comment DVNode to store it's position
-    if (this.vNodes.length === 0) this.vNodes = [vnode('!', undefined, undefined, `Empty Frag ${Date.now()}`, undefined)];
-    return this.vNodes;
+    if (vNodes.length === 0) vNodes.push(vnode('!', { key: generateUniqueId() }, undefined, 'dFrag', undefined));
+    if (!vNodes[0].data) vNodes[0].data = {};
+    Object.assign(vNodes[0].data, this.fallbackData);
+    return vNodes;
   }
 }

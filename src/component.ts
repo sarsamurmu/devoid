@@ -1,4 +1,4 @@
-import { AnyComp } from './utils';
+import { AnyComp, log } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -11,15 +11,13 @@ export abstract class Component {
   rebuild() {
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
       const newChildren = this.render(this.context, false) as VNode[];
-      const oldChildren: VNode[] = this.vNode.length === 1 && this.vNode[0].sel === '!' ? [] : this.vNode;
+      const oldChildren = this.vNode;
       updateChildren({
-        parentElm: this.vNode[0].elm.parentElement,
+        parentElm: oldChildren[0].elm.parentElement,
         oldCh: oldChildren,
         newCh: newChildren,
-        insertBefore: this.vNode[this.vNode.length - 1].elm.nextSibling
+        insertBefore: oldChildren[oldChildren.length - 1].elm.nextSibling,
       });
-      // Apparently updateChildren can't replace comment nodes so do it manually
-      if (oldChildren.length === 0) this.vNode[0].elm.parentElement.removeChild(this.vNode[0].elm);
       this.vNode = newChildren;
     } else {
       const newChildren = this.render(this.context, false) as VNode;
@@ -54,7 +52,7 @@ export abstract class Component {
     this.context = context;
     const vNode = this.build(context).render(context);
     const aVNode = Array.isArray(vNode) ? vNode[0] : vNode;
-    if (aVNode.data.eventManager) {
+    if (aVNode.data && aVNode.data.eventManager) {
       aVNode.data.eventManager.set('mount', this, () => {
         this.mounted = true;
         this.didMount();
