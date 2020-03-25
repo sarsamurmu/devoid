@@ -62,7 +62,7 @@ export abstract class Component {
       });
       aVNode.data.eventManager.set('destroy', this, () => {
         this.mounted = false;
-        this.didUpdate();
+        this.didDestroy();
         aVNode.data.eventManager.removeKey(this);
       });
     }
