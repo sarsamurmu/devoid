@@ -84,9 +84,12 @@
             didMount: () => {
               console.log(`Mounted Lifecycle Component`)
             },
-            child: new p({
-              children: 'Lifecycle Component'
-            })
+            child: new Fragment([
+              'Lifecycle Component'
+              // new p({
+              //   children: 'Lifecycle Component'
+              // })
+            ])
           });
         }
         
