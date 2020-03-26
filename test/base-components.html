@@ -43,10 +43,11 @@
         const {
           Builder,
           AsyncBuilder,
-          Theme,
           ValueNotifier,
           ListenerBuilder,
           LifecycleBuilder,
+          ChangeNotifier,
+          Provider,
         } = baseComponents;
 
         const valueListenerWidget = (context) => {
@@ -92,47 +93,60 @@
             ])
           });
         }
+
+        class providerSample extends ChangeNotifier {
+          constructor() {
+            super();
+            this._val = 10;
+          }
+
+          get val() {
+            return this._val;
+          }
+
+          set val(newVal) {
+            this._val = newVal;
+            this.notifyListeners();
+          }
+        }
+
+        class ThemeModel extends ChangeNotifier {
+          constructor(color) {
+            super();
+            this.color = color;
+          }
+        }
         
         render(new div({
           children: [
-            new Theme({
-              themeData: {
-                color: 'deepskyblue',
-              },
+            new Provider({
+              value: new ThemeModel('deepskyblue'),
               children: (context) => [
                 new p({
                   style: {
-                    color: Theme.of(context).color
+                    color: Provider.of(context, ThemeModel).color
                   },
                   children: [
-                    `Theme is cool`,
-                    new Theme({
-                      themeData: {
-                        color: 'tomato',
-                      },
+                    'Theming is cool',
+                    new Provider({
+                      value: new ThemeModel('tomato'),
                       children: (aContext) => new p({
                         style: {
-                          color: Theme.of(aContext).color
+                          color: Provider.of(aContext, ThemeModel).color
                         },
                         children: [
-                          `Nested Theme`,
+                          'It can change as deep it goes',
                           new p({
                             style: {
-                              color: Theme.of(context).color
+                              color: Provider.of(context, ThemeModel).color
                             },
-                            children: `Deeply nested but using grandparent's color`
+                            children: 'But you can use parents theme if you got the context'
                           })
                         ]
                       })
                     })
-                  ],
+                  ]
                 }),
-                new p({
-                  style: {
-                    color: Theme.of(context).color
-                  },
-                  children: `Another element which is using theme`
-                })
               ]
             }),
             new AsyncBuilder({
@@ -150,8 +164,22 @@
             }),
             lifecycleComponent,
             valueListenerWidget,
-            new br(),
-            'Simple Text Node',
+            new Provider({
+              value: new providerSample(),
+              children: (context) => [
+                new p({
+                  children: `The value of Provider is ${Provider.of(context, providerSample).val}`
+                }),
+                new button({
+                  on: {
+                    click: () => {
+                      Provider.of(context, providerSample).val = 20;
+                    }
+                  },
+                  children: 'Set value to 20'
+                })
+              ],
+            })
           ],
         }), document.querySelector('[renderBox]'));
       });
