@@ -95,12 +95,13 @@ class Main extends Component {
   }
 
   runTimed(label, callback) {
-    console.time(label);
+    console.log(label);
+    console.time('  - Whole');
     callback();
-    console.time('Only rebuild - ' + label);
+    console.time('  - Rebuild');
     this.rebuild();
-    console.timeEnd('Only rebuild - ' + label);
-    console.timeEnd(label);
+    console.timeEnd('  - Rebuild');
+    console.timeEnd('  - Whole');
   }
 
   createRows() {
