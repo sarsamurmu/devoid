@@ -18,6 +18,6 @@ export const { patch, updateChildren } = init([
 
 export const render = (component: AnyComp, element: HTMLElement) => {
   const elementVNode = toVNode(element);
-  elementVNode.children = buildChildren(new Context(), [component]);
+  elementVNode.children = buildChildren(new Context(new Map([['rootEl', element]])), [component]);
   patch(element, elementVNode);
 }

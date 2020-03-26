@@ -11,7 +11,7 @@ export class Context {
     this.contextData.set(key, value);
   }
 
-  get(key: any) {
+  get<T>(key: any): T {
     return this.contextData.get(key);
   }
 

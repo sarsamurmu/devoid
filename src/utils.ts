@@ -17,8 +17,7 @@ export class EventManager {
   set(eventName: string, key: any, callback: () => void) {
     if (!this.events) this.events = new Map();
     if (!this.events.has(eventName)) this.events.set(eventName, new Map());
-    const currEvent = this.events.get(eventName);
-    currEvent.set(key, callback);
+    this.events.get(eventName).set(key, callback);
   }
 
   removeKey(key: any) {
@@ -59,4 +58,10 @@ export function buildChildren(context: Context, childrenArray: ChildrenArray): V
 
 /* eslint-enable */
 
-export const generateUniqueId = () => Array(16).fill(' ').join('').replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
+let idTemp: string;
+export const generateUniqueId = () => (idTemp || (idTemp = Array(16).fill(' ').join(''))).replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
+
+export const every = <T>(array: T[], testFunction: (item: T) => boolean) => {
+  for (const item of array) if (!testFunction(item)) return false;
+  return true;
+}

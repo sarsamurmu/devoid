@@ -86,7 +86,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
   function createElm(vnode: VNode, insertedVnodeQueue: VNodeQueue): Node {
     let i: any;
     let data = vnode.data;
-    // We don't use init hook so it's disabled
+    // We don't use `init` hook so it's disabled
     /*
     if (data !== undefined) {
       const init = data.hook?.init;
@@ -101,7 +101,6 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     if (sel === '!') {
       if (isUndef(vnode.text)) vnode.text = '';
       vnode.elm = api.createComment(vnode.text!);
-      insertedVnodeQueue.push(vnode);
     } else if (isDef(sel)) {
       const tag = sel;
       const elm = vnode.elm = isDef(data) && isDef(i = data.ns)
@@ -127,7 +126,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       */
       const hook = vnode.data!.hook;
       if (isDef(hook)) {
-        // We don't use init hook
+        // We don't use `create` hook
         // hook.create?.(emptyNode, vnode);
         if (hook.insert) {
           insertedVnodeQueue.push(vnode);
