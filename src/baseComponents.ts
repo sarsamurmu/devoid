@@ -17,8 +17,8 @@ interface AsyncBuilderOptions {
 }
 
 export class AsyncBuilder extends Component {
-  snapshot: AsyncSnapshot;
-  options: AsyncBuilderOptions;
+  private snapshot: AsyncSnapshot;
+  private readonly options: AsyncBuilderOptions;
 
   constructor(asyncBuilderOptions: AsyncBuilderOptions) {
     super();
@@ -48,43 +48,6 @@ export class AsyncBuilder extends Component {
 
   build(context: Context) {
     return this.options.builder(context, this.snapshot);
-  }
-}
-
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-
-const themeKey = 'DevoidDefaultThemeKey';
-
-interface ThemeOptions {
-  themeData: any;
-  children: ChildType | ChildrenArray;
-}
-
-export class Theme extends Component {
-  options: ThemeOptions;
-
-  constructor(themeOptions: ThemeOptions) {
-    super();
-    this.options = themeOptions;
-  }
-
-  static create(props: ThemeOptions) {
-    return new Theme(props);
-  }
-
-  static of(context: Context) {
-    return context.get(themeKey);
-  }
-
-  build() {
-    return new Fragment([this.options.children]);
-  }
-
-  render(context: Context) {
-    this.context = context.copy();
-    this.context.set(themeKey, this.options.themeData);
-    return super.render(this.context);
   }
 }
 
@@ -172,7 +135,7 @@ interface ListenerBuilderOptions {
 }
 
 export class ListenerBuilder extends Component {
-  options: ListenerBuilderOptions;
+  private readonly options: ListenerBuilderOptions;
 
   constructor(listenerBuilderOptions: ListenerBuilderOptions) {
     super();
@@ -208,7 +171,7 @@ interface LifecycleBuilderOptions {
 }
 
 export class LifecycleBuilder extends Component {
-  options: LifecycleBuilderOptions;
+  private readonly options: LifecycleBuilderOptions;
 
   constructor(options: LifecycleBuilderOptions) {
     super();
@@ -229,5 +192,62 @@ export class LifecycleBuilder extends Component {
 
   build(context: Context) {
     return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
+  }
+}
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+export class ChangeNotifier implements Notifier {
+  listeners: Map<any, () => void>;
+
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  setListener(key: any, callback: () => void) {
+    this.listeners.set(key, callback);
+  }
+
+  removeListener(key: any) {
+    this.listeners.delete(key);
+  }
+
+  notifyListeners() {
+    this.listeners.forEach((callback) => callback());
+  }
+}
+
+interface ProviderOptions {
+  value: ChangeNotifier;
+  children: AnyComp;
+}
+
+const providerKey = Symbol('ProviderKey');
+type providerMap = Map<typeof ChangeNotifier.constructor, ChangeNotifier>;
+
+export class Provider extends Component {
+  private readonly options: ProviderOptions;
+
+  constructor(options: ProviderOptions) {
+    super();
+    this.options = options;
+  }
+
+  build() {
+    return new Fragment([this.options.children]);
+  }
+
+  static of<T extends typeof ChangeNotifier>(context: Context, type: T) {
+    return context.get<providerMap>(providerKey).get(type);
+  }
+
+  render(context: Context, ...args: any[]) {
+    this.context = context.copy();
+    const prevProvider = this.context.get<providerMap>(providerKey);
+    this.context.set(providerKey, new Map(prevProvider ? prevProvider.entries() : undefined));
+    this.options.value.setListener(this, () => this.rebuild());
+    this.context.get<providerMap>(providerKey).set(this.options.value.constructor, this.options.value);
+    return super.render(this.context, ...args);
   }
 }

@@ -3,7 +3,7 @@ import { h } from 'snabbdom/es/h';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 
-export type ChildType = AnyComp | string | number | ((context: Context) => ChildType) | null | false | undefined;
+export type ChildType = AnyComp | string | number | ((context: Context) => ChildType | ChildrenArray) | null | false | undefined;
 
 export interface ChildrenArray extends Array<ChildrenArray | ChildType> {
   [index: number]: ChildrenArray | ChildType;

@@ -5,28 +5,24 @@ import { Component } from './component';
 import { elements } from './elements';
 import { Fragment } from './fragment';
 
-interface ProtoClass {
-  prototype: any;
-}
-
 export const createEl = (
-  component: AnyComp | ((context: Context, props: Record<string, any>) => ChildType) | string,
+  component: typeof Component | typeof PrimaryComponent | typeof Fragment | ((context: Context, props: Record<string, any>) => ChildType) | string,
   props: Record<string, any>,
   ...children: (AnyComp | ((context: Context) => ChildType))[]
 ): ChildType => {
   if (!props) props = {};
   props.children = children.flat(Infinity);
 
-  if (
-    (component as ProtoClass).prototype instanceof PrimaryComponent ||
-    (component as ProtoClass).prototype instanceof Component ||
-    (component as ProtoClass).prototype instanceof Fragment
+  if (typeof component === 'string') {
+    if (component in elements) return ((elements as any)[component] as typeof PrimaryComponent).create(props);
+    return createComponent(component).create(props);
+  } else if (
+    component.prototype instanceof PrimaryComponent ||
+    component.prototype instanceof Component ||
+    component.prototype instanceof Fragment
   ) {
     return (component as any).create(props) || new (component as any)(props);
   } else if (typeof component === 'function') {
-    return (context: Context) => component(context, props);
-  } else if (typeof component === 'string') {
-    if (component in elements) return ((elements as any)[component] as typeof PrimaryComponent).create(props);
-    return createComponent(component).create(props);
+    return (context: Context) => (component as any)(context, props);
   }
 }
