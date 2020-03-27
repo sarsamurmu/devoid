@@ -37,7 +37,7 @@ const addAll = (set: Set<any>, toAdd: any[]) => {
 
 /* eslint-disable @typescript-eslint/no-use-before-define */
 
-function buildChild(context: Context, child: ChildType): VNode[] {
+function buildChild(context: Context, child: ChildType | ChildrenArray): VNode[] {
   if (typeof child === 'function') {
     return buildChild(context, child(context));
   } else if (Array.isArray(child)) {
@@ -65,3 +65,6 @@ export const every = <T>(array: T[], testFunction: (item: T) => boolean) => {
   for (const item of array) if (!testFunction(item)) return false;
   return true;
 }
+
+export const def = (item: any) => item !== undefined;
+export const undef = (item: any) => item === undefined;

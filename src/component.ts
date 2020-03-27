@@ -1,4 +1,4 @@
-import { AnyComp, every } from './utils';
+import { AnyComp, every, def, undef } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -35,11 +35,14 @@ const removeObserver = (target: Node, key: any) => {
 export abstract class Component {
   protected context: Context;
   protected vNode: VNode | VNode[];
-  protected mounted: boolean;
+  protected mounted = false;
+  protected shouldSetVNode = true;
 
   rebuild() {
+    if (!this.mounted) return;
+    this.shouldSetVNode = false;
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
-      const newChildren = this.render(this.context, false) as VNode[];
+      const newChildren = this.render(this.context) as VNode[];
       const oldChildren = this.vNode;
       updateChildren({
         parentElm: oldChildren[0].elm.parentElement,
@@ -49,10 +52,11 @@ export abstract class Component {
       });
       this.vNode = newChildren;
     } else {
-      const newChildren = this.render(this.context, false) as VNode;
+      const newChildren = this.render(this.context) as VNode;
       patch(this.vNode, newChildren);
       this.vNode = newChildren;
     }
+    this.shouldSetVNode = true;
   }
 
   setState(callback: () => void) {
@@ -77,7 +81,7 @@ export abstract class Component {
 
   abstract build(context: Context): AnyComp;
 
-  render(context: Context, setVNode = true): VNode | VNode[] {
+  render(context: Context): VNode | VNode[] {
     this.context = context;
     const vNode = this.build(context).render(context);
     if (!Array.isArray(vNode)) {
@@ -114,7 +118,7 @@ export abstract class Component {
         }
       })
     }
-    if (setVNode) this.vNode = vNode;
+    if (this.shouldSetVNode) this.vNode = vNode;
     return vNode;
   }
 }

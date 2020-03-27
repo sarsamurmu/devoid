@@ -199,11 +199,7 @@ export class LifecycleBuilder extends Component {
 ///////////////////////////////////////////////////////////////
 
 export class ChangeNotifier implements Notifier {
-  listeners: Map<any, () => void>;
-
-  constructor() {
-    this.listeners = new Map();
-  }
+  listeners = new Map<any, () => void>();
 
   setListener(key: any, callback: () => void) {
     this.listeners.set(key, callback);
@@ -238,16 +234,16 @@ export class Provider extends Component {
     return new Fragment([this.options.children]);
   }
 
-  static of<T extends typeof ChangeNotifier>(context: Context, type: T) {
-    return context.get<providerMap>(providerKey).get(type);
+  static of<T extends ChangeNotifier>(context: Context, type: new() => T): T {
+    return context.get<providerMap>(providerKey).get(type) as T;
   }
 
-  render(context: Context, ...args: any[]) {
+  render(context: Context) {
     this.context = context.copy();
     const prevProvider = this.context.get<providerMap>(providerKey);
     this.context.set(providerKey, new Map(prevProvider ? prevProvider.entries() : undefined));
     this.options.value.setListener(this, () => this.rebuild());
     this.context.get<providerMap>(providerKey).set(this.options.value.constructor, this.options.value);
-    return super.render(this.context, ...args);
+    return super.render(this.context);
   }
 }
