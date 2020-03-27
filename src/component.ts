@@ -1,4 +1,4 @@
-import { AnyComp, every, def, undef } from './utils';
+import { AnyComp, every } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -71,7 +71,6 @@ export abstract class Component {
   didUpdate() {}
 
   didDestroy() {}
-
 
   static create(props: Record<string, any>): Component {
     return null

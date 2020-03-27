@@ -1,26 +1,25 @@
 import { Component } from './component';
 import { AnyComp } from './utils';
 import { Context } from './context';
-import { ChildType, ChildrenArray } from './elements';
 import { Fragment } from './fragment';
 
-interface AsyncSnapshot {
-  data: any;
+interface AsyncSnapshot<T> {
+  data: T;
   hasData: boolean;
   resolved: boolean;
-  error: object;
+  error: Error;
 }
 
-interface AsyncBuilderOptions {
-  getter: () => Promise<unknown>;
-  builder: (context: Context, snapshot: AsyncSnapshot) => AnyComp;
+interface AsyncBuilderOptions<T> {
+  getter: () => Promise<T>;
+  builder: (context: Context, snapshot: AsyncSnapshot<T>) => AnyComp;
 }
 
-export class AsyncBuilder extends Component {
-  private snapshot: AsyncSnapshot;
-  private readonly options: AsyncBuilderOptions;
+export class AsyncBuilder<T> extends Component {
+  private snapshot: AsyncSnapshot<T>;
+  private readonly options: AsyncBuilderOptions<T>;
 
-  constructor(asyncBuilderOptions: AsyncBuilderOptions) {
+  constructor(asyncBuilderOptions: AsyncBuilderOptions<T>) {
     super();
     this.options = asyncBuilderOptions;
     this.snapshot = {
@@ -29,10 +28,6 @@ export class AsyncBuilder extends Component {
       resolved: false,
       error: null,
     }
-  }
-
-  static create(props: AsyncBuilderOptions) {
-    return new AsyncBuilder(props);
   }
 
   didMount() {
@@ -60,7 +55,7 @@ export interface Notifier {
   notifyListeners(): void;
 }
 
-export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
+export const ValueNotifier = <T>(data?: T) => {
   interface NotifierObject extends Notifier, Record<string, any> {
     '#listeners#': Map<any, () => void>;
   }
@@ -92,20 +87,26 @@ export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
     }
   });
 
-  const proxify = (data: any) => {
+  /* eslint-disable @typescript-eslint/no-use-before-define */
+
+  const proxyHandler = {
+    set: (_: any, key: string, value: any) => {
+      try {
+        obj[key] = proxify(value);
+        obj.notifyListeners();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  function proxify(data: any) {
     if (typeof data === 'object' && data !== null) {
       for (const [key, value] of Object.entries(data)) {
         data[key] = proxify(value);
       }
-      return new Proxy(data, {
-        set: (obj, key, value) => {
-          if (Reflect.set(obj, key, proxify(value))) {
-            obj.notifyListeners();
-            return true;
-          }
-          return false;
-        }
-      });
+      return new Proxy(data, proxyHandler);
     }
     return data;
   }
@@ -118,16 +119,10 @@ export const ValueNotifier = <T extends Record<string, any>>(data?: any) => {
     obj.value = data;
   }
 
-  return new Proxy(obj, {
-    set: (obj, key, value) => {
-      if (Reflect.set(obj, key, proxify(value))) {
-        obj.notifyListeners();
-        return true;
-      }
-      return false;
-    }
-  }) as unknown as Notifier & T & Record<string, any>;
+  return new Proxy(obj, proxyHandler) as any as Notifier & (T extends Record<string, any> ? T : { value: T }) & Record<string, any>;
 }
+
+/* eslint-enable */
 
 interface ListenerBuilderOptions {
   listenTo: Notifier[];
@@ -143,10 +138,6 @@ export class ListenerBuilder extends Component {
     for (const notifier of listenerBuilderOptions.listenTo) {
       notifier.setListener(this, () => this.rebuild());
     }
-  }
-
-  static create(props: ListenerBuilderOptions) {
-    return new ListenerBuilder(props);
   }
 
   didDestroy() {

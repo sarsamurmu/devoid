@@ -26,12 +26,11 @@ interface PrimaryComponentData {
 
 export abstract class PrimaryComponent {
   elementData: PrimaryComponentData;
-  eventManager: EventManager;
+  eventManager = new EventManager();
 
   constructor(elementData: PrimaryComponentData = {}) {
     this.elementData = elementData;
     if (!elementData.children) this.elementData.children = [];
-    this.eventManager = new EventManager();
   }
 
   /* eslint-disable-next-line */
@@ -48,10 +47,6 @@ export abstract class PrimaryComponent {
 
 export const createComponent = (tagName: string) => {
   return class ElementClass extends PrimaryComponent {
-    static create(props: Record<string, any>): PrimaryComponent {
-      return new ElementClass(props);
-    }
-
     build(context: Context): VNode {
       this.elementData.children = [this.elementData.children];
 
