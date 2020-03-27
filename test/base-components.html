@@ -37,7 +37,9 @@
           button,
           a,
           br,
-          textarea
+          textarea,
+          h3,
+          input
         } = elements;
 
         const {
@@ -69,12 +71,10 @@
             new ListenerBuilder({
               listenTo: [boxText],
               builder: () => new Fragment([
-                boxText.value !== '' && new Fragment([
-                  new p({
-                    children: `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
-                  }),
-                  boxText.value,
-                ])
+                new p({
+                  children: `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
+                }),
+                `Value as text node - "${boxText.value}"`,
               ])
             })
           ]);
@@ -86,10 +86,9 @@
               console.log(`Mounted Lifecycle Component`)
             },
             child: new Fragment([
-              'Lifecycle Component'
-              // new p({
-              //   children: 'Lifecycle Component'
-              // })
+              new p({
+                children: 'Lifecycle Component'
+              })
             ])
           });
         }
@@ -119,6 +118,7 @@
         
         render(new div({
           children: [
+            new h3({ children: 'Theme using Provider' }),
             new Provider({
               value: new ThemeModel('deepskyblue'),
               children: (context) => [
@@ -149,6 +149,7 @@
                 }),
               ]
             }),
+            new h3({ children: 'AsyncBuilder' }),
             new AsyncBuilder({
               getter: () =>  new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -157,27 +158,57 @@
                 }, 2000);
               }),
               builder: (context, snapshot) => new Fragment([
-                new p({ children: 'Item 1' }),
+                () => new p({ children: snapshot.hasData ? `Data is "${snapshot.data}"` : 'Data is loading...' }),
                 () => snapshot.hasData && new p({ key: 'aPara', children: 'Load completed' }),
-                //new p({ children: 'Item 2' }),
               ])
             }),
+            new h3({ children: 'Lifecycle Component' }),
             lifecycleComponent,
+            new h3({ children: 'ValueListener Component' }),
             valueListenerWidget,
+            new h3({ children: 'Dynamic value with Provider' }),
             new Provider({
               value: new providerSample(),
               children: (context) => [
                 new p({
-                  children: `The value of Provider is ${Provider.of(context, providerSample).val}`
+                  children: `The value of Provider is - ${Provider.of(context, providerSample).val}`
                 }),
-                new button({
-                  on: {
-                    click: () => {
-                      Provider.of(context, providerSample).val = 20;
-                    }
+                new div({
+                  props: {
+                    classList: 'zust-el-group'
                   },
-                  children: 'Set value to 20'
-                })
+                  children: [
+                    new p({
+                      props: {
+                        classList: 'zust-form-el'
+                      },
+                      children: [
+                        new input({
+                          props: {
+                            classList: 'zust-input',
+                            placeholder: 'Enter new value'
+                          },
+                          on: {
+                            input: (e) => {
+                              Provider.of(context, providerSample).tempVal = e.target.value;
+                            }
+                          }
+                        }),
+                      ]
+                    }),
+                    new button({
+                      props: {
+                        classList: 'zust-btn zust-link'
+                      },
+                      on: {
+                        click: () => {
+                          Provider.of(context, providerSample).val = Provider.of(context, providerSample).tempVal;
+                        }
+                      },
+                      children: 'Set value'
+                    })
+                  ]
+                }),
               ],
             })
           ],
