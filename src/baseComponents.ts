@@ -166,7 +166,11 @@ export class LifecycleBuilder extends Component {
 
   constructor(options: LifecycleBuilderOptions) {
     super();
-    this.options = options;
+    this.options = Object.assign({
+      didMount: () => 0,
+      didUpdate: () => 0,
+      didDestroy: () => 0,
+    }, options);
   }
 
   didMount() {

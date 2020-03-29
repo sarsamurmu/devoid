@@ -1,4 +1,4 @@
-import { AnyComp, every } from './utils';
+import { AnyComp, every, log, EventManager } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -7,16 +7,14 @@ import { VNode } from 'snabbdom/es/vnode';
 
 const observerMap = new Map<Node, MutationObserver>();
 const callbackMap = new Map<Node, Map<any, () => void>>();
-const connectedMap = new Map<Node, boolean>();
 
 const addObserver = (target: Node, key: any, callback: () => void) => {
-  if (!observerMap.has(target)) observerMap.set(target, new MutationObserver(() => callbackMap.get(target).forEach((callback) => callback())));
-  if (!connectedMap.has(target)) {
+  if (!observerMap.has(target)) {
+    observerMap.set(target, new MutationObserver(() => callbackMap.get(target).forEach((callback) => callback())));
     observerMap.get(target).observe(target, {
       childList: true,
       subtree: true,
     });
-    connectedMap.set(target, true);
   }
   if (!callbackMap.has(target)) callbackMap.set(target, new Map());
   callbackMap.get(target).set(key, callback);
@@ -28,7 +26,7 @@ const removeObserver = (target: Node, key: any) => {
   if (currCallbackMap.size === 0) {
     observerMap.get(target).disconnect();
     observerMap.delete(target);
-    connectedMap.delete(target);
+    callbackMap.delete(target);
   }
 }
 
@@ -78,44 +76,47 @@ export abstract class Component {
 
   /* eslint-enable */
 
+  onContext(context: Context) {
+    this.context = context;
+  }
+
   abstract build(context: Context): AnyComp;
 
   render(context: Context): VNode | VNode[] {
-    this.context = context;
     const vNode = this.build(context).render(context);
     if (!Array.isArray(vNode)) {
-      vNode.data.eventManager.set('mount', this, () => {
+      const eventManager = vNode.data.eventManager as EventManager;
+      eventManager.add('mount', () => {
         if (this.mounted) return;
         this.mounted = true;
         this.didMount();
-      });
-      vNode.data.eventManager.set('update', this, () => {
+      }, this);
+      eventManager.add('update', () => {
         this.didUpdate();
-      });
-      vNode.data.eventManager.set('destroy', this, () => {
+      }, this);
+      eventManager.add('destroy', () => {
         if (!this.mounted) return;
         this.mounted = false;
         this.didDestroy();
-        vNode.data.eventManager.removeKey(this);
-      });
+        eventManager.removeKey(this);
+      }, this);
     } else {
       const rootEl = context.get<Node>('rootEl');
       addObserver(rootEl, this, () => {
         const vNodes = this.vNode as VNode[];
-        const alreadyMounted = this.mounted;
         if (every(vNodes, (aVNode) => rootEl.contains(aVNode.elm))) {
-          if (!alreadyMounted) {
+          if (!this.mounted) {
             this.mounted = true;
             this.didMount();
           }
         } else {
-          if (alreadyMounted) {
+          if (this.mounted) {
             this.mounted = false;
             this.didDestroy();
             removeObserver(rootEl, this);
           }
         }
-      })
+      });
     }
     if (this.shouldSetVNode) this.vNode = vNode;
     return vNode;
