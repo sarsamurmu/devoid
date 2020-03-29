@@ -1,4 +1,4 @@
-export { Component } from './component';
+export * from './component';
 export { createEl } from './createEl';
 export { elements } from './elements';
 export { EventManager } from './utils';

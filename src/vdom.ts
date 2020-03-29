@@ -4,7 +4,6 @@
  * Licensed under MIT License - https://github.com/snabbdom/snabbdom/blob/master/LICENSE
  */
 
-
 import { Module } from 'snabbdom/es/modules/module';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 import htmlDomApi, { DOMAPI } from 'snabbdom/es/htmldomapi';

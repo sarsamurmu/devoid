@@ -19,6 +19,16 @@ export const every = <T>(array: T[], testFunction: (item: T) => boolean) => {
   return true;
 }
 
+export const includes = <T>(array: T[], whichItem: T) => {
+  for (const item of array) if (item === whichItem) return true;
+  return false;
+}
+
+export const any = <T>(array: T[], testFunction: (item: T) => boolean) => {
+  for (const item of array) if (testFunction(item)) return true;
+  return false;
+}
+
 export const def = (item: any) => item !== undefined;
 export const undef = (item: any) => item === undefined;
 

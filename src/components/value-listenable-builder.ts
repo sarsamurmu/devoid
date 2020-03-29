@@ -84,7 +84,7 @@ export class ListenerBuilder extends Component {
     super();
     this.options = listenerBuilderOptions;
     for (const notifier of listenerBuilderOptions.listenTo) {
-      notifier.setListener(this, () => this.rebuild());
+      notifier.addListener(this, () => this.rebuild());
     }
   }
 

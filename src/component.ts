@@ -30,11 +30,19 @@ const removeObserver = (target: Node, key: any) => {
   }
 }
 
+export const FLAG_STATELESS = 1;
+export const FLAG_NOLIFECYCLE = 2;
+
 export abstract class Component {
   protected context: Context;
   protected vNode: VNode | VNode[];
   protected mounted = false;
   protected shouldSetVNode = true;
+  private readonly _flags: number;
+
+  constructor(flags = 0) {
+    this._flags = flags;
+  }
 
   rebuild() {
     if (!this.mounted) return;
@@ -83,40 +91,43 @@ export abstract class Component {
   abstract build(context: Context): AnyComp;
 
   render(context: Context): VNode | VNode[] {
-    const vNode = this.build(context).render(context);
-    if (!Array.isArray(vNode)) {
-      const eventManager = vNode.data.eventManager as EventManager;
-      eventManager.add('mount', () => {
-        if (this.mounted) return;
-        this.mounted = true;
-        this.didMount();
-      }, this);
-      eventManager.add('update', () => {
-        this.didUpdate();
-      }, this);
-      eventManager.add('destroy', () => {
-        if (!this.mounted) return;
-        this.mounted = false;
-        this.didDestroy();
-        eventManager.removeKey(this);
-      }, this);
-    } else {
-      const rootEl = context.get<Node>('rootEl');
-      addObserver(rootEl, this, () => {
-        const vNodes = this.vNode as VNode[];
-        if (every(vNodes, (aVNode) => rootEl.contains(aVNode.elm))) {
-          if (!this.mounted) {
-            this.mounted = true;
-            this.didMount();
+    const vNode = this.build(this.context).render(this.context);
+    if (this._flags & FLAG_STATELESS) return vNode;
+    if (!(this._flags & FLAG_NOLIFECYCLE)) {
+      if (!Array.isArray(vNode)) {
+        const eventManager = vNode.data.eventManager as EventManager;
+        eventManager.add('mount', () => {
+          if (this.mounted) return;
+          this.mounted = true;
+          this.didMount();
+        }, this);
+        eventManager.add('update', () => {
+          this.didUpdate();
+        }, this);
+        eventManager.add('destroy', () => {
+          if (!this.mounted) return;
+          this.mounted = false;
+          this.didDestroy();
+          eventManager.removeKey(this);
+        }, this);
+      } else {
+        const rootEl = context.get<Node>('rootEl');
+        addObserver(rootEl, this, () => {
+          const vNodes = this.vNode as VNode[];
+          if (every(vNodes, (aVNode) => rootEl.contains(aVNode.elm))) {
+            if (!this.mounted) {
+              this.mounted = true;
+              this.didMount();
+            }
+          } else {
+            if (this.mounted) {
+              this.mounted = false;
+              this.didDestroy();
+              removeObserver(rootEl, this);
+            }
           }
-        } else {
-          if (this.mounted) {
-            this.mounted = false;
-            this.didDestroy();
-            removeObserver(rootEl, this);
-          }
-        }
-      });
+        });
+      }
     }
     if (this.shouldSetVNode) this.vNode = vNode;
     return vNode;
