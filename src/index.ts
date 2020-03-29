@@ -1,7 +1,8 @@
-export { render } from './render';
 export { Component } from './component';
-export * from './elements';
-export * as baseComponents from './baseComponents';
 export { createEl } from './createEl';
-export { Fragment } from './fragment';
+export { elements } from './elements';
 export { EventManager } from './utils';
+export { Fragment } from './fragment';
+export { render } from './render';
+export * from './components';
+export const version = '__VERSION__';

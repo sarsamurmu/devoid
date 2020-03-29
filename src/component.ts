@@ -1,4 +1,4 @@
-import { AnyComp, every, log, EventManager } from './utils';
+import { AnyComp, every, EventManager } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';

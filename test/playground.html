@@ -27,7 +27,6 @@
           elements,
           Component,
           Fragment,
-          baseComponents,
           createEl
         } = Devoid;
 
@@ -41,12 +40,10 @@
         } = elements;
 
         const {
-          Builder,
           AsyncBuilder,
-          Theme,
           ValueNotifier,
           ListenerBuilder
-        } = baseComponents;
+        } = Devoid;
 
         class FragTest extends Component {
           build() {

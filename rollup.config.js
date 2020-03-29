@@ -66,6 +66,9 @@ export default {
     }),
     prod && terser(),
     prod && banner(devoidBanner),
+    prod && replace({
+      '__VERSION__': pkg.version
+    })
   ],
   cache: !prod,
 }

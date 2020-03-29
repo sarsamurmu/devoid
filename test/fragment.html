@@ -27,7 +27,6 @@
           elements,
           Component,
           Fragment,
-          baseComponents,
           createEl
         } = Devoid;
 
@@ -41,32 +40,95 @@
         } = elements;
 
         const {
-          Builder,
           AsyncBuilder,
-          Theme,
           ValueNotifier,
-          ListenerBuilder
-        } = baseComponents;
+          ListenerBuilder,
+          LifecycleBuilder
+        } = Devoid;
 
         class FragTest extends Component {
+          constructor() {
+            super();
+            this.data = {
+              hasParent: true,
+              hasFragment: true,
+              hasDummyParagraph: true,
+            };
+          }
+
           build() {
-            return new Fragment([
-              new p({
-                style: {
-                  color: 'deepskyblue',
-                },
-                children: 'First paragraph'
-              }),
-              new a({
-                children: 'Link'
-              })
-            ]);
+            return new div({
+              children: [
+                  () => this.data.hasParent ? new div({
+                  children: () => [
+                    () => this.data.hasFragment ? new LifecycleBuilder({
+                      didMount: () => {
+                        console.log(`Mounted`);
+                      },
+                      didDestroy: () => {
+                        console.log(`Destroyed`);
+                      },
+                      child: new Fragment([
+                        new p({
+                          children: 'Paragraph 1'
+                        }),
+                        new p({
+                          children: 'Paragraph 2'
+                        }),
+                        new p({
+                          children: 'Paragraph 3'
+                        }),
+                      ])
+                    }) : new Fragment([]),
+                    () => this.data.hasDummyParagraph ? new p({
+                      children: 'Paragraph Always'
+                    }) : new Fragment([]),
+                  ]
+                }) : new p({
+                  children: 'No parent'
+                }),
+                new button({
+                  props: {
+                    classList: 'zust-btn'
+                  },
+                  on: {
+                    click: () => {
+                      this.data.hasParent = !this.data.hasParent;
+                      this.rebuild();
+                    }
+                  },
+                  children: () => this.data.hasParent ? 'Remove Parent' : 'Add Parent'
+                }),
+                new button({
+                  props: {
+                    classList: 'zust-btn'
+                  },
+                  on: {
+                    click: () => {
+                      this.data.hasFragment = !this.data.hasFragment;
+                      this.rebuild();
+                    }
+                  },
+                  children: () => this.data.hasFragment ? 'Remove Fragment' : 'Add Fragment'
+                }),
+                new button({
+                  props: {
+                    classList: 'zust-btn'
+                  },
+                  on: {
+                    click: () => {
+                      this.data.hasDummyParagraph = !this.data.hasDummyParagraph;
+                      this.rebuild();
+                    }
+                  },
+                  children: () => this.data.hasDummyParagraph ? 'Remove Dummy Paragraph' : 'Add Dummy Paragraph'
+                }),
+              ]
+            })
           }
         }
-
-        const fragComp = new FragTest
         
-        render(() => fragComp, document.querySelector('[renderBox]'));
+        render(new FragTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

@@ -27,7 +27,6 @@
           elements,
           Component,
           Fragment,
-          baseComponents,
           createEl
         } = Devoid;
 
@@ -43,14 +42,13 @@
         } = elements;
 
         const {
-          Builder,
           AsyncBuilder,
           ValueNotifier,
           ListenerBuilder,
           LifecycleBuilder,
           ChangeNotifier,
           Provider,
-        } = baseComponents;
+        } = Devoid;
 
         const valueListenerWidget = (context) => {
           const boxText = ValueNotifier({ value: 'This is initial value' });
