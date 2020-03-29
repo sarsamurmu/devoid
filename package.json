@@ -2,6 +2,7 @@
   "name": "devoid",
   "version": "0.0.1",
   "description": "",
+  "sideEffects": false,
   "browser": "dist/devoid.js",
   "module": "dist/devoid.es.js",
   "main": "dist/devoid.common.js",
