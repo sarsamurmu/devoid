@@ -21,7 +21,6 @@ interface PrimaryComponentData {
   } & {
     [event: string]: EventListener;
   };
-  getComponent?: (component: AnyComp) => void;
 }
 
 export abstract class PrimaryComponent {
@@ -48,26 +47,31 @@ export abstract class PrimaryComponent {
 export const createComponent = (tagName: string) => {
   return class ElementClass extends PrimaryComponent {
     build(context: Context): VNode {
-      this.elementData.children = [this.elementData.children];
+      const elementData = this.elementData;
+      const eventManager = this.eventManager;
 
-      if (this.elementData.getComponent) this.elementData.getComponent(this);
+      elementData.children = [elementData.children];
 
       return h(tagName, {
-        key: this.elementData.key,
-        class: this.elementData.class,
-        style: this.elementData.style,
-        attrs: this.elementData.attrs,
-        props: this.elementData.props,
-        on: this.elementData.on,
+        key: elementData.key,
+        class: elementData.class,
+        style: elementData.style,
+        attrs: elementData.attrs,
+        props: elementData.props,
+        on: elementData.on,
         hook: {
-          insert: () => {
-            this.eventManager.trigger('mount');
+          insert() {
+            eventManager.trigger('mount');
           },
-          update: () => this.eventManager.trigger('update'),
-          destroy: () => this.eventManager.trigger('destroy'),
+          update() {
+            eventManager.trigger('update');
+          },
+          destroy() {
+            eventManager.trigger('destroy');
+          },
         },
-        eventManager: this.eventManager
-      }, buildChildren(context, this.elementData.children));
+        eventManager
+      }, buildChildren(context, elementData.children));
     }
   }
 }

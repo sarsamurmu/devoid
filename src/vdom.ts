@@ -100,6 +100,9 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     if (sel === '!') {
       if (isUndef(vnode.text)) vnode.text = '';
       vnode.elm = api.createComment(vnode.text!);
+      if (isDef(vnode.data) && isDef(vnode.data.hook) && vnode.data.hook.insert) {
+        insertedVnodeQueue.push(vnode);
+      }
     } else if (isDef(sel)) {
       const tag = sel;
       const elm = vnode.elm = isDef(data) && isDef(i = data.ns)
@@ -127,12 +130,13 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       if (isDef(hook)) {
         // We don't use `create` hook
         // hook.create?.(emptyNode, vnode);
-        if (hook.insert) {
-          insertedVnodeQueue.push(vnode);
-        }
+        if (hook.insert) insertedVnodeQueue.push(vnode);
       }
     } else {
       vnode.elm = api.createTextNode(vnode.text!);
+      if (isDef(vnode.data) && isDef(vnode.data.hook) && vnode.data.hook.insert) {
+        insertedVnodeQueue.push(vnode);
+      }
     }
     return vnode.elm;
   }
@@ -191,6 +195,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
           }
         } else { // Text node
           api.removeChild(parentElm, ch.elm!);
+          invokeDestroyHook(ch);
         }
       }
     }
