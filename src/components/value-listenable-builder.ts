@@ -72,18 +72,18 @@ export const ValueNotifier = <T>(data?: T) => {
 
 /* eslint-enable */
 
-interface ListenerBuilderOptions {
+interface ListenableBuilderOptions {
   listenTo: Notifier[];
   builder: (context: Context) => AnyComp;
 }
 
-export class ListenerBuilder extends Component {
-  private readonly options: ListenerBuilderOptions;
+export class ListenableBuilder extends Component {
+  private readonly options: ListenableBuilderOptions;
 
-  constructor(listenerBuilderOptions: ListenerBuilderOptions) {
+  constructor(listenableBuilderOptions: ListenableBuilderOptions) {
     super();
-    this.options = listenerBuilderOptions;
-    for (const notifier of listenerBuilderOptions.listenTo) {
+    this.options = listenableBuilderOptions;
+    for (const notifier of listenableBuilderOptions.listenTo) {
       notifier.addListener(this, () => this.rebuild());
     }
   }

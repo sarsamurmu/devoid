@@ -44,7 +44,7 @@
         const {
           AsyncBuilder,
           ValueNotifier,
-          ListenerBuilder,
+          ListenableBuilder,
           LifecycleBuilder,
           ChangeNotifier,
           Provider,
@@ -66,7 +66,7 @@
                 placeholder: 'Enter some text'
               }
             }),
-            new ListenerBuilder({
+            new ListenableBuilder({
               listenTo: [boxText],
               builder: () => new Fragment([
                 new p({
