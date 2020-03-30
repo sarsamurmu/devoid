@@ -1,5 +1,5 @@
 import { Notifier } from './shared';
-import { AnyComp, includes, any } from '../utils';
+import { AnyComp, includes, any, debug, warn } from '../utils';
 import { Component, FLAG_STATELESS } from '../component';
 import { Context } from '../context';
 
@@ -25,7 +25,7 @@ interface ProviderOptions {
 }
 
 const providerKey = Symbol('ProviderKey');
-type providerMap = Map<typeof ChangeNotifier.constructor, ChangeNotifier>;
+type ProviderMap = Map<typeof ChangeNotifier.constructor, ChangeNotifier>;
 
 export class Provider extends Component {
   private readonly options: ProviderOptions;
@@ -42,15 +42,20 @@ export class Provider extends Component {
 
   onContext(context: Context) {
     this.context = context.copy();
-    const prevProvider = context.get<providerMap>(providerKey);
+    const prevProvider = context.get<ProviderMap>(providerKey);
     this.context.set(providerKey, new Map(prevProvider ? prevProvider.entries() : undefined));
     this.value = this.options.create(context);
     this.value.addListener(this, () => this.rebuild());
-    this.context.get<providerMap>(providerKey).set(this.value.constructor, this.value);
+    this.context.get<ProviderMap>(providerKey).set(this.value.constructor, this.value);
   }
 
   static of<T extends ChangeNotifier>(context: Context, type: new () => T): T {
-    return context.get<providerMap>(providerKey).get(type) as T;
+    const providerMap = context.get<ProviderMap>(providerKey);
+    if (debug) {
+      if (!providerMap) warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
+      return null;
+    }
+    return providerMap.get(type) as T;
   }
 }
 
@@ -87,7 +92,11 @@ export class Consumer<T extends ChangeNotifier> extends Component {
   }
 
   didMount() {
-    Provider.of(this.context, this.options.type).addListener(this, (tags) => {
+    const changeNotifier = Provider.of(this.context, this.options.type);
+    if (debug) {
+      if (changeNotifier === null) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
+    }
+    changeNotifier.addListener(this, (tags) => {
       if (tags.length === 0 || any(tags, (tag) => includes(this.options.tag, tag))) this.rebuild();
     });
   }

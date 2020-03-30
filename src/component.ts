@@ -1,4 +1,4 @@
-import { AnyComp, EventManager } from './utils';
+import { AnyComp, EventManager, debug, warn, isCompatibleComp } from './utils';
 import { patch, updateChildren } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -18,7 +18,10 @@ export abstract class Component {
   }
 
   rebuild() {
-    if (!this.mounted) return;
+    if (!this.mounted) {
+      if (debug) warn('"rebuild" method called before the component is mounted');
+      return
+    }
     this.shouldSetVNode = false;
     if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
       const newChildren = this.render(this.context) as VNode[];
@@ -36,11 +39,6 @@ export abstract class Component {
       this.vNode = newChildren;
     }
     this.shouldSetVNode = true;
-  }
-
-  setState(callback: () => void) {
-    if (callback) callback();
-    this.rebuild();
   }
 
   /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
@@ -64,7 +62,20 @@ export abstract class Component {
   abstract build(context: Context): AnyComp;
 
   render(context: Context): VNode | VNode[] {
-    const vNode = this.build(this.context).render(this.context);
+    let vNode;
+    if (debug) {
+      if (typeof this.build === 'function') {
+        const builtComp = this.build(this.context);
+        if (!isCompatibleComp(builtComp)) {
+          warn(`Component's "build" method should return a Component, Fragment or PrimaryComponent, but it returned ${builtComp}`);
+        }
+        vNode = builtComp.render(this.context);
+      } else if (!this.build) {
+        warn('The "build" method is not defined for the component');
+      }
+    } else {
+      vNode = this.build(this.context).render(this.context);
+    }
     if (this._flags & FLAG_STATELESS) return vNode;
 
     const onMount = () => {

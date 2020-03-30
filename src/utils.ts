@@ -10,6 +10,9 @@ export type AnyComp = Component | PrimaryComponent | Fragment;
 
 export const debug = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
+export const warn = (message: string) => console.warn(`[Devoid]: ${message}`);
+
+export const isCompatibleComp = (component: any) => component instanceof Component || component instanceof PrimaryComponent || component instanceof Fragment;
 
 let idTemp: string;
 export const generateUniqueId = () => (idTemp || (idTemp = Array(16).fill(' ').join(''))).replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
