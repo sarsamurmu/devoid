@@ -31,20 +31,18 @@ export class AsyncBuilder<T> extends Component {
 
   didMount() {
     const re = () => this.rebuild();
+    const onErr = (error: Error) => {
+      this.snapshot.error = error;
+      re();
+    }
     this.options.getter()
       .then((data) => {
         this.snapshot.data = data;
         this.snapshot.hasData = typeof data !== 'undefined';
         this.snapshot.resolved = true;
         re();
-      }, (error) => {
-        this.snapshot.error = error;
-        re();
-      })
-      .catch((error) => {
-        this.snapshot.error = error;
-        re();
-      });
+      }, onErr)
+      .catch(onErr);
   }
 
   build(context: Context) {
