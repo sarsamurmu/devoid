@@ -1,8 +1,11 @@
+import { copyMap } from './utils';
+
 export class Context {
   protected contextData: Map<any, any>;
 
   constructor(fromMap?: Map<any, any>) {
-    this.contextData = new Map(fromMap ? fromMap.entries() : undefined);
+    this.contextData = new Map();
+    if (fromMap) copyMap(fromMap, this.contextData);
   }
 
   set(key: any, value: any) {

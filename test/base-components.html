@@ -24,22 +24,10 @@
       window.addEventListener('DOMContentLoaded', () => {
         const {
           render,
-          elements,
           Component,
           Fragment,
-          createEl
+          el
         } = Devoid;
-
-        const {
-          div,
-          p,
-          button,
-          a,
-          br,
-          textarea,
-          h3,
-          input
-        } = elements;
 
         const {
           AsyncBuilder,
@@ -48,13 +36,14 @@
           LifecycleBuilder,
           ChangeNotifier,
           Provider,
+          Consumer,
         } = Devoid;
 
         const valueListenerWidget = (context) => {
           const boxText = ValueNotifier({ value: 'This is initial value' });
 
           return new Fragment([
-            new textarea({
+            el('textarea', {
               on: {
                 input: (e) => {
                   boxText.value = e.target.value;
@@ -69,9 +58,7 @@
             new ListenableBuilder({
               listenTo: [boxText],
               builder: () => new Fragment([
-                new p({
-                  children: `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`
-                }),
+                el('p', `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`),
                 `Value as text node - "${boxText.value}"`,
               ])
             })
@@ -84,9 +71,7 @@
               console.log(`Mounted Lifecycle Component`)
             },
             child: new Fragment([
-              new p({
-                children: 'Lifecycle Component'
-              })
+              el('p', 'Lifecycle Component')
             ])
           });
         }
@@ -114,103 +99,81 @@
           }
         }
         
-        render(new div({
-          children: [
-            new h3({ children: 'Theme using Provider' }),
-            new Provider({
-              value: new ThemeModel('deepskyblue'),
-              children: (context) => [
-                new p({
-                  style: {
-                    color: Provider.of(context, ThemeModel).color
-                  },
-                  children: [
-                    'Theming is cool',
-                    new Provider({
-                      value: new ThemeModel('tomato'),
-                      children: (aContext) => new p({
-                        style: {
-                          color: Provider.of(aContext, ThemeModel).color
-                        },
-                        children: [
-                          'It can change as deep it goes',
-                          new p({
-                            style: {
-                              color: Provider.of(context, ThemeModel).color
-                            },
-                            children: 'But you can use parents theme if you got the context'
-                          })
-                        ]
-                      })
-                    })
-                  ]
-                }),
-              ]
+        render(el('div', [
+          el('h3', 'Theme using Provider'),
+          new Provider({
+            create: () => new ThemeModel('deepskyblue'),
+            child: (context) => new Fragment([
+              el('p', {
+                style: {
+                  color: Provider.of(context, ThemeModel).color
+                },
+              }, [
+                'Theming is cool',
+                new Provider({
+                  create: () => new ThemeModel('tomato'),
+                  child: (aContext) => el('p', {
+                    style: {
+                      color: Provider.of(aContext, ThemeModel).color
+                    }
+                  }, [
+                    'It can change as deep it goes',
+                    el('p', {
+                      style: {
+                        color: Provider.of(context, ThemeModel).color
+                      },
+                    }, 'But you can use parents theme if you got the context')
+                  ])
+                })
+              ]),
+            ])
+          }),
+          el('h3', 'AsyncBuilder'),
+          new AsyncBuilder({
+            getter: () => new Promise((resolve, reject) => {
+              setTimeout(() => {
+                resolve('Job Done!');
+                console.log(`Really Done`);
+              }, 2000);
             }),
-            new h3({ children: 'AsyncBuilder' }),
-            new AsyncBuilder({
-              getter: () =>  new Promise((resolve, reject) => {
-                setTimeout(() => {
-                  resolve('Job Done!');
-                  console.log(`Really Done`);
-                }, 2000);
+            builder: (context, snapshot) => new Fragment([
+              el('p', snapshot.hasData ? `Data is "${snapshot.data}"` : 'Data is loading...'),
+              snapshot.hasData && new p({ key: 'aPara', children: 'Load completed' }),
+            ])
+          }),
+          el('h3', 'Lifecycle Component'),
+          lifecycleComponent,
+          el('h3', 'ValueListener Component'),
+          valueListenerWidget,
+          el('h3', 'Dynamic value with Provider'),
+          new Provider({
+            create: () => new providerSample(),
+            child: (context) => new Fragment([
+              new Consumer({
+                type: providerSample,
+                builder: (_, value) => el('p', `The value of providerSample is - ${value.val}`),
               }),
-              builder: (context, snapshot) => new Fragment([
-                () => new p({ children: snapshot.hasData ? `Data is "${snapshot.data}"` : 'Data is loading...' }),
-                () => snapshot.hasData && new p({ key: 'aPara', children: 'Load completed' }),
-              ])
-            }),
-            new h3({ children: 'Lifecycle Component' }),
-            lifecycleComponent,
-            new h3({ children: 'ValueListener Component' }),
-            valueListenerWidget,
-            new h3({ children: 'Dynamic value with Provider' }),
-            new Provider({
-              value: new providerSample(),
-              children: (context) => [
-                new p({
-                  children: `The value of Provider is - ${Provider.of(context, providerSample).val}`
-                }),
-                new div({
-                  props: {
-                    classList: 'zust-el-group'
-                  },
-                  children: [
-                    new p({
-                      props: {
-                        classList: 'zust-form-el'
-                      },
-                      children: [
-                        new input({
-                          props: {
-                            classList: 'zust-input',
-                            placeholder: 'Enter new value'
-                          },
-                          on: {
-                            input: (e) => {
-                              Provider.of(context, providerSample).tempVal = e.target.value;
-                            }
-                          }
-                        }),
-                      ]
-                    }),
-                    new button({
-                      props: {
-                        classList: 'zust-btn zust-link'
-                      },
-                      on: {
-                        click: () => {
-                          Provider.of(context, providerSample).val = Provider.of(context, providerSample).tempVal;
-                        }
-                      },
-                      children: 'Set value'
-                    })
-                  ]
-                }),
-              ],
-            })
-          ],
-        }), document.querySelector('[renderBox]'));
+              el('div.zust-el-group', [
+                el('p.zust-form-el', [
+                  el('input.zust-input[placeholder="Enter new value"]', {
+                    on: {
+                      input: (e) => {
+                        Provider.of(context, providerSample).tempVal = e.target.value;
+                      }
+                    }
+                  }),
+                ]),
+                el('button.zust-btn.zust-link', {
+                  on: {
+                    click: () => {
+                      Provider.of(context, providerSample).val = Provider.of(context, providerSample).tempVal;
+                    }
+                  }
+                }, 'Set value')
+              ]),
+            ]),
+          })
+        ]), document.querySelector('[renderBox]'));
       });
 
       // if (snapshot.hasData) {

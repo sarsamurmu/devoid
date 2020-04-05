@@ -350,9 +350,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     }) => {
       const insertedVNodeQueue: VNode[] = [];
       updateChildren(parentElm, oldCh, newCh, insertedVNodeQueue, insertBefore);
-      for (const insertedVNode of insertedVNodeQueue) {
-        insertedVNode.data!.hook!.insert!(insertedVNode);
-      }
+      insertedVNodeQueue.forEach((insertedVNode) => insertedVNode.data!.hook!.insert!(insertedVNode));
     }
   }
 }

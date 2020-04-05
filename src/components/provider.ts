@@ -1,5 +1,5 @@
 import { Notifier } from './shared';
-import { AnyComp, includes, any, debug, warn } from '../utils';
+import { AnyComp, includes, debug, warn, copyMap } from '../utils';
 import { Component, FLAG_STATELESS } from '../component';
 import { Context } from '../context';
 
@@ -43,17 +43,20 @@ export class Provider extends Component {
   onContext(context: Context) {
     this.context = context.copy();
     const prevProvider = context.get<ProviderMap>(providerKey);
-    this.context.set(providerKey, new Map(prevProvider ? prevProvider.entries() : undefined));
+    const newProvider = new Map();
+    if (prevProvider) copyMap(prevProvider, newProvider);
+    this.context.set(providerKey, newProvider);
     this.value = this.options.create(context);
-    this.value.addListener(this, () => this.rebuild());
     this.context.get<ProviderMap>(providerKey).set(this.value.constructor, this.value);
   }
 
   static of<T extends ChangeNotifier>(context: Context, type: new () => T): T {
     const providerMap = context.get<ProviderMap>(providerKey);
     if (debug) {
-      if (!providerMap) warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
-      return null;
+      if (!providerMap) {
+        warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
+        return null;
+      }
     }
     return providerMap.get(type) as T;
   }
@@ -70,7 +73,7 @@ const makeCachedComponent = (component: AnyComp): Component => {
     }
 
     render(context: Context) {
-      return this.vNode || (this.vNode = super.render(context));
+      return this.vNodes || (this.vNodes = super.render(context));
     }
   })
 }
@@ -97,7 +100,7 @@ export class Consumer<T extends ChangeNotifier> extends Component {
       if (changeNotifier === null) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
     changeNotifier.addListener(this, (tags) => {
-      if (tags.length === 0 || any(tags, (tag) => includes(this.options.tag, tag))) this.rebuild();
+      if (tags.length === 0 || tags.some((tag) => includes(this.options.tag, tag))) this.rebuild();
     });
   }
 

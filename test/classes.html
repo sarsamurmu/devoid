@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="utf-8">
-    <title>createEl</title>
+    <title>Classes</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href="./resources/style.css" rel="stylesheet">
@@ -24,31 +24,34 @@
       window.addEventListener('DOMContentLoaded', () => {
         const {
           render,
-          createEl,
-          AsyncBuilder
+          Component,
+          el
         } = Devoid;
-        
-        const myComp = createEl("div", null, createEl(AsyncBuilder, {
-          getter: function getter() {
-            return new Promise(function (resolve, reject) {
-              setTimeout(function () {
-                return resolve('Done');
-              }, 1000);
-            });
-          },
-          builder: function builder(context, _ref) {
-            const hasData = _ref.hasData,
-              data = _ref.data;
-            console.log(hasData);
-            return createEl("div", {
-              props: {
-                classList: ['zust-container']
-              }
-            }, hasData ? data : 'Data is loading');
-          }
-        }));
 
-        render(myComp, document.querySelector('[renderBox]'));
+        class ClassTest extends Component {
+          constructor() {
+            super();
+            this.addClass = false;
+          }
+
+          build() {
+            return el('div', {
+              class: [
+                'first second third',
+                this.addClass && 'second third fourth',
+                !this.addClass && 'fifth',
+              ],
+              on: {
+                click: () => {
+                  this.addClass = !this.addClass;
+                  this.rebuild();
+                },
+              },
+            }, 'Class test')
+          }
+        }
+        
+        render(new ClassTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

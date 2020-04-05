@@ -1,13 +1,6 @@
 const {
   render,
-  elements: {
-    div,
-    p,
-    input,
-    h4,
-    button,
-    br,
-  },
+  el,
   Component,
   Fragment,
 
@@ -32,95 +25,65 @@ class DataModel extends ChangeNotifier {
 let modelValue = '';
 let modelTag = '';
 
-render(new div({
-  children: new Provider({
+render(el('div', [
+  new Provider({
     create: () => new DataModel(),
     child: new Fragment([
-      new p({ children: 'A element' }),
-      () => new div({
-        children: [
-          new p({ children: 'Another element' }),
-          new Consumer({
-            type: DataModel,
-            tag: ['first'],
-            builder: (context, dataModel, child) => new div({
-              children: [
-                new p({
-                  children: `(Tag: 'first') The value is ${dataModel.value}`
-                }),
-                child,
-              ]
-            }),
-            child: new (class extends Component {
-              build() {
-                return new p({
-                  children: 'Some expensive component'
-                })
-              }
+      el('p', 'An element'),
+      el('div', [
+        el('p', 'Another element'),
+        new Consumer({
+          type: DataModel,
+          tag: ['first'],
+          builder: (context, dataModel, child) => el('div', [
+            el('p', `(Tag: 'first') The value is ${dataModel.value}`),
+            child,
+          ]),
+          child: new (class extends Component {
+            build() {
+              return el('p', 'Some expensive component')
+            }
 
-              render() {
-                console.log(`Expensive Component: Should call only one time`);
-                return super.render();
-              }
-            })
-          }),
-          new Consumer({
-            type: DataModel,
-            tag: ['second'],
-            builder: (context, dataModel, child) => new p({ children: `(Tag: 'second') The value is ${dataModel.value}` })
-          }),
-        ]
-      }),
-      new h4({ children: 'New Value' }),
-      new p({
-        props: {
-          classList: 'zust-form-el'
-        },
-        children: [
-          new input({
-            props: {
-              classList: 'zust-input',
-              placeholder: 'Enter new value'
-            },
-            on: {
-              input: (e) => {
-                modelValue = e.target.value;
-              }
+            render() {
+              console.log(`Expensive Component: Should call only one time`);
+              return super.render();
             }
-          }),
-        ]
-      }),
-      new h4({ children: 'Tag' }),
-      new p({
-        props: {
-          classList: 'zust-form-el'
-        },
-        children: [
-          new input({
-            props: {
-              classList: 'zust-input',
-              placeholder: 'Enter tag'
-            },
-            on: {
-              input: (e) => {
-                modelTag = e.target.value;
-              }
+          })
+        }),
+        new Consumer({
+          type: DataModel,
+          tag: ['second'],
+          builder: (context, dataModel, child) => el('p', `(Tag: 'second') The value is ${dataModel.value}`)
+        }),
+      ]),
+      el('h4', 'New Value'),
+      el('p.zust-form-el', [
+        el('input.zust-input[placeholder="Enter new value"]', {
+          on: {
+            input: (e) => {
+              modelValue = e.target.value;
             }
-          }),
-        ]
-      }),
-      new br(),
-      (context) => new button({
-        children: 'Set value for tag',
-        props: {
-          classList: 'zust-btn'
-        },
+          }
+        }),
+      ]),
+      el('h4', 'Tag'),
+      el('p.zust-form-el', [
+        el('input.zust-input[placeholder="Enter tag"]', {
+          on: {
+            input: (e) => {
+              modelTag = e.target.value;
+            }
+          }
+        })
+      ]),
+      el('br'),
+      (context) => el('button.zust-btn', {
         on: {
           click: () => {
             Provider.of(context, DataModel).setValue(modelValue, modelTag);
           }
         }
-      })
+      }, 'Set value for tag')
     ])
   })
-}), document.querySelector('[renderBox]'));
+]), document.querySelector('[renderBox]'));

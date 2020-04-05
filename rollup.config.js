@@ -4,6 +4,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import banner from 'rollup-plugin-banner';
 import replace from '@rollup/plugin-replace';
 import clear from 'rollup-plugin-delete';
+import cleanup from 'rollup-plugin-cleanup';
 import pkg from './package.json';
 
 const prod = process.env.BUILD === 'production';
@@ -26,7 +27,7 @@ export default {
   input: 'src/index.ts',
   output: [
     {
-      file: pkg.browser,
+      file: pkg.unpkg,
       ...iifeCommon,
       intro,
       sourcemap: !prod && 'inline'
@@ -54,6 +55,9 @@ export default {
   ],
   plugins: [
     prod && clear({ targets: ['dist/*', 'types/*'] }),
+    prod && replace({
+      '__VERSION__': pkg.version
+    }),
     resolve(),
     typescript({
       typescript: require('typescript'),
@@ -65,10 +69,10 @@ export default {
       }
     }),
     prod && terser(),
+    prod && cleanup({
+      comments: 'none'
+    }),
     prod && banner(devoidBanner),
-    prod && replace({
-      '__VERSION__': pkg.version
-    })
   ],
   cache: !prod,
 }

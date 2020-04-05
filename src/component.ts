@@ -1,5 +1,5 @@
-import { AnyComp, EventManager, debug, warn, isCompatibleComp } from './utils';
-import { patch, updateChildren } from './render';
+import { AnyComp, EventManager, debug, warn, isCompatibleComp, FuncComp, buildChild } from './utils';
+import { updateChildren, patch } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 
@@ -7,7 +7,7 @@ export const FLAG_STATELESS = 1;
 
 export abstract class Component {
   protected context: Context;
-  protected vNode: VNode | VNode[];
+  protected vNodes: VNode[];
   protected mounted = false;
   protected shouldSetVNode = true;
   private readonly _flags: number;
@@ -23,21 +23,19 @@ export abstract class Component {
       return
     }
     this.shouldSetVNode = false;
-    if (Array.isArray(this.vNode)) { // Children is probably fragment so use different method
-      const newChildren = this.render(this.context) as VNode[];
-      const oldChildren = this.vNode;
+    const newChildren = this.render(this.context);
+    const oldChildren = this.vNodes;
+    if (newChildren.length === 1 && oldChildren.length === 1) {
+      patch(oldChildren[0], newChildren[0]);
+    } else {
       updateChildren({
         parentElm: oldChildren[0].elm.parentElement,
         oldCh: oldChildren,
         newCh: newChildren,
         insertBefore: oldChildren[oldChildren.length - 1].elm.nextSibling,
       });
-      this.vNode = newChildren;
-    } else {
-      const newChildren = this.render(this.context) as VNode;
-      patch(this.vNode, newChildren);
-      this.vNode = newChildren;
     }
+    this.vNodes = newChildren;
     this.shouldSetVNode = true;
   }
 
@@ -59,24 +57,24 @@ export abstract class Component {
     this.context = context;
   }
 
-  abstract build(context: Context): AnyComp;
+  abstract build(context: Context): AnyComp | FuncComp;
 
-  render(context: Context): VNode | VNode[] {
-    let vNode;
+  render(context: Context): VNode[] {
+    let vNodes;
     if (debug) {
       if (typeof this.build === 'function') {
         const builtComp = this.build(this.context);
-        if (!isCompatibleComp(builtComp)) {
-          warn(`Component's "build" method should return a Component, Fragment or PrimaryComponent, but it returned ${builtComp}`);
+        if (!isCompatibleComp(builtComp) && !(typeof builtComp === 'function')) {
+          warn('Component\'s "build" method should return a Component, Functional Component, Fragment or VNode, but it returned', builtComp);
         }
-        vNode = builtComp.render(this.context);
+        vNodes = buildChild(this.context, builtComp);
       } else if (!this.build) {
         warn('The "build" method is not defined for the component');
       }
     } else {
-      vNode = this.build(this.context).render(this.context);
+      vNodes = buildChild(this.context, this.build(this.context));
     }
-    if (this._flags & FLAG_STATELESS) return vNode;
+    if (this._flags & FLAG_STATELESS) return vNodes;
 
     const onMount = () => {
       if (this.mounted) return;
@@ -89,19 +87,19 @@ export abstract class Component {
       this.didDestroy();
     }
 
-    if (!Array.isArray(vNode)) {
-      const eventManager = vNode.data.eventManager as EventManager;
-      eventManager.add('mount', () => onMount(), this);
-      eventManager.add('update', () => this.didUpdate(), this);
+    if (vNodes.length === 1) {
+      const eventManager = vNodes[0].data.eventManager as EventManager;
+      eventManager.add('mount', onMount, this);
+      eventManager.add('update', this.didUpdate, this);
       eventManager.add('destroy', () => {
         onDestroy();
         eventManager.removeKey(this);
       }, this);
     } else {
-      for (const aVNode of vNode) {
-        const eventManager = aVNode.data.eventManager as EventManager;
+      vNodes.forEach((vNode) => {
+        const eventManager = vNode.data.eventManager as EventManager;
         eventManager.add('mount', () => {
-          if (++this._mountedVNodeCount === (this.vNode as VNode[]).length) onMount();
+          if (++this._mountedVNodeCount === this.vNodes.length) onMount();
         }, this);
         eventManager.add('destroy', () => {
           if (--this._mountedVNodeCount === 0) {
@@ -109,10 +107,10 @@ export abstract class Component {
             eventManager.removeKey(this);
           }
         }, this);
-      }
+      });
     }
 
-    if (this.shouldSetVNode) this.vNode = vNode;
-    return vNode;
+    if (this.shouldSetVNode) this.vNodes = vNodes;
+    return vNodes;
   }
 }

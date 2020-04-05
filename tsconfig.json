@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2019",
+    "target": "ES5",
     "module": "ESNext",
     "declaration": true,
     "declarationDir": "./types",
     "outDir": "./dist",
     "sourceMap": true,
     "noImplicitAny": true,
+    "noImplicitThis": true,
     "esModuleInterop": true,
     "moduleResolution": "node"
   },

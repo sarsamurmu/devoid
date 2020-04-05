@@ -1,6 +1,6 @@
 import { buildChildren, generateUniqueId, EventManager } from './utils';
 import { Context } from './context';
-import { ChildrenArray } from './elements';
+import { ChildType } from './elements';
 import vnode from 'snabbdom/es/vnode';
 
 const createVNodeData = () => {
@@ -19,14 +19,14 @@ const createVNodeData = () => {
 }
 
 export class Fragment {
-  private children: ChildrenArray;
+  private children: ChildType[];
   private uniqueId = generateUniqueId();
 
-  constructor(children: ChildrenArray) {
+  constructor(children: ChildType[]) {
     this.children = children;
   }
 
-  static create({ children }: { children: ChildrenArray }) {
+  static create({ children }: { children: ChildType[] }) {
     return new Fragment(children);
   }
 
@@ -34,13 +34,13 @@ export class Fragment {
     const vNodes = buildChildren(context, this.children);
     // If VNodes is empty array replace it with a array of comment VNode to store it's position
     if (vNodes.length === 0) vNodes.push(vnode('!', { key: this.uniqueId }, undefined, 'dFrag', undefined));
-    for (const vNode of vNodes) {
+    vNodes.forEach((vNode) => {
       if (!vNode.data) {
         vNode.data = createVNodeData();
       } else if (!vNode.data.hook) {
-        Object.assign(vNode, createVNodeData());
+        Object.assign(vNode.data, createVNodeData());
       }
-    }
+    });
     return vNodes;
   }
 }

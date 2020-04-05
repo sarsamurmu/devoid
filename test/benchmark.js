@@ -5,12 +5,7 @@
 const {
   render,
   Component,
-  elements: {
-    div,
-    p,
-    tr,
-    table
-  }
+  el
 } = Devoid;
 
 const random = (max) => Math.round(Math.random() * 1000) % max;
@@ -39,13 +34,12 @@ class Row extends Component {
   }
 
   build() {
-    return new tr({
+    return el('tr', {
       style: {
         color: this.data.selected ? 'aquamarine' : undefined,
       },
       key: this.data.key,
-      children: new p({ children: this.data.item.label })
-    })
+    }, el('p', this.data.item.label));
   }
 }
 
@@ -172,15 +166,13 @@ class Main extends Component {
   }
 
   build() {
-    return new div({
-      children: new table({
-        children: this.data.items.map((item, i) => new Row({
-          item,
-          key: this.addKey ? i : undefined,
-          selected: this.data.selected === item.id,
-        }))
-      })
-    })
+    return el('div', [
+      el('table', this.data.items.map((item, i) => new Row({
+        item,
+        key: this.addKey ? i : undefined,
+        selected: this.data.selected === item.id,
+      })))
+    ]);
   }
 }
 

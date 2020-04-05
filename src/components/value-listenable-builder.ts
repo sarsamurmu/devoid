@@ -19,7 +19,7 @@ export const ValueNotifier = <T>(data?: T) => {
       ...def,
       get: () => listenerMap,
     },
-    setListener: {
+    addListener: {
       ...def,
       get: () => (key: any, callback: () => void) => obj['#listeners#'].set(key, callback),
     },
@@ -29,9 +29,7 @@ export const ValueNotifier = <T>(data?: T) => {
     },
     notifyListeners: {
       ...def,
-      get: () => () => {
-        for (const callback of obj['#listeners#'].values()) callback();
-      },
+      get: () => () => obj['#listeners#'].forEach((callback) => callback()),
     }
   });
 
@@ -51,8 +49,10 @@ export const ValueNotifier = <T>(data?: T) => {
 
   function proxify(data: any) {
     if (typeof data === 'object' && data !== null) {
-      for (const [key, value] of Object.entries(data)) {
-        data[key] = proxify(value);
+      if (Array.isArray(data)) {
+        data.forEach((value, index) => data[index] = proxify(value));
+      } else {
+        for (const key in data) data[key] = proxify(data[key]);
       }
       return new Proxy(data, proxyHandler);
     }
@@ -83,15 +83,15 @@ export class ListenableBuilder extends Component {
   constructor(listenableBuilderOptions: ListenableBuilderOptions) {
     super();
     this.options = listenableBuilderOptions;
-    for (const notifier of listenableBuilderOptions.listenTo) {
+    listenableBuilderOptions.listenTo.forEach((notifier) => {
       notifier.addListener(this, () => this.rebuild());
-    }
+    });
   }
 
   didDestroy() {
-    for (const notifier of this.options.listenTo) {
+    this.options.listenTo.forEach((notifier) => {
       notifier.removeListener(this);
-    }
+    });
   }
 
   build(context: Context) {

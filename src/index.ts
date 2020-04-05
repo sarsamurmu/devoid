@@ -1,6 +1,6 @@
 export * from './component';
 export { createEl } from './createEl';
-export { elements } from './elements';
+export { elements, el } from './elements';
 export { EventManager } from './utils';
 export { Fragment } from './fragment';
 export { render } from './render';
