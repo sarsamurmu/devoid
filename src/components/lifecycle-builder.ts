@@ -6,7 +6,7 @@ interface LifecycleBuilderOptions {
   didMount(): void;
   didUpdate(): void;
   didDestroy(): void;
-  child: AnyComp | ((context: Context) => AnyComp);
+  child: AnyComp;
 }
 
 export class LifecycleBuilder extends Component {
@@ -34,6 +34,6 @@ export class LifecycleBuilder extends Component {
   }
 
   build(context: Context) {
-    return typeof this.options.child === 'function' ? this.options.child(context) : this.options.child;
+    return this.options.child;
   }
 }

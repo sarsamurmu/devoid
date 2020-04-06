@@ -1,15 +1,21 @@
-import { AnyComp, buildChildren, EventManager, isCompatibleComp } from './utils';
+import { AnyComp, buildChildren, EventManager, isClassComp } from './utils';
 import { Context } from './context';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 
-export type ChildType = AnyComp | string | number | ((context: Context) => ChildType) | VNode | null | false | undefined;
+export type ChildType = AnyComp | string | number | VNode | null | false | undefined;
 export type ClassType = string | boolean | (string | boolean)[];
 
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
 
-interface ElementData {
+type Tags = keyof HTMLElementTagNameMap;
+
+interface ElementData<T extends Tags> {
   key?: any;
-  props?: Record<string, any>;
+  props?: (T extends Tags ? {
+    [P in keyof HTMLElementTagNameMap[T]]: HTMLElementTagNameMap[T][P];
+  } : {
+    [P in keyof HTMLElement]: HTMLElement[P];
+  }) | Record<string, any>;
   class?: ClassType;
   attrs?: Record<string, string | number | boolean>;
   style?: StyleMap & {
@@ -73,7 +79,7 @@ const parseSelector = (selector: string) => {
 
 type rType = (context: Context) => VNode;
 
-export function elR(tagName: string, data: ElementData, children: ChildType[]): rType {
+export function elR(tagName: string, data: ElementData<null>, children: ChildType[]): rType {
   const eventManager = new EventManager();
 
   (data as any).hook = {
@@ -95,17 +101,27 @@ export function elR(tagName: string, data: ElementData, children: ChildType[]): 
   return (context) => vnode(tagName, data, buildChildren(context, children), undefined, undefined);
 }
 
+export function el<T extends Tags>(selector: T): rType;
 export function el(selector: string): rType;
-export function el(selector: string, data: ElementData): rType;
+
+export function el<T extends Tags>(selector: T, data: ElementData<T>): rType;
+export function el<T extends Tags>(selector: string, data: ElementData<T>): rType;
+export function el(selector: string, data: ElementData<null>): rType;
+
+export function el<T extends Tags>(selector: T, children: ChildType | ChildType[]): rType;
 export function el(selector: string, children: ChildType | ChildType[]): rType;
-export function el(selector: string, data: ElementData, children: ChildType | ChildType[]): rType;
+
+export function el<T extends Tags>(selector: T, data: ElementData<T>, children: ChildType | ChildType[]): rType;
+export function el<T extends Tags>(selector: string, data: ElementData<T>, children: ChildType | ChildType[]): rType;
+export function el(selector: string, data: ElementData<null>, children: ChildType | ChildType[]): rType;
+
 export function el(selector: string, fArg?: any, sArg?: any): rType {
   const selData = parseSelector(selector);
   let children: ChildType[] = [];
-  let data: ElementData;
+  let data: ElementData<null>;
   if (
     !sArg && (Array.isArray(fArg) ||
-    isCompatibleComp(fArg) ||
+    isClassComp(fArg) ||
     typeof fArg === 'function' ||
     (typeof fArg === 'string' && fArg.trim() !== '') ||
     typeof fArg === 'number')

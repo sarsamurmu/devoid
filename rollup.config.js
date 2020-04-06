@@ -22,39 +22,12 @@ const iifeCommon = {
 }
 
 const intro = `window.process = { env: { NODE_ENV: 'development' } };`;
+const input = 'src/index.ts';
+let filesCleared = false;
 
-export default {
-  input: 'src/index.ts',
-  output: [
-    {
-      file: pkg.unpkg,
-      ...iifeCommon,
-      intro,
-      sourcemap: !prod && 'inline'
-    },
-    prod && {
-      file: './dist/devoid.prod.js',
-      ...iifeCommon,
-      intro,
-      plugins: [
-        replace({
-          'process.env.NODE_ENV': JSON.stringify('production')
-        })
-      ]
-    },
-    prod && {
-      file: pkg.module,
-      intro,
-      format: 'es'
-    },
-    prod && {
-      file: pkg.main,
-      intro,
-      format: 'cjs'
-    },
-  ],
-  plugins: [
-    prod && clear({ targets: ['dist/*', 'types/*'] }),
+const getPlugins = (useES5 = false) => {
+  const plugins = [
+    prod && !filesCleared && clear({ targets: ['dist/*', 'types/*'] }),
     prod && replace({
       '__VERSION__': pkg.version
     }),
@@ -65,14 +38,63 @@ export default {
       check: prod,
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
-        declaration: prod
+        compilerOptions: {
+          declaration: prod,
+          ...(useES5 ? { target: 'ES5' } : {})
+        }
       }
     }),
     prod && terser(),
     prod && cleanup({
       comments: 'none'
     }),
-    prod && banner(devoidBanner),
-  ],
-  cache: !prod,
+    prod && banner(devoidBanner)
+  ];
+  filesCleared = true;
+  return plugins;
 }
+
+const exports = [
+  {
+    input,
+    output: [
+      {
+        file: pkg.module,
+        intro,
+        format: 'es'
+      },
+      {
+        file: pkg.main,
+        intro,
+        format: 'cjs'
+      }
+    ],
+    plugins: getPlugins()
+  },
+  {
+    input,
+    output: [
+      {
+        file: pkg.unpkg,
+        ...iifeCommon,
+        intro,
+        sourcemap: !prod && 'inline'
+      },
+      prod && {
+        file: './dist/devoid.prod.js',
+        ...iifeCommon,
+        intro,
+        plugins: [
+          replace({
+            'process.env.NODE_ENV': JSON.stringify('production')
+          })
+        ]
+      }
+    ],
+    plugins: getPlugins(true),
+    cache: !prod,
+    treeshake: prod,
+  }
+];
+
+export default prod ? exports : exports[1];

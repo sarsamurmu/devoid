@@ -4,41 +4,34 @@ import { AnyComp } from '../utils';
 import { Component } from '../component';
 
 export const ValueNotifier = <T>(data?: T) => {
-  interface NotifierObject extends Notifier, Record<string, any> {
-    '#listeners#': Map<any, () => void>;
-  }
-  const obj = {} as NotifierObject;
-  const listenerMap = new Map();
+  const obj = {} as Record<string, any>;
+  const listenerMap = new Map<any, () => void>();
   const def = {
     configurable: false,
     enumerable: false
   }
 
   Object.defineProperties(obj, {
-    '#listeners#': {
-      ...def,
-      get: () => listenerMap,
-    },
     addListener: {
       ...def,
-      get: () => (key: any, callback: () => void) => obj['#listeners#'].set(key, callback),
+      get: () => (key: any, callback: () => void) => listenerMap.set(key, callback),
     },
     removeListener: {
       ...def,
-      get: () => (key: any) => obj['#listeners#'].delete(key),
+      get: () => (key: any) => listenerMap.delete(key),
     },
     notifyListeners: {
       ...def,
-      get: () => () => obj['#listeners#'].forEach((callback) => callback()),
+      get: () => () => listenerMap.forEach((callback) => callback()),
     }
   });
 
   /* eslint-disable @typescript-eslint/no-use-before-define */
 
   const proxyHandler = {
-    set: (_: any, key: string, value: any) => {
+    set: (aObj: any, key: string, value: any) => {
       try {
-        obj[key] = proxify(value);
+        aObj[key] = proxify(value);
         obj.notifyListeners();
         return true;
       } catch {
@@ -46,6 +39,8 @@ export const ValueNotifier = <T>(data?: T) => {
       }
     }
   }
+
+  /* eslint-enable */
 
   function proxify(data: any) {
     if (typeof data === 'object' && data !== null) {
@@ -70,8 +65,6 @@ export const ValueNotifier = <T>(data?: T) => {
   return new Proxy(obj, proxyHandler) as any as Notifier & (T extends Record<string, any> ? T : { value: T }) & Record<string, any>;
 }
 
-/* eslint-enable */
-
 interface ListenableBuilderOptions {
   listenTo: Notifier[];
   builder: (context: Context) => AnyComp;
@@ -89,9 +82,7 @@ export class ListenableBuilder extends Component {
   }
 
   didDestroy() {
-    this.options.listenTo.forEach((notifier) => {
-      notifier.removeListener(this);
-    });
+    this.options.listenTo.forEach((notifier) => notifier.removeListener(this));
   }
 
   build(context: Context) {

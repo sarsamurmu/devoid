@@ -100,7 +100,7 @@ export class Consumer<T extends ChangeNotifier> extends Component {
       if (changeNotifier === null) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
     changeNotifier.addListener(this, (tags) => {
-      if (tags.length === 0 || tags.some((tag) => includes(this.options.tag, tag))) this.rebuild();
+      if (tags.length === 0 || !this.options.tag || tags.some((tag) => includes(this.options.tag, tag))) this.rebuild();
     });
   }
 

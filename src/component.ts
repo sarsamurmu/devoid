@@ -1,4 +1,4 @@
-import { AnyComp, EventManager, debug, warn, isCompatibleComp, FuncComp, buildChild } from './utils';
+import { AnyComp, EventManager, debug, warn, isClassComp, buildChild } from './utils';
 import { updateChildren, patch } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -57,14 +57,14 @@ export abstract class Component {
     this.context = context;
   }
 
-  abstract build(context: Context): AnyComp | FuncComp;
+  abstract build(context: Context): AnyComp;
 
   render(context: Context): VNode[] {
     let vNodes;
     if (debug) {
       if (typeof this.build === 'function') {
         const builtComp = this.build(this.context);
-        if (!isCompatibleComp(builtComp) && !(typeof builtComp === 'function')) {
+        if (!isClassComp(builtComp) && !(typeof builtComp === 'function')) {
           warn('Component\'s "build" method should return a Component, Functional Component, Fragment or VNode, but it returned', builtComp);
         }
         vNodes = buildChild(this.context, builtComp);

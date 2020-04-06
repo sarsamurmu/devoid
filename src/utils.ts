@@ -4,8 +4,8 @@ import { Context } from './context';
 import { Fragment } from './fragment';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 
-export type AnyComp = Component | Fragment;
 export type FuncComp = (context: Context, props?: Record<string, any>) => ChildType;
+export type AnyComp = Component | Fragment | FuncComp;
 
 /* global console, process */
 
@@ -13,7 +13,7 @@ export const debug = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
 export const warn = (...data: any) => console.warn('[Devoid]: ', ...data);
 
-export const isCompatibleComp = (component: any) => component instanceof Component || component instanceof Fragment;
+export const isClassComp = (component: any) => component instanceof Component || component instanceof Fragment;
 
 export const generateUniqueId = () => '               '.replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
 
