@@ -4,6 +4,7 @@ const fs = require('fs');
 const chokidar = require('chokidar');
 
 const devoid = path.resolve(__dirname, '../dist/devoid.js');
+const devoidProd = path.resolve(__dirname, '../dist/devoid.prod.js');
 
 browserSync.init({
   server: {
@@ -44,7 +45,14 @@ browserSync.init({
           'Content-Type': 'text/javascript'
         });
         fs.createReadStream(devoid).pipe(res);
-      })
+      });
+
+      bs.addMiddleware('/dist/devoid.prod.js', (req, res) => {
+        res.writeHead(200, {
+          'Content-Type': 'text/javascript'
+        });
+        fs.createReadStream(devoidProd).pipe(res);
+      });
     }
   }
 });
