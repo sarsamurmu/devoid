@@ -1,4 +1,4 @@
-import { AnyComp, EventManager, debug, warn, isClassComp, buildChild } from './utils';
+import { AnyComp, EventManager, debug, warn, isClassComp, buildChild, log } from './utils';
 import { updateChildren, patch } from './render';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
@@ -11,19 +11,21 @@ export abstract class Component {
   protected mounted = false;
   protected shouldSetVNode = true;
   private readonly _flags: number;
-  private _mountedVNodeCount = 0;
+  // Mounted VNode count
+  private _mVNC = 0;
 
   constructor(flags = 0) {
     this._flags = flags;
   }
 
-  rebuild() {
+  rebuild(callback?: () => void) {
     if (!this.mounted) {
       if (debug) warn('"rebuild" method called before the component is mounted');
       return
     }
+    if (callback) callback();
     this.shouldSetVNode = false;
-    const newChildren = this.render(this.context);
+    const newChildren = this.render();
     const oldChildren = this.vNodes;
     if (newChildren.length === 1 && oldChildren.length === 1) {
       patch(oldChildren[0], newChildren[0]);
@@ -59,7 +61,7 @@ export abstract class Component {
 
   abstract build(context: Context): AnyComp;
 
-  render(context: Context): VNode[] {
+  render(): VNode[] {
     let vNodes;
     if (debug) {
       if (typeof this.build === 'function') {
@@ -99,10 +101,10 @@ export abstract class Component {
       vNodes.forEach((vNode) => {
         const eventManager = vNode.data.eventManager as EventManager;
         eventManager.add('mount', () => {
-          if (++this._mountedVNodeCount === this.vNodes.length) onMount();
+          if (++this._mVNC === this.vNodes.length) onMount();
         }, this);
         eventManager.add('destroy', () => {
-          if (--this._mountedVNodeCount === 0) {
+          if (--this._mVNC === 0) {
             onDestroy();
             eventManager.removeKey(this);
           }
@@ -113,4 +115,57 @@ export abstract class Component {
     if (this.shouldSetVNode) this.vNodes = vNodes;
     return vNodes;
   }
+}
+
+type voidFun = () => void;
+type buildFunT = (context: Context) => AnyComp;
+type rebuildFunT = (callback: () => void) => void;
+
+interface MakeComponentOptions {
+  didMount(fun: voidFun): void;
+  didUpdate(fun: voidFun): void;
+  didDestroy(fun: voidFun): void;
+  build(buildFunction: buildFunT): void;
+  rebuild(callback: () => void): void;
+}
+
+export const makeComp = (compFunc: (methods: MakeComponentOptions) => void): () => Component => () => {
+  let rebuildFun: rebuildFunT;
+  let didMountFun: voidFun;
+  let didUpdateFun: voidFun;
+  let didDestroyFun: voidFun;
+  let buildFun: buildFunT;
+
+  class FuncComp extends Component {
+    constructor() {
+      super();
+      rebuildFun = this.rebuild.bind(this);
+    }
+
+    didMount() {
+      if (didMountFun) didMountFun();
+    }
+
+    didUpdate() {
+      if (didUpdateFun) didUpdateFun();
+    }
+
+    didDestroy() {
+      if (didDestroyFun) didDestroyFun();
+    }
+
+    build(context: Context) {
+      return buildFun(context);
+    }
+  }
+
+  compFunc({
+    rebuild: (callback) => rebuildFun(callback),
+    didMount: (fun) => didMountFun = fun,
+    didUpdate: (fun) => didUpdateFun = fun,
+    didDestroy: (fun) => didDestroyFun = fun,
+    build: (fun) => buildFun = fun,
+  });
+
+  return new FuncComp();
 }

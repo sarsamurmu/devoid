@@ -59,8 +59,7 @@ export function buildChild(context: Context, child: ChildType): VNode[] {
     return [vnode(undefined, undefined, undefined, String(child), undefined)];
   } else if (child instanceof Component || child instanceof Fragment) {
     if (child instanceof Component) child.onContext(context);
-    const rendered = child.render(context);
-    return Array.isArray(rendered) ? rendered : [rendered];
+    return child.render(context);
   } else if (!!child && typeof (child as VNode).sel === 'string') {
     return [child] as VNode[];
   }

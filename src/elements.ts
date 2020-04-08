@@ -91,7 +91,7 @@ export function elR(tagName: string, data: ElementData<null>, children: ChildTyp
       eventManager.trigger('update');
     },
     destroy() {
-      if (data.ref) data.ref.el = null;
+      if (data.ref) data.ref.el = undefined;
       eventManager.trigger('destroy');
     },
   };

@@ -9,6 +9,40 @@ const {
   Consumer
 } = Devoid;
 
+class ExpensiveComp extends Component {
+  build() {
+    return el('p', [
+      'Some expensive component',
+      new (class extends Component {
+        constructor() {
+          super();
+          this.text = 'Child of expensive component';
+        }
+
+        didMount() {
+          setTimeout(() => {
+            this.text += ' (re-rendered)';
+            this.rebuild();
+            console.log(this.vNodes);
+          }, 5000);
+        }
+
+        build() {
+          return new Fragment([
+            el('p', this.text),
+            el('p', 'Another child of expensive component')
+          ]);
+        }
+      })
+    ]);
+  }
+
+  render() {
+    console.log(`Expensive Component: Should call only one time`);
+    return super.render();
+  }
+}
+
 class DataModel extends ChangeNotifier {
   constructor() {
     super();
@@ -39,16 +73,7 @@ render(el('div', [
             el('p', `(Tag: 'first') The value is ${dataModel.value}`),
             child,
           ]),
-          child: new (class extends Component {
-            build() {
-              return el('p', 'Some expensive component')
-            }
-
-            render() {
-              console.log(`Expensive Component: Should call only one time`);
-              return super.render();
-            }
-          })
+          child: new ExpensiveComp(),
         }),
         new Consumer({
           type: DataModel,
