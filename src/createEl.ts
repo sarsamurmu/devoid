@@ -1,6 +1,6 @@
 import { AnyComp, isClassComp, FuncComp } from './utils';
 import { Context } from './context';
-import { ChildType, elR } from './elements';
+import { ChildType, elR } from './element';
 import { Component } from './component';
 import { Fragment } from './fragment';
 

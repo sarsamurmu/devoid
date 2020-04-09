@@ -118,53 +118,52 @@ export abstract class Component {
 }
 
 type voidFun = () => void;
-type buildFunT = (context: Context) => AnyComp;
-type rebuildFunT = (callback: () => void) => void;
+type buildMethodT = (context: Context) => AnyComp;
 
-interface MakeComponentOptions {
-  didMount(fun: voidFun): void;
-  didUpdate(fun: voidFun): void;
-  didDestroy(fun: voidFun): void;
-  build(buildFunction: buildFunT): void;
-  rebuild(callback: () => void): void;
+interface MakeCompFunctions {
+  rebuild(callback?: () => void): void;
+  didMount(didMountFun: voidFun): void;
+  didUpdate(didUpdateFun: voidFun): void;
+  didDestroy(didDestroyFun: voidFun): void;
+  build(buildFunction: buildMethodT): void;
 }
 
-export const makeComp = (compFunc: (methods: MakeComponentOptions) => void): () => Component => () => {
-  let rebuildFun: rebuildFunT;
-  let didMountFun: voidFun;
-  let didUpdateFun: voidFun;
-  let didDestroyFun: voidFun;
-  let buildFun: buildFunT;
+export const makeComp = (compFunc: (context: Context, compFunctions: MakeCompFunctions) => void): (context: Context) => Component => (ctx) => {
+  let rebuildFun: any;
+  let didMountMethod: voidFun;
+  let didUpdateMethod: voidFun;
+  let didDestroyMethod: voidFun;
+  let buildMethod: buildMethodT;
 
   class FuncComp extends Component {
     constructor() {
       super();
-      rebuildFun = this.rebuild.bind(this);
+      rebuildFun = super.rebuild.bind(this);
     }
 
     didMount() {
-      if (didMountFun) didMountFun();
+      if (didMountMethod) didMountMethod();
     }
 
     didUpdate() {
-      if (didUpdateFun) didUpdateFun();
+      if (didUpdateMethod) didUpdateMethod();
     }
 
     didDestroy() {
-      if (didDestroyFun) didDestroyFun();
+      if (didDestroyMethod) didDestroyMethod();
     }
 
     build(context: Context) {
-      return buildFun(context);
+      return buildMethod(context);
     }
   }
 
-  compFunc({
+  compFunc(ctx, {
     rebuild: (callback) => rebuildFun(callback),
-    didMount: (fun) => didMountFun = fun,
-    didUpdate: (fun) => didUpdateFun = fun,
-    didDestroy: (fun) => didDestroyFun = fun,
-    build: (fun) => buildFun = fun,
+    didMount: (fun) => didMountMethod = fun,
+    didUpdate: (fun) => didUpdateMethod = fun,
+    didDestroy: (fun) => didDestroyMethod = fun,
+    build: (fun) => buildMethod = fun,
   });
 
   return new FuncComp();

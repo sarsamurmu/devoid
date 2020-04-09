@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { ChildType } from './elements';
+import { ChildType } from './element';
 import { Context } from './context';
 import { Fragment } from './fragment';
 import vnode, { VNode } from 'snabbdom/es/vnode';

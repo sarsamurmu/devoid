@@ -7,7 +7,7 @@ import { Context } from './context';
 import { init } from './vdom';
 import { AnyComp, buildChildren } from './utils';
 import { VNode } from 'snabbdom/es/vnode';
-import { ClassType } from './elements';
+import { ClassType } from './element';
 
 const getClassSet = (data: ClassType) => {
   const classSet = new Set<string>();

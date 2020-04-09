@@ -1,6 +1,6 @@
 import { buildChildren, generateUniqueId, EventManager } from './utils';
 import { Context } from './context';
-import { ChildType } from './elements';
+import { ChildType } from './element';
 import vnode from 'snabbdom/es/vnode';
 
 const createVNodeData = () => {

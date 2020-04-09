@@ -6,7 +6,7 @@ const {
   makeComp,
 } = Devoid;
 
-const MComponent = makeComp(({ build, rebuild }) => {
+const MComponent = () => makeComp((context, { build, rebuild }) => {
   let toggled = false;
 
   build(() => {
@@ -19,7 +19,7 @@ const MComponent = makeComp(({ build, rebuild }) => {
 });
 
 render(new Fragment([
-  MComponent,
-  MComponent,
-  MComponent,
+  MComponent(),
+  MComponent(),
+  MComponent(),
 ]), document.querySelector('[renderBox]'));
