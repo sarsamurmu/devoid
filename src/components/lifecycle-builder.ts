@@ -33,7 +33,7 @@ export class LifecycleBuilder extends Component {
     this.options.didDestroy();
   }
 
-  build(context: Context) {
+  build() {
     return this.options.child;
   }
 }

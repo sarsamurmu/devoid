@@ -72,8 +72,8 @@ const makeCachedComponent = (component: AnyComp): Component => {
       return component;
     }
 
-    render(context: Context) {
-      return this.vNodes || (this.vNodes = super.render(context));
+    render() {
+      return this.vNodes || (this.vNodes = super.render());
     }
   })
 }
