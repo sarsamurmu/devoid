@@ -1,5 +1,5 @@
 const {
-  render,
+  mount,
   el,
   Component,
   Fragment,
@@ -18,7 +18,7 @@ const MComponent = () => withBuilder((context, { build, rebuild }) => {
   });
 });
 
-render(new Fragment([
+mount(new Fragment([
   MComponent(),
   MComponent(),
   MComponent(),

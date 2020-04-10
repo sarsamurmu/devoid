@@ -23,7 +23,7 @@
     <script type="text/javascript">
       window.addEventListener('DOMContentLoaded', () => {
         const {
-          render,
+          mount,
           Component,
           Fragment,
           el,
@@ -90,7 +90,7 @@
           }
         }
         
-        render(new FragTest(), document.querySelector('[renderBox]'));
+        mount(new FragTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

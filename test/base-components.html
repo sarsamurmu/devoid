@@ -23,7 +23,7 @@
     <script type="text/javascript">
       window.addEventListener('DOMContentLoaded', () => {
         const {
-          render,
+          mount,
           Component,
           Fragment,
           el
@@ -99,7 +99,7 @@
           }
         }
         
-        render(el('div', [
+        mount(el('div', [
           el('h3', 'Theme using Provider'),
           new Provider({
             create: () => new ThemeModel('deepskyblue'),

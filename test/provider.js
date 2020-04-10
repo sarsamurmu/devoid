@@ -1,5 +1,5 @@
 const {
-  render,
+  mount,
   el,
   Component,
   Fragment,
@@ -59,7 +59,7 @@ class DataModel extends ChangeNotifier {
 let modelValue = '';
 let modelTag = '';
 
-render(el('div', [
+mount(el('div', [
   new Provider({
     create: () => new DataModel(),
     child: new Fragment([

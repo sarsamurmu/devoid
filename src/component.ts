@@ -1,5 +1,5 @@
 import { AnyComp, EventManager, debug, warn, isClassComp, buildChild, log } from './utils';
-import { updateChildren, patch } from './render';
+import { updateChildren, patch } from './mount';
 import { Context } from './context';
 import { VNode } from 'snabbdom/es/vnode';
 

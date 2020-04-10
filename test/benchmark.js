@@ -3,7 +3,7 @@
 // https://github.com/krausest/js-framework-benchmark
 
 const {
-  render,
+  mount,
   Component,
   el
 } = Devoid;
@@ -176,4 +176,4 @@ class Main extends Component {
   }
 }
 
-render(new Main, document.querySelector('[renderBox]'));
+mount(new Main, document.querySelector('[renderBox]'));

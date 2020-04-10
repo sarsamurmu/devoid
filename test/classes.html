@@ -23,7 +23,7 @@
     <script type="text/javascript">
       window.addEventListener('DOMContentLoaded', () => {
         const {
-          render,
+          mount,
           Component,
           el
         } = Devoid;
@@ -51,7 +51,7 @@
           }
         }
         
-        render(new ClassTest(), document.querySelector('[renderBox]'));
+        mount(new ClassTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>
