@@ -128,7 +128,7 @@ interface MakeCompFunctions {
   build(buildFunction: buildMethodT): void;
 }
 
-export const makeComp = (compFunc: (context: Context, compFunctions: MakeCompFunctions) => void): (context: Context) => Component => (ctx) => {
+export const withBuilder = (compFunc: (context: Context, compFunctions: MakeCompFunctions) => void): Component => ((ctx: Context) => {
   let rebuildFun: any;
   let didMountMethod: voidFun;
   let didUpdateMethod: voidFun;
@@ -167,4 +167,4 @@ export const makeComp = (compFunc: (context: Context, compFunctions: MakeCompFun
   });
 
   return new FuncComp();
-}
+}) as unknown as Component;

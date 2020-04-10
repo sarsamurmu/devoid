@@ -1,5 +1,4 @@
-import { AnyComp, isClassComp, FuncComp } from './utils';
-import { Context } from './context';
+import { AnyComp, isClassComp } from './utils';
 import { ChildType, elR } from './element';
 import { Component } from './component';
 import { Fragment } from './fragment';
@@ -7,7 +6,7 @@ import { Fragment } from './fragment';
 type CompOrFrag = typeof Component | typeof Fragment;
 
 export const createEl = (
-  component: CompOrFrag | FuncComp | string,
+  component: CompOrFrag | ((props: Record<string, any>) => ChildType) | string,
   props: Record<string, any>,
   ...children: AnyComp[]
 ): ChildType => {
@@ -19,6 +18,6 @@ export const createEl = (
   } else if (isClassComp(component.prototype)) {
     return (component as CompOrFrag).create(props as any) || new (component as CompOrFrag)(props as any);
   } else if (typeof component === 'function') {
-    return (context: Context) => (component as FuncComp)(context, props);
+    return (component as any)(props);
   }
 }

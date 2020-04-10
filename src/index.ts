@@ -1,7 +1,7 @@
 export * from './component';
 export { createEl } from './createEl';
 export { el, elR } from './element';
-export { EventManager } from './utils';
+export { EventManager, createSymbol, globalSymbol } from './utils';
 export { Fragment } from './fragment';
 export { render } from './render';
 export * from './components';

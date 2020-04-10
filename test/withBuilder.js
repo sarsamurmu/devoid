@@ -3,10 +3,10 @@ const {
   el,
   Component,
   Fragment,
-  makeComp,
+  withBuilder,
 } = Devoid;
 
-const MComponent = () => makeComp((context, { build, rebuild }) => {
+const MComponent = () => withBuilder((context, { build, rebuild }) => {
   let toggled = false;
 
   build(() => {

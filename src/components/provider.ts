@@ -1,5 +1,5 @@
 import { Notifier } from './shared';
-import { AnyComp, includes, debug, warn, copyMap } from '../utils';
+import { AnyComp, includes, debug, warn, copyMap, createSymbol } from '../utils';
 import { Component, FLAG_STATELESS } from '../component';
 import { Context } from '../context';
 
@@ -24,7 +24,7 @@ interface ProviderOptions {
   child: AnyComp;
 }
 
-const providerKey = Symbol('ProviderKey');
+const providerKey = createSymbol('ProviderKey');
 type ProviderMap = Map<typeof ChangeNotifier.constructor, ChangeNotifier>;
 
 export class Provider extends Component {

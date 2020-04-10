@@ -4,7 +4,7 @@ import { Context } from './context';
 import { Fragment } from './fragment';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 
-export type FuncComp = (context: Context, props?: Record<string, any>) => ChildType;
+export type FuncComp = (context: Context) => ChildType;
 export type AnyComp = Component | Fragment | FuncComp;
 
 /* global console, process */
@@ -73,3 +73,14 @@ export function buildChildren(context: Context, children: ChildType[]): VNode[] 
 }
 
 /* eslint-enable */
+
+const symbolMap = new Map();
+
+export const createSymbol = (key: string) => [[key]];
+
+export const globalSymbol = (key: string) => {
+  if (symbolMap.has(key)) return symbolMap.get(key);
+  const symbol = [[key]];
+  symbolMap.set(key, symbol);
+  return symbol;
+}
