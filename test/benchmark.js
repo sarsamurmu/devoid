@@ -5,6 +5,9 @@
 const {
   mount,
   Component,
+  build,
+  onMount,
+  createState,
   el
 } = Devoid;
 
@@ -27,153 +30,96 @@ const buildData = (count) => {
   return data;
 }
 
-class Row extends Component {
-  constructor(data) {
-    super();
-    this.data = data;
-  }
-
-  build() {
-    return el('tr', {
-      style: {
-        color: this.data.selected ? 'aquamarine' : undefined,
-      },
-      key: this.data.key,
-    }, el('p', this.data.item.label));
-  }
-}
+const Row = ({ selected, key, item }) => Component(() => {
+  build(() => el('tr', {
+    style: {
+      color: selected ? 'aquamarine' : undefined,
+    },
+    key: key,
+  }, el('p', item.label)));
+});
 
 const timeout = (func) => new Promise((resolve) => setTimeout(() => {
   func();
   resolve()
 }, 5000));
 
-class Main extends Component {
-  constructor() {
-    super();
-    this.data = {
-      items: [],
-      selected: 0,
-    }
-    this.addKey = true;
-  }
-
-  async runAll() {
-    await timeout(() => this.createRows());
-    await timeout(() => this.updateRows());
-    await timeout(() => this.updateRowsPartial());
-    await timeout(() => this.selectRow());
-    await timeout(() => this.swapRows());
-    await timeout(() => this.removeRow());
-    await timeout(() => this.clearRows());
-    await timeout(() => this.createManyRows());
-    await timeout(() => this.appendRows());
-  }
-
-  async didMount() {
-    console.log('Starting keyed benchmark');
-    await this.runAll();
-    console.log('Keyed benchmark ended');
-
-    this.addKey = false;
-    this.data = {
-      items: [],
-      selected: 0,
-    }
-    this.rebuild();
-
-    console.log('Starting non keyed benchmark');
-    await this.runAll();
-    console.log('Non keyed benchmark ended');
-  }
-
-  runTimed(label, callback) {
-    console.log(label);
-    console.time('  - Whole');
-    callback();
-    console.time('  - Rebuild');
-    this.rebuild();
-    console.timeEnd('  - Rebuild');
-    console.timeEnd('  - Whole');
-  }
-
-  createRows() {
-    this.runTimed('Setting 1000 rows', () => {
-      this.data.items = buildData(1000);
-    })
-  }
-
-  createManyRows() {
-    this.runTimed('Setting 10000 rows', () => {
-      this.data.items = buildData(10000);
-    });
-  }
-
-  appendRows() {
-    this.runTimed('Appending 1000 rows', () => {
-      this.data.items = this.data.items.concat(buildData(1000));
-    });
-  }
-
-  updateRows() {
-    this.runTimed('Updating all rows', () => {
-      const { items } = this.data;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        items[i] = { id: item.id, label: item.label + ' !!!' };
-      }
-    })
-  }
-
-  updateRowsPartial() {
-    this.runTimed('Updating every 10 rows', () => {
-      const { items } = this.data;
-      for (let i = 0; i < items.length; i += 10) {
-        const item = items[i];
-        items[i] = { id: item.id, label: item.label + ' !!!' };
-      }
-    });
-  }
-
-  removeRow() {
-    this.runTimed('Removing a random row', () => {
-      const { items } = this.data;
-      items.splice(items.indexOf(random(items.length)), 1);
-    })
-  }
-
-  clearRows() {
-    this.runTimed('Clearing rows', () => {
-      this.data.items = [];
-    })
-  }
-
-  swapRows() {
-    this.runTimed('Swapping 2 rows', () => {
-      const { items } = this.data;
-      if (items.length > 998) {
-        let temp = items[1];
-        items[1] = items[998];
-        items[998] = temp;
-      }
-    });
-  }
-
-  selectRow() {
-    this.runTimed('Selecting a random row', () => {
-      this.data.selected = random(this.data.items.length);
-    });
-  }
-
-  build() {
-    return el('div', [
-      el('table', this.data.items.map((item, i) => new Row({
-        item,
-        key: this.addKey ? i : undefined,
-        selected: this.data.selected === item.id,
-      })))
-    ]);
-  }
+const showTime = (label, callback) => {
+  console.time(label);
+  callback();
+  console.timeEnd(label);
 }
 
-mount(new Main, document.querySelector('[renderBox]'));
+const Main = () => Component(() => {
+  const [data, setData] = createState({
+    items: [],
+    selected: 0,
+    addKey: true,
+  });
+
+  const createRows = () => showTime('Create 1000 rows', () => setData({ items: buildData(1000) }));
+  const createManyRows = () => showTime('Create 10000 rows', () => setData({ items: buildData(10000) }));
+  const appendRows = () => showTime('Append 1000 rows', () => setData((pData) => pData.items.push(...buildData(1000))));
+  const updateRows = () => showTime('Update all rows', () => setData((pData) => {
+    const { items } = pData;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      items[i] = { id: item.id, label: item.label + ' !!!' };
+    }
+  }));
+  const updateRowsPartial = () => showTime('Update every 10 rows', () => setData((pData) => {
+    const { items } = pData;
+    for (let i = 0; i < items.length; i += 10) {
+      const item = items[i];
+      items[i] = { id: item.id, label: item.label + ' !!!' };
+    }
+  }));
+  const removeRow = () => showTime('Remove a random row', () => setData((pData) => {
+    const { items } = pData;
+    items.splice(items.indexOf(random(items.length)), 1);
+  }));
+  const clearRows = () => showTime('Clear rows', () => setData({ items: [] }));
+  const swapRows = () => showTime('Swap 2 rows', () => setData((pData) => {
+    const { items } = pData;
+    if (items.length > 998) {
+      let temp = items[1];
+      items[1] = items[998];
+      items[998] = temp;
+    }
+  }));
+  const selectRow = () => showTime('Select a random row', () => setData({ selected: random(data.items.length) }));
+
+  const runAll = async () => {
+    await timeout(createRows);
+    await timeout(updateRows);
+    await timeout(updateRowsPartial);
+    await timeout(selectRow);
+    await timeout(swapRows);
+    await timeout(removeRow);
+    await timeout(clearRows);
+    await timeout(createManyRows);
+    await timeout(appendRows);
+  }
+
+  onMount(async () => {
+    console.log('Starting keyed benchmark');
+    await runAll();
+    console.log('Keyed benchmark ended');
+
+    setData({ addKey: false });
+
+    console.log('Starting non keyed benchmark');
+    await runAll();
+    console.log('Non keyed benchmark ended');
+  });
+
+  build(() => el('div', [
+    el('table', data.items.map((item, i) => Row({
+      item,
+      key: data.addKey ? i : undefined,
+      selected: data.selected === item.id,
+    })))
+  ]))
+});
+
+mount(Main(), document.querySelector('[renderBox]'));

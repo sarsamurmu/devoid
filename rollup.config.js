@@ -44,7 +44,12 @@ const getPlugins = (useES5 = false) => {
         }
       }
     }),
-    prod && terser(),
+    prod && terser({
+      toplevel: true,
+      compress: {
+        passes: 2
+      }
+    }),
     prod && cleanup({
       comments: 'none'
     }),

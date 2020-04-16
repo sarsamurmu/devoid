@@ -1,9 +1,9 @@
-import { Notifier } from './shared';
-import { AnyComp, includes, debug, warn, copyMap, createSymbol } from '../utils';
-import { Component, FLAG_STATELESS } from '../component';
+import { includes, debug, warn, copyMap, createSymbol, generateUniqueId } from '../utils';
+import { Component, build, onMount, onDestroy, getRebuilder, cacheComponent, DevoidComponent } from '../component';
 import { Context } from '../context';
 
-export class ChangeNotifier implements Notifier {
+export class Model<D = any> {
+  data: D;
   listeners = new Map<any, (tags: any[]) => void>();
 
   addListener(key: any, callback: (tags: any[]) => void) {
@@ -20,99 +20,72 @@ export class ChangeNotifier implements Notifier {
 }
 
 interface ProviderOptions {
-  create: (context: Context) => ChangeNotifier;
-  child: AnyComp;
+  create: (context: Context) => Model;
+  child: DevoidComponent;
 }
 
 const providerKey = createSymbol('ProviderKey');
-type ProviderMap = Map<typeof ChangeNotifier.constructor, ChangeNotifier>;
+type ProviderMap = Map<typeof Model.constructor, Model>;
 
-export class Provider extends Component {
-  private readonly options: ProviderOptions;
-  private value: ChangeNotifier;
-
-  constructor(options: ProviderOptions) {
-    super(FLAG_STATELESS);
-    this.options = options;
-  }
-
-  build() {
-    return this.options.child;
-  }
-
-  onContext(context: Context) {
-    this.context = context.copy();
-    const prevProvider = context.get<ProviderMap>(providerKey);
-    const newProvider = new Map();
-    if (prevProvider) copyMap(prevProvider, newProvider);
-    this.context.set(providerKey, newProvider);
-    this.value = this.options.create(context);
-    this.context.get<ProviderMap>(providerKey).set(this.value.constructor, this.value);
-  }
-
-  static of<T extends ChangeNotifier>(context: Context, type: new () => T): T {
-    const providerMap = context.get<ProviderMap>(providerKey);
-    if (debug) {
-      if (!providerMap) {
-        warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
-        return null;
-      }
-    }
-    return providerMap.get(type) as T;
-  }
-}
-
-const makeCachedComponent = (component: AnyComp): Component => {
-  return new (class CachedComponent extends Component {
-    constructor() {
-      super(FLAG_STATELESS);
-    }
-
-    build() {
-      return component;
-    }
-
-    render() {
-      return this.vNodes || (this.vNodes = super.render());
-    }
-  })
-}
-
-interface ConsumerOptions<T extends ChangeNotifier> {
-  type: new() => T;
-  builder: (context: Context, value: T, child: AnyComp) => AnyComp;
-  tag?: any[];
-  child?: AnyComp;
-}
-
-export class Consumer<T extends ChangeNotifier> extends Component {
-  private options: ConsumerOptions<T>;
-
-  constructor(options: ConsumerOptions<T>) {
+export const createModel = <T, S>(builder: (notifyListeners: (tags: any[]) => void, props: T) => S) => class extends Model<S> {
+  constructor(props?: T) {
     super();
-    this.options = options;
-    this.options.child = makeCachedComponent(this.options.child);
+    this.data = builder((tags = []) => this.notifyListeners(tags), props);
   }
+}
 
-  didMount() {
-    const changeNotifier = Provider.of(this.context, this.options.type);
+export const Provider = (options: ProviderOptions) => Component((context) => {
+  const providerContext = context.copy();
+  const prevProvider = context.get<ProviderMap>(providerKey);
+  const newProvider = new Map();
+  if (prevProvider) copyMap(prevProvider, newProvider);
+  providerContext.set(providerKey, newProvider);
+  const model = options.create(context);
+  providerContext.get<ProviderMap>(providerKey).set(model.constructor, model);
+
+  build(() => options.child, providerContext);
+});
+
+Provider.of = <T extends Model>(context: Context, model: new() => T): T['data'] => {
+  const providerMap = context.get<ProviderMap>(providerKey);
+  if (debug) {
+    if (!providerMap) {
+      warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
+      return null;
+    }
+  }
+  return providerMap.get(model).data;
+}
+
+interface ConsumerOptions<T extends Model> {
+  model: new() => T;
+  tags: any[];
+  child: DevoidComponent;
+  builder: (context: Context, value: T['data'], child: DevoidComponent) => DevoidComponent;
+}
+
+export const Consumer = <T extends Model>(options: ConsumerOptions<T>) => Component((context) => {
+  const changeNotifier = context.get<ProviderMap>(providerKey).get(options.model);
+  const consumerKey = generateUniqueId();
+  const rebuild = getRebuilder();
+  const cachedComponent = cacheComponent(options.child);
+
+  onMount(() => {
     if (debug) {
       if (changeNotifier === null) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
-    changeNotifier.addListener(this, (tags) => {
-      if (tags.length === 0 || !this.options.tag || tags.some((tag) => includes(this.options.tag, tag))) this.rebuild();
+    changeNotifier.addListener(consumerKey, (tags) => {
+      if (tags.length === 0 || !options.tags || tags.some((tag) => includes(options.tags, tag))) rebuild();
     });
-  }
+  });
 
-  didDestroy() {
-    Provider.of(this.context, this.options.type).removeListener(this);
-  }
-
-  build(context: Context) {
-    return this.options.builder(
-      context,
-      Provider.of(context, this.options.type),
-      this.options.child
-    );
-  }
-}
+  onDestroy(() => {
+    Provider.of(context, options.model).removeListener(consumerKey);
+  });
+  
+  build(() => options.builder(
+    context,
+    Provider.of(context, options.model),
+    cachedComponent,
+  ));
+});

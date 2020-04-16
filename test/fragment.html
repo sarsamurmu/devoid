@@ -26,71 +26,56 @@
           mount,
           Component,
           Fragment,
+          value,
+          build,
+          onMount,
+          onDestroy,
           el,
-          LifecycleBuilder
         } = Devoid;
 
-        class FragTest extends Component {
-          constructor() {
-            super();
-            this.data = {
-              hasParent: true,
-              hasFragment: true,
-              hasDummyParagraph: true,
-            };
-            this.btnRef = {};
-            setTimeout(() => {
-              console.log(this.btnRef);
-            }, 5000);
-          }
+        const FragComp = () => Component(() => {
+          onMount(() => console.log(`Mounted`));
+          onDestroy(() => console.log(`Destroyed`));
 
-          build() {
-            return el('div', [
-              () => this.data.hasParent ? el('div', [
-                () => this.data.hasFragment ? new LifecycleBuilder({
-                  didMount: () => console.log('Mounted'),
-                  didDestroy: () => console.log('Destroyed'),
-                  child: new Fragment([
-                    el('p', 'Paragraph 1'),
-                    el('p', 'Paragraph 2'),
-                    el('p', 'Paragraph 3'),
-                    'Text Node',
-                    el('br'),
-                    el('br')
-                  ])
-                }) : new Fragment([]),
-                () => this.data.hasDummyParagraph ? el('p', 'Paragraph Always') : new Fragment([]),
-              ]) : el('p', 'No parent'),
-              el('button.zust-btn', {
-                ref: this.btnRef,
-                on: {
-                  click: () => {
-                    this.data.hasParent = !this.data.hasParent;
-                    this.rebuild();
-                  }
-                },
-              }, () => this.data.hasParent ? 'Remove Parent' : 'Add Parent'),
-              el('button.zust-btn', {
-                on: {
-                  click: () => {
-                    this.data.hasFragment = !this.data.hasFragment;
-                    this.rebuild();
-                  }
-                },
-              }, () => this.data.hasFragment ? 'Remove Fragment' : 'Add Fragment'),
-              el('button.zust-btn', {
-                on: {
-                  click: () => {
-                    this.data.hasDummyParagraph = !this.data.hasDummyParagraph;
-                    this.rebuild();
-                  }
-                },
-              }, () => this.data.hasDummyParagraph ? 'Remove Dummy Paragraph' : 'Add Dummy Paragraph'),
-            ]);
-          }
-        }
+          build(() => Fragment([
+            el('p', 'Paragraph 1'),
+            el('p', 'Paragraph 2'),
+            el('p', 'Paragraph 3'),
+            'Text Node',
+            el('br'),
+            el('br')
+          ]));
+        });
+
+        const FragTest = () => Component(() => {
+          const hasParent = value(true);
+          const hasFragment = value(true);
+          const hasDummyParagraph = value(true);
+
+          build(() => el('div', [
+            hasParent() ? el('div', [
+              hasFragment() ? FragComp() : Fragment([]),
+              hasDummyParagraph() && el('p', 'Paragraph Always'),
+            ]) : el('p', 'No parent'),
+            el('button.zust-btn', {
+              on: {
+                click: () => hasParent(!hasParent())
+              },
+            }, hasParent() ? 'Remove Parent' : 'Add Parent'),
+            el('button.zust-btn', {
+              on: {
+                click: () => hasFragment(!hasFragment())
+              },
+            }, hasFragment() ? 'Remove Fragment' : 'Add Fragment'),
+            el('button.zust-btn', {
+              on: {
+                click: () => hasDummyParagraph(!hasDummyParagraph())
+              },
+            }, hasDummyParagraph() ? 'Remove Dummy Paragraph' : 'Add Dummy Paragraph'),
+          ]))
+        });
         
-        mount(new FragTest(), document.querySelector('[renderBox]'));
+        mount(FragTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

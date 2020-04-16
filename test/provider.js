@@ -1,83 +1,66 @@
 const {
   mount,
   el,
+  build,
   Component,
   Fragment,
+  Builder,
 
   Provider,
-  ChangeNotifier,
-  Consumer
+  Consumer,
+  createModel,
 } = Devoid;
 
-class ExpensiveComp extends Component {
-  build() {
+const ExpensiveComponent = () => Component(() => {
+  build(() => {
+    console.log(`Expensive Component: Should call only one time`);
+
     return el('p', [
       'Some expensive component',
-      new (class extends Component {
-        constructor() {
-          super();
-          this.text = 'Child of expensive component';
-        }
+      el('p', this.text),
+      el('p', 'Another child of expensive component')
+    ])
+  })
+})
 
-        didMount() {
-          setTimeout(() => {
-            this.text += ' (re-rendered)';
-            this.rebuild();
-            console.log(this.vNodes);
-          }, 5000);
-        }
+const ProviderApp = () => Component(() => {
+  let modelValue = '';
+  let modelTag = '';
 
-        build() {
-          return new Fragment([
-            el('p', this.text),
-            el('p', 'Another child of expensive component')
-          ]);
-        }
-      })
-    ]);
-  }
-
-  render() {
-    console.log(`Expensive Component: Should call only one time`);
-    return super.render();
-  }
-}
-
-class DataModel extends ChangeNotifier {
-  constructor() {
-    super();
+  const DataModel = createModel((notify) => {
     console.log(`DataModel: Should call only one time`);
-    this.value = 'Red';
-  }
 
-  setValue(value, tag) {
-    this.value = value;
-    this.notifyListeners(tag.trim() === '' ? [] : [tag]);
-  }
-}
+    let value = 'Red';
 
-let modelValue = '';
-let modelTag = '';
-
-mount(el('div', [
-  new Provider({
+    return {
+      get value() {
+        return value;
+      },
+      setValue(newValue, tag) {
+        value = newValue;
+        notify(modelTag.trim() === '' ? [] : [tag]);
+      }
+    }
+  });
+  
+  build(() => Provider({
     create: () => new DataModel(),
-    child: new Fragment([
+    child: Fragment([
       el('p', 'An element'),
       el('div', [
         el('p', 'Another element'),
-        new Consumer({
-          type: DataModel,
-          tag: ['first'],
+        Consumer({
+          model: DataModel,
+          tags: ['first'],
           builder: (context, dataModel, child) => el('div', [
             el('p', `(Tag: 'first') The value is ${dataModel.value}`),
             child,
           ]),
-          child: new ExpensiveComp(),
+          child: ExpensiveComponent(),
         }),
-        new Consumer({
-          type: DataModel,
-          tag: ['second'],
+        Consumer({
+          model: DataModel,
+          tags: ['second'],
           builder: (context, dataModel, child) => el('p', `(Tag: 'second') The value is ${dataModel.value}`)
         }),
       ]),
@@ -102,13 +85,13 @@ mount(el('div', [
         })
       ]),
       el('br'),
-      (context) => el('button.zust-btn', {
+      Builder((context) => el('button.zust-btn', {
         on: {
-          click: () => {
-            Provider.of(context, DataModel).setValue(modelValue, modelTag);
-          }
+          click: () => Provider.of(context, DataModel).setValue(modelValue, modelTag),
         }
-      }, 'Set value for tag')
+      }, 'Set value for tag'))
     ])
-  })
-]), document.querySelector('[renderBox]'));
+  }))
+});
+
+mount(ProviderApp(), document.querySelector('[renderBox]'));

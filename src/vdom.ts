@@ -5,7 +5,7 @@
  */
 
 import { Module } from 'snabbdom/es/modules/module';
-import vnode, { VNode } from 'snabbdom/es/vnode';
+import cVNode, { VNode } from 'snabbdom/es/vnode';
 import htmlDomApi, { DOMAPI } from 'snabbdom/es/htmldomapi';
 
 type NonUndefined<T> = T extends undefined ? never : T;
@@ -19,7 +19,7 @@ function isDef<A>(s: A): s is NonUndefined<A> {
 
 type VNodeQueue = VNode[];
 
-const emptyNode = vnode('', {}, [], undefined, undefined);
+const emptyNode = cVNode('', {}, [], undefined, undefined);
 
 function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
   return vnode1.key === vnode2.key && vnode1.sel === vnode2.sel;
@@ -68,7 +68,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
   }
 
   function emptyNodeAt(elm: Element) {
-    return vnode(api.tagName(elm).toLowerCase(), {}, [], undefined, elm);
+    return cVNode(api.tagName(elm).toLowerCase(), {}, [], undefined, elm);
   }
 
   function createRmCb(childElm: Node, listeners: number) {

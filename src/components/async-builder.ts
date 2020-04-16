@@ -1,51 +1,53 @@
-import { Component } from '../component';
+import { Component, build, createState, onMount, DevoidComponent } from '../component';
 import { Context } from '../context';
-import { AnyComp } from '../utils';
+import { log } from '../utils';
 
 interface AsyncSnapshot<T> {
   data: T;
   hasData: boolean;
   resolved: boolean;
+  fulfilled: boolean;
   error: Error;
+  rejected: boolean;
+  rejectReason: any;
 }
 
 interface AsyncBuilderOptions<T> {
   getter: () => Promise<T>;
-  builder: (context: Context, snapshot: AsyncSnapshot<T>) => AnyComp;
+  builder: (context: Context, snapshot: AsyncSnapshot<T>) => DevoidComponent;
 }
 
-export class AsyncBuilder<T> extends Component {
-  private snapshot: AsyncSnapshot<T>;
-  private readonly options: AsyncBuilderOptions<T>;
+export const AsyncBuilder = <T>(options: AsyncBuilderOptions<T>) => Component((context) => {
+  const [snapshot, setSnapshot] = createState<AsyncSnapshot<T>>({
+    data: undefined,
+    hasData: false,
+    resolved: false,
+    fulfilled: false,
+    error: undefined,
+    rejected: false,
+    rejectReason: undefined,
+  });
 
-  constructor(asyncBuilderOptions: AsyncBuilderOptions<T>) {
-    super();
-    this.options = asyncBuilderOptions;
-    this.snapshot = {
-      data: undefined,
-      hasData: false,
-      resolved: false,
-      error: null,
-    }
-  }
-
-  didMount() {
-    const re = () => this.rebuild();
-    const onErr = (error: Error) => {
-      this.snapshot.error = error;
-      re();
-    }
-    this.options.getter()
+  onMount(() => {
+    log('AsyncBuilder Mounted');
+    options.getter()
       .then((data) => {
-        this.snapshot.data = data;
-        this.snapshot.hasData = typeof data !== 'undefined';
-        this.snapshot.resolved = true;
-        re();
-      }, onErr)
-      .catch(onErr);
-  }
+        setSnapshot((state) => {
+          state.data = data;
+          state.hasData = typeof data !== 'undefined';
+          state.resolved = true;
+          state.fulfilled = true;
+        })
+      }, (reason) => setSnapshot((state) => {
+        state.resolved = true;
+        state.rejected = true;
+        state.rejectReason = reason;
+      }))
+      .catch((error) => setSnapshot((state) => {
+        state.error = error;
+        state.resolved = true;
+      }));
+  })
 
-  build(context: Context) {
-    return this.options.builder(context, this.snapshot);
-  }
-}
+  build(() => options.builder(context, snapshot));
+});

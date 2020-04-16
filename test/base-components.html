@@ -31,79 +31,36 @@
 
         const {
           AsyncBuilder,
-          ValueNotifier,
-          ListenableBuilder,
-          LifecycleBuilder,
-          ChangeNotifier,
+          Builder,
           Provider,
           Consumer,
+          createModel,
         } = Devoid;
 
-        const valueListenerWidget = (context) => {
-          const boxText = ValueNotifier({ value: 'This is initial value' });
-
-          return new Fragment([
-            el('textarea', {
-              on: {
-                input: (e) => {
-                  boxText.value = e.target.value;
-                },
-              },
-              props: {
-                value: boxText.value,
-                classList: ['zust-textarea'],
-                placeholder: 'Enter some text'
-              }
-            }),
-            new ListenableBuilder({
-              listenTo: [boxText],
-              builder: () => new Fragment([
-                el('p', `The text you entered is ${boxText.value === '' ? 'Empty' : `"${boxText.value}"`}`),
-                `Value as text node - "${boxText.value}"`,
-              ])
-            })
-          ]);
-        }
-
-        const lifecycleComponent = (context) => {
-          return new LifecycleBuilder({
-            didMount: () => {
-              console.log(`Mounted Lifecycle Component`)
+        const providerSample = createModel((notify) => {
+          let _val = 10;
+          return {
+            get val() {
+              return _val;
             },
-            child: new Fragment([
-              el('p', 'Lifecycle Component')
-            ])
-          });
-        }
-
-        class providerSample extends ChangeNotifier {
-          constructor() {
-            super();
-            this._val = 10;
+            set val(newVal) {
+              _val = newVal;
+              notify();
+            }
           }
+        });
 
-          get val() {
-            return this._val;
+        const ThemeModel = createModel((_, options) => {
+          return {
+            color: options.color
           }
-
-          set val(newVal) {
-            this._val = newVal;
-            this.notifyListeners();
-          }
-        }
-
-        class ThemeModel extends ChangeNotifier {
-          constructor(color) {
-            super();
-            this.color = color;
-          }
-        }
+        });
         
         mount(el('div', [
           el('h3', 'Theme using Provider'),
-          new Provider({
-            create: () => new ThemeModel('deepskyblue'),
-            child: (context) => new Fragment([
+          Provider({
+            create: () => new ThemeModel({ color: 'deepskyblue' }),
+            child: Builder((context) => Fragment([
               el('p', {
                 style: {
                   color: Provider.of(context, ThemeModel).color
@@ -111,8 +68,8 @@
               }, [
                 'Theming is cool',
                 new Provider({
-                  create: () => new ThemeModel('tomato'),
-                  child: (aContext) => el('p', {
+                  create: () => new ThemeModel({ color: 'tomato' }),
+                  child: Builder((aContext) => el('p', {
                     style: {
                       color: Provider.of(aContext, ThemeModel).color
                     }
@@ -123,13 +80,13 @@
                         color: Provider.of(context, ThemeModel).color
                       },
                     }, 'But you can use parents theme if you got the context')
-                  ])
+                  ]))
                 })
               ]),
-            ])
+            ]))
           }),
           el('h3', 'AsyncBuilder'),
-          new AsyncBuilder({
+          AsyncBuilder({
             getter: () => new Promise((resolve, reject) => {
               setTimeout(() => {
                 resolve('Job Done!');
@@ -138,19 +95,15 @@
             }),
             builder: (context, snapshot) => new Fragment([
               el('p', snapshot.hasData ? `Data is "${snapshot.data}"` : 'Data is loading...'),
-              snapshot.hasData && new p({ key: 'aPara', children: 'Load completed' }),
+              snapshot.hasData && el('p', 'Load completed'),
             ])
           }),
-          el('h3', 'Lifecycle Component'),
-          lifecycleComponent,
-          el('h3', 'ValueListener Component'),
-          valueListenerWidget,
           el('h3', 'Dynamic value with Provider'),
-          new Provider({
+          Provider({
             create: () => new providerSample(),
-            child: (context) => new Fragment([
-              new Consumer({
-                type: providerSample,
+            child: Builder((context) => Fragment([
+              Consumer({
+                model: providerSample,
                 builder: (_, value) => el('p', `The value of providerSample is - ${value.val}`),
               }),
               el('div.zust-el-group', [
@@ -171,7 +124,7 @@
                   }
                 }, 'Set value')
               ]),
-            ]),
+            ])),
           })
         ]), document.querySelector('[renderBox]'));
       });

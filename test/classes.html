@@ -25,33 +25,27 @@
         const {
           mount,
           Component,
+          build,
+          value,
           el
         } = Devoid;
 
-        class ClassTest extends Component {
-          constructor() {
-            super();
-            this.addClass = false;
-          }
+        const ClassTest = () => Component(() => {
+          const addClass = value(false);
 
-          build() {
-            return el('div', {
-              class: [
-                'first second third',
-                this.addClass && 'second third fourth',
-                !this.addClass && 'fifth',
-              ],
-              on: {
-                click: () => {
-                  this.addClass = !this.addClass;
-                  this.rebuild();
-                },
-              },
-            }, 'Class test')
-          }
-        }
+          build(() => el('div', {
+            class: [
+              'first second third',
+              addClass() && 'second third fourth',
+              addClass() && 'fifth',
+            ],
+            on: {
+              click: () => addClass(!addClass()),
+            },
+          }, 'Class test'));
+        })
         
-        mount(new ClassTest(), document.querySelector('[renderBox]'));
+        mount(ClassTest(), document.querySelector('[renderBox]'));
       });
     </script>
   </body>

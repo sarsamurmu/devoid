@@ -4,9 +4,10 @@ import attributeModule from 'snabbdom/es/modules/attributes';
 import propsModule from 'snabbdom/es/modules/props';
 import { Context } from './context';
 import { init } from './vdom';
-import { AnyComp, buildChildren } from './utils';
+import { buildChildren } from './utils';
 import { VNode } from 'snabbdom/es/vnode';
 import { ClassType } from './element';
+import { DevoidComponent } from './component';
 
 const getClassSet = (data: ClassType) => {
   const classSet = new Set<string>();
@@ -47,7 +48,7 @@ export const { patch, updateChildren } = init([
   propsModule,
 ]);
 
-export const mount = (component: AnyComp, element: HTMLElement) => updateChildren({
+export const mount = (component: DevoidComponent, element: HTMLElement) => updateChildren({
   parentElm: element,
   oldCh: [],
   newCh: buildChildren(new Context(new Map([['rootEl', element]])), [component]),

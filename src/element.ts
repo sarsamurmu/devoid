@@ -1,8 +1,7 @@
-import { AnyComp, buildChildren, EventManager, isClassComp } from './utils';
-import { Context } from './context';
+import { buildChildren, EventManager, ChildType } from './utils';
 import vnode, { VNode } from 'snabbdom/es/vnode';
+import { DevoidComponent } from './component';
 
-export type ChildType = AnyComp | string | number | VNode | null | false | undefined;
 export type ClassType = string | boolean | (string | boolean)[];
 
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
@@ -77,7 +76,7 @@ const parseSelector = (selector: string) => {
   }
 }
 
-type rType = (context: Context) => VNode;
+type rType = DevoidComponent;
 
 export function elR(tagName: string, data: ElementData<null>, children: ChildType[]): rType {
   const eventManager = new EventManager();
@@ -98,7 +97,9 @@ export function elR(tagName: string, data: ElementData<null>, children: ChildTyp
 
   (data as any).eventManager = eventManager;
 
-  return (context) => vnode(tagName, data, buildChildren(context, children), undefined, undefined);
+  return {
+    render: (context) => [vnode(tagName, data, buildChildren(context, children), undefined, undefined)],
+  }
 }
 
 export function el<T extends Tags>(selector: T): rType;
@@ -121,8 +122,6 @@ export function el(selector: string, fArg?: any, sArg?: any): rType {
   let data: ElementData<null>;
   if (
     !sArg && (Array.isArray(fArg) ||
-    isClassComp(fArg) ||
-    typeof fArg === 'function' ||
     (typeof fArg === 'string' && fArg.trim() !== '') ||
     typeof fArg === 'number')
   ) {

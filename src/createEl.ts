@@ -1,23 +1,18 @@
-import { AnyComp, isClassComp } from './utils';
-import { ChildType, elR } from './element';
-import { Component } from './component';
-import { Fragment } from './fragment';
-
-type CompOrFrag = typeof Component | typeof Fragment;
+import { elR } from './element';
+import { DevoidComponent } from './component';
+import { FC } from './utils';
 
 export const createEl = (
-  component: CompOrFrag | ((props: Record<string, any>) => ChildType) | string,
+  component: DevoidComponent | FC | string,
   props: Record<string, any>,
-  ...children: AnyComp[]
-): ChildType => {
+  ...children: DevoidComponent[]
+): DevoidComponent => {
   if (!props) props = {};
   props.children = children;
 
   if (typeof component === 'string') {
     return elR(component, props, children);
-  } else if (isClassComp(component.prototype)) {
-    return (component as CompOrFrag).create(props as any) || new (component as CompOrFrag)(props as any);
   } else if (typeof component === 'function') {
-    return (component as any)(props);
+    return typeof component.jsx !== 'undefined' ? component.jsx(props) : component(props);
   }
 }

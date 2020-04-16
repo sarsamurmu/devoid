@@ -1,170 +1,222 @@
-import { AnyComp, EventManager, debug, warn, isClassComp, buildChild, log } from './utils';
+import { EventManager, debug, warn, buildChild, generateUniqueId, buildChildren, isObject, mergeProperties } from './utils';
 import { updateChildren, patch } from './mount';
 import { Context } from './context';
-import { VNode } from 'snabbdom/es/vnode';
-
-export const FLAG_STATELESS = 1;
-
-export abstract class Component {
-  protected context: Context;
-  protected vNodes: VNode[];
-  protected mounted = false;
-  protected shouldSetVNode = true;
-  private readonly _flags: number;
-  // Mounted VNode count
-  private _mVNC = 0;
-
-  constructor(flags = 0) {
-    this._flags = flags;
-  }
-
-  rebuild(callback?: () => void) {
-    if (!this.mounted) {
-      if (debug) warn('"rebuild" method called before the component is mounted');
-      return
-    }
-    if (callback) callback();
-    this.shouldSetVNode = false;
-    const newChildren = this.render();
-    const oldChildren = this.vNodes;
-    if (newChildren.length === 1 && oldChildren.length === 1) {
-      patch(oldChildren[0], newChildren[0]);
-    } else {
-      updateChildren({
-        parentElm: oldChildren[0].elm.parentElement,
-        oldCh: oldChildren,
-        newCh: newChildren,
-        insertBefore: oldChildren[oldChildren.length - 1].elm.nextSibling,
-      });
-    }
-    this.vNodes = newChildren;
-    this.shouldSetVNode = true;
-  }
-
-  /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
-
-  didMount() {}
-
-  didUpdate() {}
-
-  didDestroy() {}
-
-  static create(props: Record<string, any>): Component {
-    return null
-  }
-
-  /* eslint-enable */
-
-  onContext(context: Context) {
-    this.context = context;
-  }
-
-  abstract build(context: Context): AnyComp;
-
-  render(): VNode[] {
-    let vNodes;
-    if (debug) {
-      if (typeof this.build === 'function') {
-        const builtComp = this.build(this.context);
-        if (!isClassComp(builtComp) && !(typeof builtComp === 'function')) {
-          warn('Component\'s "build" method should return a Component, Functional Component, Fragment or VNode, but it returned', builtComp);
-        }
-        vNodes = buildChild(this.context, builtComp);
-      } else if (!this.build) {
-        warn('The "build" method is not defined for the component');
-      }
-    } else {
-      vNodes = buildChild(this.context, this.build(this.context));
-    }
-    if (this._flags & FLAG_STATELESS) return vNodes;
-
-    const onMount = () => {
-      if (this.mounted) return;
-      this.mounted = true;
-      this.didMount();
-    }
-    const onDestroy = () => {
-      if (!this.mounted) return;
-      this.mounted = false;
-      this.didDestroy();
-    }
-
-    if (vNodes.length === 1) {
-      const eventManager = vNodes[0].data.eventManager as EventManager;
-      eventManager.add('mount', onMount, this);
-      eventManager.add('update', this.didUpdate, this);
-      eventManager.add('destroy', () => {
-        onDestroy();
-        eventManager.removeKey(this);
-      }, this);
-    } else {
-      vNodes.forEach((vNode) => {
-        const eventManager = vNode.data.eventManager as EventManager;
-        eventManager.add('mount', () => {
-          if (++this._mVNC === this.vNodes.length) onMount();
-        }, this);
-        eventManager.add('destroy', () => {
-          if (--this._mVNC === 0) {
-            onDestroy();
-            eventManager.removeKey(this);
-          }
-        }, this);
-      });
-    }
-
-    if (this.shouldSetVNode) this.vNodes = vNodes;
-    return vNodes;
-  }
-}
+import vnode, { VNode } from 'snabbdom/es/vnode';
+import { ChildType } from './utils';
 
 type voidFun = () => void;
-type buildMethodT = (context: Context) => AnyComp;
 
-interface MakeCompFunctions {
-  rebuild(callback?: () => void): void;
-  didMount(didMountFun: voidFun): void;
-  didUpdate(didUpdateFun: voidFun): void;
-  didDestroy(didDestroyFun: voidFun): void;
-  build(buildFunction: buildMethodT): void;
+const hookWarn = (array: any[], name: string) => {
+  if (debug) {
+    if (array.length === 0) warn(`You shouldn't call ${name}() outside of Component function. This can cause error.`);
+  }
 }
 
-export const withBuilder = (compFunc: (context: Context, compFunctions: MakeCompFunctions) => void): Component => ((ctx: Context) => {
-  let rebuildFun: any;
-  let didMountMethod: voidFun;
-  let didUpdateMethod: voidFun;
-  let didDestroyMethod: voidFun;
-  let buildMethod: buildMethodT;
+export interface DevoidComponent {
+  render: (context: Context) => VNode[];
+  onContext?: (context: Context) => void;
+}
 
-  class FuncComp extends Component {
-    constructor() {
-      super();
-      rebuildFun = super.rebuild.bind(this);
+const buildCbs: [() => DevoidComponent, Context][] = [];
+export const build = (buildFun: () => DevoidComponent, useContext?: Context) => buildCbs[buildCbs.length - 1] = [buildFun, useContext];
+
+interface CallbackOrData<T> {
+  (callback: (currentState: T) => void): void;
+  (newData: T, shouldClone: boolean): void;
+}
+
+const stateChangeCbs: voidFun[][] = [];
+export const createState = <T extends Record<string, any>>(stateData: T): [T, CallbackOrData<T>] => {
+  hookWarn(stateChangeCbs, 'createState');
+  const state = stateData;
+  const listeners = stateChangeCbs[stateChangeCbs.length - 1];
+  const setState = (callbackOrData: ((cState: T) => void) | T, shouldClone = false) => {
+    if (typeof callbackOrData === 'function') {
+      (callbackOrData as ((cState: T) => void))(state);
+    } else {
+      mergeProperties(state, callbackOrData as T, shouldClone);
+    }
+    listeners.forEach((cb) => cb());
+  }
+  return [state, setState];
+}
+
+interface ValueState<T> {
+  /** Returns the value of the value holder */
+  (): T;
+  /** Sets the new value and triggers rebuild process of the component */
+  (newValue: T): T;
+  /** Sets the new value but doesn't trigger rebuild process of the component */
+  $(newValue: T): T;
+}
+
+export const value = <T = any>(initialValue: T): ValueState<T> => {
+  hookWarn(stateChangeCbs, 'value');
+  let val: T = initialValue;
+  const listeners = stateChangeCbs[stateChangeCbs.length - 1];
+  function setOrGet(newValue?: T): T {
+    if (arguments.length !== 0 && val !== newValue) {
+      val = newValue;
+      listeners.forEach((cb) => cb());
+    }
+    return val;
+  }
+  setOrGet.$ = (newValue: T): T => val = newValue;
+  return setOrGet;
+}
+
+export const getRebuilder = () => {
+  hookWarn(stateChangeCbs, 'getRebuilder');
+  const listeners = stateChangeCbs[stateChangeCbs.length - 1];
+  return () => listeners.forEach((cb) => cb());
+}
+
+const onMountCbs: voidFun[][] = [];
+export const onMount = (callback: voidFun) => {
+  hookWarn(onMountCbs, 'onMount');
+  onMountCbs[onMountCbs.length - 1].push(callback);
+}
+
+const onUpdateCbs: voidFun[][] = [];
+export const onUpdate = (callback: voidFun) => {
+  hookWarn(onUpdateCbs, 'onUpdate');
+  onUpdateCbs[onUpdateCbs.length - 1].push(callback);
+}
+
+const onDestroyCbs: voidFun[][] = [];
+export const onDestroy = (callback: voidFun) => {
+  hookWarn(onDestroyCbs, 'onDestroy');
+  onDestroyCbs[onDestroyCbs.length - 1].push(callback);
+}
+
+export const Component = (builder: (context: Context) => void): DevoidComponent => ({
+  render: (aContext) => {
+    buildCbs.push([] as any);
+    stateChangeCbs.push([]);
+    onMountCbs.push([]);
+    onUpdateCbs.push([]);
+    onDestroyCbs.push([]);
+
+    builder(aContext);
+
+    const buildData = buildCbs.pop();
+    const onStateChange = stateChangeCbs.pop();
+    const mountedCbs = onMountCbs.pop();
+    const updateCbs = onUpdateCbs.pop();
+    const destroyCbs = onDestroyCbs.pop();
+    const componentKey = generateUniqueId();
+    let mountedVNodeCount = 0;
+    let childVNodes: VNode[];
+    let mounted = false;
+
+    if (debug) {
+      if (!buildData[0]) {
+        warn('build() function should be called inside of a component, but no build call found in', builder);
+      }
     }
 
-    didMount() {
-      if (didMountMethod) didMountMethod();
+    const render = () => {
+      const vNodes = buildChild(buildData[1] instanceof Context ? buildData[1] : aContext, buildData[0]());
+
+      const doOnMount = () => {
+        if (mounted) return;
+        mounted = true;
+        mountedCbs.forEach((cb) => cb());
+      }
+      const doOnUpdate = () => updateCbs.forEach((cb) => cb());
+      const doOnDestroy = () => {
+        if (!mounted) return;
+        mounted = false;
+        destroyCbs.forEach((cb) => cb());
+      }
+
+      if (vNodes.length === 1) {
+        const eventManager = vNodes[0].data.eventManager as EventManager;
+        eventManager.add('mount', doOnMount, componentKey);
+        eventManager.add('update', doOnUpdate, componentKey);
+        eventManager.add('destroy', () => {
+          doOnDestroy();
+          eventManager.removeKey(componentKey);
+        }, componentKey);
+      } else {
+        vNodes.forEach((vNode) => {
+          const eventManager = vNode.data.eventManager as EventManager;
+          eventManager.add('mount', () => {
+            if (++mountedVNodeCount === childVNodes.length) doOnMount();
+          }, componentKey);
+          eventManager.add('destroy', () => {
+            if (--mountedVNodeCount === 0) {
+              doOnDestroy();
+              eventManager.removeKey(componentKey);
+            }
+          }, componentKey);
+        });
+      }
+
+      return vNodes;
     }
 
-    didUpdate() {
-      if (didUpdateMethod) didUpdateMethod();
+    // let rebuildCount = 0;
+
+    const rebuild = () => {
+      // log('Start', ++rebuildCount);
+      // log('should rebuild');
+      // log(memoizeBuilder);
+      // log('End', rebuildCount);
+      const newVNodes = render();
+      if (childVNodes.length === 1 && newVNodes.length === 1) {
+        patch(childVNodes[0], newVNodes[0]);
+        childVNodes[0] = newVNodes[0];
+      } else {
+        updateChildren({
+          parentElm: childVNodes[0].elm.parentElement,
+          oldCh: childVNodes,
+          newCh: newVNodes,
+          insertBefore: childVNodes[childVNodes.length - 1].elm.nextSibling,
+        });
+        childVNodes.length = newVNodes.length;
+        newVNodes.forEach((newVNode, index) => childVNodes[index] = newVNode);
+      }
     }
 
-    didDestroy() {
-      if (didDestroyMethod) didDestroyMethod();
-    }
+    if (onStateChange) onStateChange.push(() => rebuild());
 
-    build(context: Context) {
-      return buildMethod(context);
+    return (childVNodes = render());
+  }
+});
+
+export const cacheComponent = (componentToCache: DevoidComponent): DevoidComponent => {
+  let renderedComponent: VNode[];
+  return {
+    render: (context) => renderedComponent || (renderedComponent = componentToCache.render(context))
+  }
+}
+
+const createVNodeData = () => {
+  const eventManager = new EventManager();
+  return {
+    hook: {
+      insert() { eventManager.trigger('mount') },
+      destroy() { eventManager.trigger('destroy') }
+    },
+    eventManager
+  }
+}
+
+export const Fragment = (children: ChildType[]): DevoidComponent => {
+  const fragmentKey = generateUniqueId();
+  return {
+    render: (context) => {
+      const vNodes = buildChildren(context, children);
+      if (vNodes.length === 0) vNodes.push(vnode('!', { key: fragmentKey }, undefined, 'dFrag', undefined));
+      vNodes.forEach((vNode) => {
+        if (!vNode.data) {
+          vNode.data = createVNodeData();
+        } else if (!vNode.data.hook) {
+          Object.assign(vNode.data, createVNodeData());
+        }
+      });
+      return vNodes;
     }
   }
-
-  compFunc(ctx, {
-    rebuild: (callback) => rebuildFun(callback),
-    didMount: (fun) => didMountMethod = fun,
-    didUpdate: (fun) => didUpdateMethod = fun,
-    didDestroy: (fun) => didDestroyMethod = fun,
-    build: (fun) => buildMethod = fun,
-  });
-
-  return new FuncComp();
-}) as unknown as Component;
+}
