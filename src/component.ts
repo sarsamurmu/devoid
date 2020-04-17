@@ -20,21 +20,23 @@ export interface DevoidComponent {
 const buildCbs: [() => DevoidComponent, Context][] = [];
 export const build = (buildFun: () => DevoidComponent, useContext?: Context) => buildCbs[buildCbs.length - 1] = [buildFun, useContext];
 
-interface CallbackOrData<T> {
+interface CallbackOrData<T extends Record<string, any>> {
   (callback: (currentState: T) => void): void;
-  (newData: T, shouldClone: boolean): void;
+  (newData: Partial<T>, shouldClone?: boolean): void;
 }
+
+declare const cd: CallbackOrData<Record<string, any>>;
 
 const stateChangeCbs: voidFun[][] = [];
 export const createState = <T extends Record<string, any>>(stateData: T): [T, CallbackOrData<T>] => {
   hookWarn(stateChangeCbs, 'createState');
   const state = stateData;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
-  const setState = (callbackOrData: ((cState: T) => void) | T, shouldClone = false) => {
+  const setState = (callbackOrData: ((cState: T) => void) | Partial<T>, shouldClone = false) => {
     if (typeof callbackOrData === 'function') {
-      (callbackOrData as ((cState: T) => void))(state);
+      callbackOrData(state);
     } else {
-      mergeProperties(state, callbackOrData as T, shouldClone);
+      mergeProperties(state, callbackOrData, shouldClone);
     }
     listeners.forEach((cb) => cb());
   }

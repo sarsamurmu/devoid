@@ -1,4 +1,4 @@
-import { includes, debug, warn, copyMap, createSymbol, generateUniqueId } from '../utils';
+import { debug, warn, copyMap, createSymbol, generateUniqueId } from '../utils';
 import { Component, build, onMount, onDestroy, getRebuilder, cacheComponent, DevoidComponent } from '../component';
 import { Context } from '../context';
 
@@ -65,17 +65,18 @@ interface ConsumerOptions<T extends Model> {
 }
 
 export const Consumer = <T extends Model>(options: ConsumerOptions<T>) => Component((context) => {
-  const changeNotifier = context.get<ProviderMap>(providerKey).get(options.model);
+  const providerMap = context.get<ProviderMap>(providerKey);
   const consumerKey = generateUniqueId();
   const rebuild = getRebuilder();
   const cachedComponent = cacheComponent(options.child);
 
   onMount(() => {
     if (debug) {
-      if (changeNotifier === null) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
+      if (!providerMap) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
+    const changeNotifier = providerMap.get(options.model);
     changeNotifier.addListener(consumerKey, (tags) => {
-      if (tags.length === 0 || !options.tags || tags.some((tag) => includes(options.tags, tag))) rebuild();
+      if (tags.length === 0 || !options.tags || tags.some((tag) => options.tags.indexOf(tag) > -1)) rebuild();
     });
   });
 

@@ -5,6 +5,8 @@ import banner from 'rollup-plugin-banner';
 import replace from '@rollup/plugin-replace';
 import clear from 'rollup-plugin-delete';
 import cleanup from 'rollup-plugin-cleanup';
+import babel from 'rollup-plugin-babel';
+import fileSize from 'rollup-plugin-filesize';
 import pkg from './package.json';
 
 const prod = process.env.BUILD === 'production';
@@ -44,8 +46,17 @@ const getPlugins = (useES5 = false) => {
         }
       }
     }),
+    // prod && useES5 && babel({
+    //   extensions: ['.ts'],
+    //   presets: [
+    //     ['@babel/env', { targets: 'ie 11', loose: true }]
+    //   ]
+    // }),
     prod && terser({
       toplevel: true,
+      output: {
+        ascii_only: true,
+      },
       compress: {
         passes: 2
       }
@@ -53,7 +64,8 @@ const getPlugins = (useES5 = false) => {
     prod && cleanup({
       comments: 'none'
     }),
-    prod && banner(devoidBanner)
+    prod && banner(devoidBanner),
+    prod && fileSize()
   ];
   filesCleared = true;
   return plugins;

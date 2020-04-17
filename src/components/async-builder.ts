@@ -1,6 +1,5 @@
 import { Component, build, createState, onMount, DevoidComponent } from '../component';
 import { Context } from '../context';
-import { log } from '../utils';
 
 interface AsyncSnapshot<T> {
   data: T;
@@ -29,23 +28,20 @@ export const AsyncBuilder = <T>(options: AsyncBuilderOptions<T>) => Component((c
   });
 
   onMount(() => {
-    log('AsyncBuilder Mounted');
     options.getter()
-      .then((data) => {
-        setSnapshot((state) => {
-          state.data = data;
-          state.hasData = typeof data !== 'undefined';
-          state.resolved = true;
-          state.fulfilled = true;
-        })
-      }, (reason) => setSnapshot((state) => {
-        state.resolved = true;
-        state.rejected = true;
-        state.rejectReason = reason;
+      .then((data) => setSnapshot({
+        data,
+        hasData: typeof data !== 'undefined',
+        resolved: true,
+        fulfilled: true
+      }), (reason) => setSnapshot({
+        resolved: true,
+        rejected: true,
+        rejectReason: reason
       }))
-      .catch((error) => setSnapshot((state) => {
-        state.error = error;
-        state.resolved = true;
+      .catch((error) => setSnapshot({
+        error,
+        resolved: true
       }));
   })
 

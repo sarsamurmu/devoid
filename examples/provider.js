@@ -17,8 +17,7 @@ const ExpensiveComponent = () => Component(() => {
 
     return el('p', [
       'Some expensive component',
-      el('p', this.text),
-      el('p', 'Another child of expensive component')
+      el('p', 'Child of expensive component')
     ])
   })
 })

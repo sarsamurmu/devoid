@@ -16,7 +16,6 @@ export const log = console.log.bind(console);
 export const warn = (...data: any) => console.warn('[Devoid]:', ...data);
 
 export const generateUniqueId = () => '               '.replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
-export const includes = <T>(array: T[], whichItem: T) => array.indexOf(whichItem) !== -1;
 export const copyMap = <K, V>(from: Map<K, V>, to: Map<K, V>) => from.forEach((value, key) => to.set(key, value));
 
 export class EventManager {
