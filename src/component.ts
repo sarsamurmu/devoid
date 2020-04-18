@@ -20,21 +20,21 @@ export interface DevoidComponent {
 const buildCbs: [() => DevoidComponent, Context][] = [];
 export const build = (buildFun: () => DevoidComponent, useContext?: Context) => buildCbs[buildCbs.length - 1] = [buildFun, useContext];
 
+type DeepPartial<T> = T extends Record<string, any> ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
+
 interface CallbackOrData<T extends Record<string, any>> {
   (callback: (currentState: T) => void): void;
-  (newData: Partial<T>, shouldClone?: boolean): void;
+  (newData: DeepPartial<T>, shouldClone?: boolean): void;
 }
-
-declare const cd: CallbackOrData<Record<string, any>>;
 
 const stateChangeCbs: voidFun[][] = [];
 export const createState = <T extends Record<string, any>>(stateData: T): [T, CallbackOrData<T>] => {
   hookWarn(stateChangeCbs, 'createState');
   const state = stateData;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
-  const setState = (callbackOrData: ((cState: T) => void) | Partial<T>, shouldClone = false) => {
+  const setState = (callbackOrData: ((cState: T) => void) | DeepPartial<T>, shouldClone = false) => {
     if (typeof callbackOrData === 'function') {
-      callbackOrData(state);
+      (callbackOrData as (cState: T) => void)(state);
     } else {
       mergeProperties(state, callbackOrData, shouldClone);
     }
@@ -43,7 +43,7 @@ export const createState = <T extends Record<string, any>>(stateData: T): [T, Ca
   return [state, setState];
 }
 
-interface ValueState<T> {
+interface Value<T> {
   /** Returns the value of the value holder */
   (): T;
   /** Sets the new value and triggers rebuild process of the component */
@@ -52,14 +52,17 @@ interface ValueState<T> {
   $(newValue: T): T;
 }
 
-export const value = <T = any>(initialValue: T): ValueState<T> => {
+export const value = <T = any>(initialValue: T): Value<T> => {
   hookWarn(stateChangeCbs, 'value');
   let val: T = initialValue;
+  let used = false;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
   function setOrGet(newValue?: T): T {
-    if (arguments.length !== 0 && val !== newValue) {
+    if (arguments.length === 0) {
+      used = true;
+    } else if (val !== newValue) {
       val = newValue;
-      listeners.forEach((cb) => cb());
+      if (used) listeners.forEach((cb) => cb());
     }
     return val;
   }
@@ -165,6 +168,10 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       // log('should rebuild');
       // log(memoizeBuilder);
       // log('End', rebuildCount);
+      if (!mounted) {
+        if (debug) warn('Component triggering rebuild before it is mounted', builder);
+        return;
+      }
       const newVNodes = render();
       if (childVNodes.length === 1 && newVNodes.length === 1) {
         patch(childVNodes[0], newVNodes[0]);

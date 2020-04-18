@@ -6,15 +6,15 @@ export class Model<D = any> {
   data: D;
   listeners = new Map<any, (tags: any[]) => void>();
 
-  addListener(key: any, callback: (tags: any[]) => void) {
+  $add(key: any, callback: (tags: any[]) => void) {
     this.listeners.set(key, callback);
   }
 
-  removeListener(key: any) {
+  $remove(key: any) {
     this.listeners.delete(key);
   }
 
-  notifyListeners(tags: any[] = []) {
+  $notify(tags: any[] = []) {
     this.listeners.forEach((callback) => callback(tags));
   }
 }
@@ -30,7 +30,7 @@ type ProviderMap = Map<typeof Model.constructor, Model>;
 export const createModel = <T, S>(builder: (notifyListeners: (tags: any[]) => void, props: T) => S) => class extends Model<S> {
   constructor(props?: T) {
     super();
-    this.data = builder((tags = []) => this.notifyListeners(tags), props);
+    this.data = builder((tags = []) => this.$notify(tags), props);
   }
 }
 
@@ -57,14 +57,14 @@ Provider.of = <T extends Model>(context: Context, model: new() => T): T['data'] 
   return providerMap.get(model).data;
 }
 
-interface ConsumerOptions<T extends Model> {
-  model: new() => T;
+interface ConsumerOptions {
+  models: (new() => Model)[];
   tags: any[];
   child: DevoidComponent;
-  builder: (context: Context, value: T['data'], child: DevoidComponent) => DevoidComponent;
+  builder: (context: Context, getModel: <T extends Model>(model: new() => T) => T, child: DevoidComponent) => DevoidComponent;
 }
 
-export const Consumer = <T extends Model>(options: ConsumerOptions<T>) => Component((context) => {
+export const Consumer = (options: ConsumerOptions) => Component((context) => {
   const providerMap = context.get<ProviderMap>(providerKey);
   const consumerKey = generateUniqueId();
   const rebuild = getRebuilder();
@@ -74,19 +74,33 @@ export const Consumer = <T extends Model>(options: ConsumerOptions<T>) => Compon
     if (debug) {
       if (!providerMap) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
-    const changeNotifier = providerMap.get(options.model);
-    changeNotifier.addListener(consumerKey, (tags) => {
-      if (tags.length === 0 || !options.tags || tags.some((tag) => options.tags.indexOf(tag) > -1)) rebuild();
+    options.models.forEach((modelKey) => {
+      const model = providerMap.get(modelKey);
+      model.$add(consumerKey, (tags) => {
+        if (
+          tags.length === 0 ||
+          !options.tags ||
+          tags.some((tag) => options.tags.indexOf(tag) > -1)
+        ) rebuild();
+      });
     });
   });
 
   onDestroy(() => {
-    Provider.of(context, options.model).removeListener(consumerKey);
+    options.models.forEach((modelKey) => {
+      const model = providerMap.get(modelKey);
+      model.$remove(consumerKey);
+    });
   });
   
   build(() => options.builder(
     context,
-    Provider.of(context, options.model),
+    (model) => {
+      if (debug) {
+        if (options.models.indexOf(model) < 0) warn('Consumer is not subscribed to the model you are trying to get. The builder function - ', options.builder);
+      }
+      return Provider.of(context, model);
+    },
     cachedComponent,
   ));
 });

@@ -1,4 +1,5 @@
 export * from './component';
+export * from './context';
 export { createEl } from './createEl';
 export { el, elR } from './element';
 export { EventManager, createSymbol, globalSymbol } from './utils';

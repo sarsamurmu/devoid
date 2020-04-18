@@ -40,7 +40,7 @@ const ChildComponent = () => {
 
 const MyComponent = () => {
   return Component((context) => {
-    const [state, setState] = createState({ name: 'De' });
+    const [state, setState] = createState({ name: 'Component' });
 
     const useContext = context.copy();
     useContext.set('myKey', 100);

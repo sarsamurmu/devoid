@@ -49,18 +49,18 @@ const ProviderApp = () => Component(() => {
       el('div', [
         el('p', 'Another element'),
         Consumer({
-          model: DataModel,
+          models: [DataModel],
           tags: ['first'],
-          builder: (context, dataModel, child) => el('div', [
-            el('p', `(Tag: 'first') The value is ${dataModel.value}`),
+          builder: (context, getModel, child) => el('div', [
+            el('p', `(Tag: 'first') The value is ${getModel(DataModel).value}`),
             child,
           ]),
           child: ExpensiveComponent(),
         }),
         Consumer({
-          model: DataModel,
+          models: [DataModel],
           tags: ['second'],
-          builder: (context, dataModel, child) => el('p', `(Tag: 'second') The value is ${dataModel.value}`)
+          builder: (context, getModel, child) => el('p', `(Tag: 'second') The value is ${getModel(DataModel).value}`)
         }),
       ]),
       el('h4', 'New Value'),

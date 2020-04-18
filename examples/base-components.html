@@ -103,8 +103,8 @@
             create: () => new providerSample(),
             child: Builder((context) => Fragment([
               Consumer({
-                model: providerSample,
-                builder: (_, value) => el('p', `The value of providerSample is - ${value.val}`),
+                models: [providerSample],
+                builder: (_, getModel) => el('p', `The value of providerSample is - ${getModel(providerSample).val}`),
               }),
               el('div.zust-el-group', [
                 el('p.zust-form-el', [
