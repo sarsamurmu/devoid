@@ -1,5 +1,5 @@
 import { debug, warn, copyMap, createSymbol, generateUniqueId } from '../utils';
-import { Component, build, onMount, onDestroy, getRebuilder, cacheComponent, DevoidComponent } from '../component';
+import { Component, build, onMount, onDestroy, getRebuilder, memoComponent, DevoidComponent } from '../component';
 import { Context } from '../context';
 
 export class Model<D = any> {
@@ -68,7 +68,7 @@ export const Consumer = (options: ConsumerOptions) => Component((context) => {
   const providerMap = context.get<ProviderMap>(providerKey);
   const consumerKey = generateUniqueId();
   const rebuild = getRebuilder();
-  const cachedComponent = cacheComponent(options.child);
+  const memoizedComponent = memoComponent(options.child);
 
   onMount(() => {
     if (debug) {
@@ -101,6 +101,6 @@ export const Consumer = (options: ConsumerOptions) => Component((context) => {
       }
       return Provider.of(context, model);
     },
-    cachedComponent,
+    memoizedComponent,
   ));
 });

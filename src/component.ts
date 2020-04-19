@@ -1,4 +1,4 @@
-import { EventManager, debug, warn, buildChild, generateUniqueId, buildChildren, isObject, mergeProperties } from './utils';
+import { EventManager, debug, warn, buildChild, generateUniqueId, buildChildren, mergeProperties } from './utils';
 import { updateChildren, patch } from './mount';
 import { Context } from './context';
 import vnode, { VNode } from 'snabbdom/es/vnode';
@@ -14,13 +14,14 @@ const hookWarn = (array: any[], name: string) => {
 
 export interface DevoidComponent {
   render: (context: Context) => VNode[];
-  onContext?: (context: Context) => void;
 }
 
 const buildCbs: [() => DevoidComponent, Context][] = [];
 export const build = (buildFun: () => DevoidComponent, useContext?: Context) => buildCbs[buildCbs.length - 1] = [buildFun, useContext];
 
-type DeepPartial<T> = T extends Record<string, any> ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
+type DeepPartial<T> = {
+  [K in keyof T]?: DeepPartial<T[K]> | T[K];
+};
 
 interface CallbackOrData<T extends Record<string, any>> {
   (callback: (currentState: T) => void): void;
@@ -28,7 +29,7 @@ interface CallbackOrData<T extends Record<string, any>> {
 }
 
 const stateChangeCbs: voidFun[][] = [];
-export const createState = <T extends Record<string, any>>(stateData: T): [T, CallbackOrData<T>] => {
+export const createState = <T extends Record<string, any>>(stateData: T): [Readonly<T>, CallbackOrData<T>] => {
   hookWarn(stateChangeCbs, 'createState');
   const state = stateData;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
@@ -43,7 +44,7 @@ export const createState = <T extends Record<string, any>>(stateData: T): [T, Ca
   return [state, setState];
 }
 
-interface Value<T> {
+interface Value<T = any> {
   /** Returns the value of the value holder */
   (): T;
   /** Sets the new value and triggers rebuild process of the component */
@@ -66,7 +67,7 @@ export const value = <T = any>(initialValue: T): Value<T> => {
     }
     return val;
   }
-  setOrGet.$ = (newValue: T): T => val = newValue;
+  setOrGet.$ = (newValue: T) => val = newValue;
   return setOrGet;
 }
 
@@ -161,13 +162,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       return vNodes;
     }
 
-    // let rebuildCount = 0;
-
     const rebuild = () => {
-      // log('Start', ++rebuildCount);
-      // log('should rebuild');
-      // log(memoizeBuilder);
-      // log('End', rebuildCount);
       if (!mounted) {
         if (debug) warn('Component triggering rebuild before it is mounted', builder);
         return;
@@ -194,7 +189,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   }
 });
 
-export const cacheComponent = (componentToCache: DevoidComponent): DevoidComponent => {
+export const memoComponent = (componentToCache: DevoidComponent): DevoidComponent => {
   let renderedComponent: VNode[];
   return {
     render: (context) => renderedComponent || (renderedComponent = componentToCache.render(context))

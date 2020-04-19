@@ -7,12 +7,13 @@ export interface FC {
   jsx(props: Record<string, any>): DevoidComponent;
 }
 
-export type ChildType = DevoidComponent | string | number | null | false | undefined;
+export type ChildType = DevoidComponent | string | number | false;
 
 /* global console, process */
 
 export const debug = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
+/* istanbul ignore next */
 export const warn = (...data: any) => console.warn('[Devoid]:', ...data);
 
 export const generateUniqueId = () => '               '.replace(/[ ]/g, () => (Math.random() * 16 | 0).toString(16));
@@ -49,7 +50,6 @@ export function buildChild(context: Context, child: ChildType): VNode[] {
     return [vnode(undefined, undefined, undefined, String(child), undefined)];
   } else if (child && typeof (child as DevoidComponent).render === 'function') {
     const ch = child as DevoidComponent;
-    if (ch.onContext) ch.onContext(context);
     return ch.render(context);
   }
   return [];
@@ -78,9 +78,9 @@ export const isObject = (data: any) => !!data && data.constructor === Object;
 
 const isObjectOrArray = (data: any) => isObject(data) || Array.isArray(data);
 
-export const deepClone = (data: Record<string, any> | any[]) => {
+export const deepClone = <T extends Record<string, any> | any[]>(data: T) => {
   const clone = Array.isArray(data) ? [] : {};
-  if (Array.isArray) {
+  if (Array.isArray(data)) {
     data.forEach((value: any, index: number) => {
       (clone as any[])[index] = isObjectOrArray(value) ? deepClone(value) : value;
     })
@@ -90,7 +90,7 @@ export const deepClone = (data: Record<string, any> | any[]) => {
       (clone as Record<string, any>)[key] = isObjectOrArray(value) ? deepClone(value) : value;
     }
   }
-  return clone;
+  return clone as T;
 }
 
 export const mergeProperties = (source: Record<string, any>, target: Record<string, any>, shouldClone = false) => {

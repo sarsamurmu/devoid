@@ -1,22 +1,21 @@
 import { copyMap } from './utils';
 
 export class Context {
-  protected contextData: Map<any, any>;
+  private data = new Map();
 
   constructor(fromMap?: Map<any, any>) {
-    this.contextData = new Map();
-    if (fromMap) copyMap(fromMap, this.contextData);
+    if (fromMap) copyMap(fromMap, this.data);
   }
 
   set(key: any, value: any) {
-    this.contextData.set(key, value);
+    this.data.set(key, value);
   }
 
   get<T>(key: any): T {
-    return this.contextData.get(key);
+    return this.data.get(key);
   }
 
   copy() {
-    return new Context(this.contextData);
+    return new Context(this.data);
   }
 }

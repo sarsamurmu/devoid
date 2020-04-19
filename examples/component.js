@@ -8,7 +8,6 @@ const {
   build,
   value,
   Fragment,
-  withBuilder,
 } = Devoid;
 
 const ChildComponent = () => {
@@ -68,10 +67,42 @@ const MyComponent = () => {
   });
 }
 
-console.log(MyComponent());
+const ValueComponent = () => Component(() => {
+  const count1 = value(0);
+  const count2 = value(0);
+  const count3 = value(0);
+  const count4 = value(0);
+  const count5 = value(0);
+
+  const setVal = (valFun) => valFun(valFun() + 1);
+
+  build(() => el('div', [
+    el('p', {
+      style: { userSelect: 'none' },
+      on: { click: [setVal, count1] }
+    }, `Count 1 is ${count1()}`),
+    el('p', {
+      style: { userSelect: 'none' },
+      on: { click: [setVal, count2] }
+    }, `Count 2 is ${count2()}`),
+    el('p', {
+      style: { userSelect: 'none' },
+      on: { click: [setVal, count3] }
+    }, `Count 3 is ${count3()}`),
+    el('p', {
+      style: { userSelect: 'none' },
+      on: { click: [setVal, count4] }
+    }, `Count 4 is ${count4()}`),
+    el('p', {
+      style: { userSelect: 'none' },
+      on: { click: [setVal, count5] }
+    }, `Count 5 is ${count5()}`),
+  ]))
+});
 
 mount(el('div', [
   MyComponent(),
   MyComponent(),
-  MyComponent()
+  MyComponent(),
+  ValueComponent(),
 ]), document.querySelector('[renderBox]'));
