@@ -53,22 +53,50 @@ interface Value<T = any> {
   $(newValue: T): T;
 }
 
+interface ValueWithWatch<T = any> extends Value<T> {
+  watch(onChange: voidFun): voidFun;
+}
+
+const valueDataArr: ({ canUseSetter: boolean })[] = [];
 export const value = <T = any>(initialValue: T): Value<T> => {
   hookWarn(stateChangeCbs, 'value');
+
   let val: T = initialValue;
   let used = false;
+
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
+  const valueData = valueDataArr[valueDataArr.length - 1];
+  const valueListeners = new Set<voidFun>();
+
   function setOrGet(newValue?: T): T {
     if (arguments.length === 0) {
       used = true;
     } else if (val !== newValue) {
+      if (!valueData.canUseSetter) {
+        if (debug) warn('You cannot set value inside of watch callback, because it can cause infinite loops');
+        return;
+      }
       val = newValue;
+      valueData.canUseSetter = false;
+      valueListeners.forEach((cb) => cb());
+      valueData.canUseSetter = true;
       if (used) listeners.forEach((cb) => cb());
     }
     return val;
   }
   setOrGet.$ = (newValue: T) => val = newValue;
+  setOrGet.watch = (onChange: voidFun) => {
+    valueListeners.add(onChange);
+    return () => valueListeners.delete(onChange);
+  }
+
   return setOrGet;
+}
+
+export const watchValues = <T extends readonly Value[]>(values: T, onChange: () => void) => {
+  const removeCbs: voidFun[] = [];
+  values.forEach((val: ValueWithWatch) => removeCbs.push(val.watch(onChange)));
+  return () => removeCbs.forEach((removeCb) => removeCb());
 }
 
 export const getRebuilder = () => {
@@ -99,6 +127,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   render: (aContext) => {
     buildCbs.push([] as any);
     stateChangeCbs.push([]);
+    valueDataArr.push({ canUseSetter: true });
     onMountCbs.push([]);
     onUpdateCbs.push([]);
     onDestroyCbs.push([]);
@@ -111,6 +140,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
     const updateCbs = onUpdateCbs.pop();
     const destroyCbs = onDestroyCbs.pop();
     const componentKey = generateUniqueId();
+    valueDataArr.pop();
     let mountedVNodeCount = 0;
     let childVNodes: VNode[];
     let mounted = false;

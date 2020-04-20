@@ -33,8 +33,8 @@ describe('Utility functions', () => {
 
   it('EventManager', () => {
     const eventManager = new utils.EventManager();
-    const key = utils.createSymbol('$key');
-    const key2 = utils.createSymbol('$key2');
+    const key = utils.createKey('$key');
+    const key2 = utils.createKey('$key2');
     let initCallCount = 0;
     let initCallCount2 = 0;
     let updateCallCount = 0;
@@ -58,7 +58,7 @@ describe('Utility functions', () => {
     eventManager.trigger('@update');
     assert(initCallCount === 2, 'Call count should be 2 because only key2 is removed');
     assert(initCallCount2 === 1, 'Call count should be 1 as key2 is removed');
-    assert(updateCallCount === 1, 'all count should be 1 because only key2 is removed')
+    assert(updateCallCount === 1, 'Call count should be 1 because only key2 is removed');
     assert(updateCallCount2 === 0, 'Call count should be 0 as key2 is removed');
 
     eventManager.add('@init', () => initCallCount2++, key2);
@@ -78,8 +78,8 @@ describe('Utility functions', () => {
   });
 
   it('globalSymbol', () => {
-    const firstSymbol = utils.globalSymbol('sameKey');
-    const secondSymbol = utils.globalSymbol('sameKey');
+    const firstSymbol = utils.globalKey('sameKey');
+    const secondSymbol = utils.globalKey('sameKey');
 
     assert(firstSymbol === secondSymbol, 'Global symbol with same key should be same');
   });
@@ -115,7 +115,7 @@ describe('Utility functions', () => {
       obj.nested.isNested &&
       (obj.nested.array[0] as any).isObject &&
       obj.nested.array[1] === 'String',
-      'Deep cloned object should not be contain reference to the original object'
+      'Deep cloned object should not contain reference to the original object'
     );
   });
 
@@ -161,7 +161,7 @@ describe('Utility functions', () => {
       toMerge.nested.nested.first === 10 &&
       toMerge.nested.nested.second === 22 &&
       (toMerge as any).nestedOther.first === 121 &&
-      (toMerge as any).nestedOther.first === 122
+      (toMerge as any).nestedOther.second === 122
     );
   });
 });

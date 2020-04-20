@@ -9,6 +9,7 @@ window.addEventListener('load', () => {
     build,
     value,
     Fragment,
+    watchValues,
   } = Devoid;
 
   const ChildComponent = () => {
@@ -74,6 +75,13 @@ window.addEventListener('load', () => {
     const count3 = value(0);
     const count4 = value(0);
     const count5 = value(0);
+
+    watchValues([count1, count2], () => {
+      console.log('count1 or count2 Changed');
+      count3(count3() + 1);
+    });
+
+    watchValues([count3], () => console.log('count3 Changed'));
 
     const setVal = (valFun) => valFun(valFun() + 1);
 

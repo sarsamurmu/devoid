@@ -12,15 +12,17 @@ module.exports = (config) => {
     },
     karmaTypescriptConfig: {
       bundlerOptions: {
-        transforms: [require("karma-typescript-es6-transform")()]
+        transforms: [require("karma-typescript-es6-transform")()],
+        constants: {
+          'process.env.NODE_ENV': JSON.stringify('production')
+        }
       },
       coverageOptions: {
         exclude: /test(\\|\/).*\.ts$/i
       },
       reports: {
-        'html-spa': './coverage',
-        'text': null,
-        // 'text-summary': null
+        'lcov': './coverage',
+        'text': null
       }
     },
     reporters: ['mocha', 'karma-typescript'],

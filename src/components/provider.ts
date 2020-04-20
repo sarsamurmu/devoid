@@ -1,4 +1,4 @@
-import { debug, warn, copyMap, createSymbol, generateUniqueId } from '../utils';
+import { debug, warn, copyMap, createKey, generateUniqueId } from '../utils';
 import { Component, build, onMount, onDestroy, getRebuilder, memoComponent, DevoidComponent } from '../component';
 import { Context } from '../context';
 
@@ -24,7 +24,7 @@ interface ProviderOptions {
   child: DevoidComponent;
 }
 
-const providerKey = createSymbol('ProviderKey');
+const providerKey = createKey('ProviderKey');
 type ProviderMap = Map<typeof Model.constructor, Model>;
 
 export const createModel = <T, S>(builder: (notifyListeners: (tags: any[]) => void, props: T) => S) => class extends Model<S> {

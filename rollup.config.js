@@ -55,7 +55,7 @@ const getPlugins = (useES5 = false) => {
     prod && terser({
       toplevel: true,
       output: {
-        ascii_only: true,
+        ascii_only: true
       },
       compress: {
         passes: 2

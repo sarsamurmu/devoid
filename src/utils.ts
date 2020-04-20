@@ -63,14 +63,14 @@ export function buildChildren(context: Context, children: ChildType[]): VNode[] 
 
 /* eslint-enable */
 
-const symbolMap = new Map();
+const keyMap = new Map();
 
-export const createSymbol = (key: string) => [[key]];
+export const createKey = (key: string) => [[key]];
 
-export const globalSymbol = (key: string) => {
-  if (symbolMap.has(key)) return symbolMap.get(key);
+export const globalKey = (key: string) => {
+  if (keyMap.has(key)) return keyMap.get(key);
   const symbol = [[key]];
-  symbolMap.set(key, symbol);
+  keyMap.set(key, symbol);
   return symbol;
 }
 
