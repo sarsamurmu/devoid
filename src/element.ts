@@ -4,11 +4,11 @@ import { DevoidComponent } from './component';
 
 export type ClassType = string | boolean | (string | boolean)[];
 
+type Ref<T> = { el: null | T };
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
-
 type Tags = keyof HTMLElementTagNameMap;
 
-interface ElementData<T extends Tags> {
+interface ElementData<T extends Tags = null> {
   key?: any;
   props?: (T extends Tags ? {
     [P in keyof HTMLElementTagNameMap[T]]: HTMLElementTagNameMap[T][P];
@@ -37,7 +37,10 @@ interface ElementData<T extends Tags> {
   ref?: Record<string, any>;
 }
 
-const parseSelector = (selector: string) => {
+/* istanbul ignore next */
+export const ref = <T extends HTMLElement = HTMLElement>(): Ref<T> => ({ el: null });
+
+export const parseSelector = (selector: string) => {
   let tag = 'div';
   const aClass: string[] = [];
   const attrs = {} as Record<string, string>;
@@ -76,9 +79,7 @@ const parseSelector = (selector: string) => {
   }
 }
 
-type rType = DevoidComponent;
-
-export function elR(tagName: string, data: ElementData<null>, children: ChildType[]): rType {
+export function elR(tagName: string, data: ElementData, children: ChildType[]): DevoidComponent {
   const eventManager = new EventManager();
 
   (data as any).hook = {
@@ -102,24 +103,24 @@ export function elR(tagName: string, data: ElementData<null>, children: ChildTyp
   }
 }
 
-export function el<T extends Tags>(selector: T): rType;
-export function el(selector: string): rType;
+export function el<T extends Tags>(selector: T): DevoidComponent;
+export function el(selector: string): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, data: ElementData<T>): rType;
-export function el<T extends Tags>(selector: string, data: ElementData<T>): rType;
-export function el(selector: string, data: ElementData<null>): rType;
+export function el<T extends Tags>(selector: T, data: ElementData<T>): DevoidComponent;
+export function el<T extends Tags>(selector: string, data: ElementData<T>): DevoidComponent;
+export function el(selector: string, data: ElementData): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, children: ChildType | ChildType[]): rType;
-export function el(selector: string, children: ChildType | ChildType[]): rType;
+export function el<T extends Tags>(selector: T, children: ChildType | ChildType[]): DevoidComponent;
+export function el(selector: string, children: ChildType | ChildType[]): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, data: ElementData<T>, children: ChildType | ChildType[]): rType;
-export function el<T extends Tags>(selector: string, data: ElementData<T>, children: ChildType | ChildType[]): rType;
-export function el(selector: string, data: ElementData<null>, children: ChildType | ChildType[]): rType;
+export function el<T extends Tags>(selector: T, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
+export function el<T extends Tags>(selector: string, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
+export function el(selector: string, data: ElementData, children: ChildType | ChildType[]): DevoidComponent;
 
-export function el(selector: string, fArg?: any, sArg?: any): rType {
+export function el(selector: string, fArg?: any, sArg?: any): DevoidComponent {
   const selData = parseSelector(selector);
   let children: ChildType[] = [];
-  let data: ElementData<null>;
+  let data: ElementData;
   if (
     !sArg && (Array.isArray(fArg) ||
     (typeof fArg === 'string' && fArg.trim() !== '') ||

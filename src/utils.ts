@@ -9,7 +9,7 @@ export interface FC {
 
 export type ChildType = DevoidComponent | string | number | false;
 
-/* global console, process */
+/* global process */
 
 export const debug = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
@@ -99,6 +99,18 @@ export const mergeProperties = (source: Record<string, any>, target: Record<stri
       mergeProperties(source[key], target[key]);
     } else {
       source[key] = shouldClone && isObjectOrArray(target[key]) ? deepClone(target[key]) : target[key];
+    }
+  }
+}
+
+export const patchStateProperties = (oldState: Record<string, any>, newState: Record<string, any>) => {
+  for (const key in oldState) {
+    const oldVal = oldState[key];
+    const newVal = newState[key];
+    if (isObject(oldVal) && isObject(newVal)) {
+      patchStateProperties(oldVal, newVal)
+    } else if (key in newState) {
+      newState[key] = oldVal;
     }
   }
 }

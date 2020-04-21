@@ -78,15 +78,18 @@ const exports = [
       {
         file: pkg.module,
         intro,
-        format: 'es'
+        format: 'es',
+        sourcemap: !prod && 'inline'
       },
-      {
+      prod && {
         file: pkg.main,
         intro,
         format: 'cjs'
       }
     ],
-    plugins: getPlugins()
+    plugins: getPlugins(),
+    cache: !prod,
+    treeshake: prod,
   },
   {
     input,
@@ -114,4 +117,4 @@ const exports = [
   }
 ];
 
-export default prod ? exports : exports[1];
+export default prod ? exports : exports[process.env.TYPE === 'es' ? 0 : 1];

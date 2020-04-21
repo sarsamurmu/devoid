@@ -1,5 +1,5 @@
 node_modules/
 dist/
 types/
-examples/package-lock.json
+draft/package-lock.json
 coverage/

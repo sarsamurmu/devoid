@@ -10,6 +10,7 @@
   "types": "types/index.d.ts",
   "scripts": {
     "start": "rollup -c -w",
+    "start:es": "rollup -c -w --environment TYPE:es",
     "build": "rollup -c --environment BUILD:production",
     "test": "karma start",
     "lint": "eslint --ext .ts \"src/**\""
