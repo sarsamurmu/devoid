@@ -74,7 +74,7 @@ interface Value<T = any> {
   $(newValue: T): T;
 }
 
-interface ValueTypePrivate<T = any> extends Value<T> {
+interface ValueWatchable<T = any> extends Value<T> {
   watch(onChange: voidFun): voidFun;
 }
 
@@ -122,7 +122,7 @@ export const value = <T = any>(initialValue: T): Value<T> => {
 
 export const watchValues = <T extends readonly Value[]>(values: T, onChange: () => void) => {
   const removeCbs: voidFun[] = [];
-  values.forEach((val: ValueTypePrivate) => removeCbs.push(val.watch(onChange)));
+  values.forEach((val: ValueWatchable) => removeCbs.push(val.watch(onChange)));
   return () => removeCbs.forEach((removeCb) => removeCb());
 }
 
