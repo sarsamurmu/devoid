@@ -3,6 +3,8 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   env: {
     es6: true,
+    browser: true,
+    mocha: true,
   },
   parserOptions: {
     ecmaVersion: 2020,

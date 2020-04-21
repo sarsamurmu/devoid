@@ -11,6 +11,7 @@
   "scripts": {
     "start": "rollup -c -w",
     "build": "rollup -c --environment BUILD:production",
+    "test": "karma start",
     "lint": "eslint --ext .ts \"src/**\""
   },
   "author": "Sarsa Murmu <sarsamurmu05@gmail.com>",
