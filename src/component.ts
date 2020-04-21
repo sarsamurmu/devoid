@@ -1,4 +1,13 @@
-import { EventManager, debug, warn, buildChild, generateUniqueId, buildChildren, mergeProperties } from './utils';
+import {
+  EventManager,
+  debug,
+  warn,
+  buildChild,
+  generateUniqueId,
+  buildChildren,
+  mergeProperties,
+  patchStateProperties
+} from './utils';
 import { updateChildren, patch } from './mount';
 import { Context } from './context';
 import vnode, { VNode } from 'snabbdom/es/vnode';
@@ -6,6 +15,7 @@ import { ChildType } from './utils';
 
 type voidFun = () => void;
 
+/* istanbul ignore next */
 const hookWarn = (array: any[], name: string) => {
   if (debug) {
     if (array.length === 0) warn(`You shouldn't call ${name}() outside of Component function. This can cause error.`);
@@ -13,7 +23,9 @@ const hookWarn = (array: any[], name: string) => {
 }
 
 export interface DevoidComponent {
-  render: (context: Context) => VNode[];
+  states?: StatesType;
+  reloadWith?: (newComp: DevoidComponent) => void;
+  render: (context: Context, prevVNodes?: VNode[], prevStates?: StatesType) => VNode[];
 }
 
 const buildCbs: [() => DevoidComponent, Context][] = [];
@@ -31,8 +43,16 @@ interface CallbackOrData<T extends Record<string, any>> {
 const stateChangeCbs: voidFun[][] = [];
 export const createState = <T extends Record<string, any>>(stateData: T): [Readonly<T>, CallbackOrData<T>] => {
   hookWarn(stateChangeCbs, 'createState');
+
   const state = stateData;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
+
+  Object.defineProperty(state, '$devoidState', {
+    enumerable: false,
+    configurable: false,
+    get: () => true
+  });
+
   const setState = (callbackOrData: ((cState: T) => void) | DeepPartial<T>, shouldClone = false) => {
     if (typeof callbackOrData === 'function') {
       (callbackOrData as (cState: T) => void)(state);
@@ -41,6 +61,7 @@ export const createState = <T extends Record<string, any>>(stateData: T): [Reado
     }
     listeners.forEach((cb) => cb());
   }
+
   return [state, setState];
 }
 
@@ -53,7 +74,7 @@ interface Value<T = any> {
   $(newValue: T): T;
 }
 
-interface ValueWithWatch<T = any> extends Value<T> {
+interface ValueTypePrivate<T = any> extends Value<T> {
   watch(onChange: voidFun): voidFun;
 }
 
@@ -90,13 +111,26 @@ export const value = <T = any>(initialValue: T): Value<T> => {
     return () => valueListeners.delete(onChange);
   }
 
+  Object.defineProperty(setOrGet, '$devoidValue', {
+    enumerable: false,
+    configurable: false,
+    get: () => true
+  });
+
   return setOrGet;
 }
 
 export const watchValues = <T extends readonly Value[]>(values: T, onChange: () => void) => {
   const removeCbs: voidFun[] = [];
-  values.forEach((val: ValueWithWatch) => removeCbs.push(val.watch(onChange)));
+  values.forEach((val: ValueTypePrivate) => removeCbs.push(val.watch(onChange)));
   return () => removeCbs.forEach((removeCb) => removeCb());
+}
+
+type StatesType = Record<string, Readonly<Record<string, any>> | Value>;
+const debugStatesArr: StatesType[] = [];
+export const debugStates = (states: StatesType) => {
+  hookWarn(debugStatesArr, 'debugStates');
+  debugStatesArr[debugStatesArr.length - 1] = states;
 }
 
 export const getRebuilder = () => {
@@ -123,101 +157,154 @@ export const onDestroy = (callback: voidFun) => {
   onDestroyCbs[onDestroyCbs.length - 1].push(callback);
 }
 
-export const Component = (builder: (context: Context) => void): DevoidComponent => ({
-  render: (aContext) => {
+export const Component = (builder: (context: Context) => void): DevoidComponent => {
+  const instance = {} as DevoidComponent;
+
+  let mountedVNodeCount = 0;
+  let childVNodes: VNode[];
+  let mounted = false;
+  let buildData: [() => DevoidComponent, Context];
+  let onStateChange: voidFun[];
+  let mountedCbs: voidFun[];
+  let updateCbs: voidFun[];
+  let destroyCbs: voidFun[];
+  let states: StatesType;
+  let context: Context;
+  const componentKey = generateUniqueId();
+
+  const init = (aContext: Context) => {
     buildCbs.push([] as any);
     stateChangeCbs.push([]);
     valueDataArr.push({ canUseSetter: true });
+    debugStatesArr.push(null);
     onMountCbs.push([]);
     onUpdateCbs.push([]);
     onDestroyCbs.push([]);
 
     builder(aContext);
 
-    const buildData = buildCbs.pop();
-    const onStateChange = stateChangeCbs.pop();
-    const mountedCbs = onMountCbs.pop();
-    const updateCbs = onUpdateCbs.pop();
-    const destroyCbs = onDestroyCbs.pop();
-    const componentKey = generateUniqueId();
+    buildData = buildCbs.pop();
+    onStateChange = stateChangeCbs.pop();
+    mountedCbs = onMountCbs.pop();
+    updateCbs = onUpdateCbs.pop();
+    destroyCbs = onDestroyCbs.pop();
+    states = debugStatesArr.pop();
+    context = aContext;
     valueDataArr.pop();
-    let mountedVNodeCount = 0;
-    let childVNodes: VNode[];
-    let mounted = false;
 
     if (debug) {
       if (!buildData[0]) {
         warn('build() function should be called inside of a component, but no build call found in', builder);
       }
+
+      if (states) {
+        instance.states = states;
+      }
+    }
+  }
+
+  const render = () => {
+    const vNodes = buildChild(buildData[1] instanceof Context ? buildData[1] : context, buildData[0]());
+
+    const doOnMount = () => {
+      if (mounted) return;
+      mounted = true;
+      mountedCbs.forEach((cb) => cb());
+    }
+    const doOnUpdate = () => updateCbs.forEach((cb) => cb());
+    const doOnDestroy = () => {
+      if (!mounted) return;
+      mounted = false;
+      destroyCbs.forEach((cb) => cb());
     }
 
-    const render = () => {
-      const vNodes = buildChild(buildData[1] instanceof Context ? buildData[1] : aContext, buildData[0]());
-
-      const doOnMount = () => {
-        if (mounted) return;
-        mounted = true;
-        mountedCbs.forEach((cb) => cb());
-      }
-      const doOnUpdate = () => updateCbs.forEach((cb) => cb());
-      const doOnDestroy = () => {
-        if (!mounted) return;
-        mounted = false;
-        destroyCbs.forEach((cb) => cb());
-      }
-
-      if (vNodes.length === 1) {
-        const eventManager = vNodes[0].data.eventManager as EventManager;
-        eventManager.add('mount', doOnMount, componentKey);
-        eventManager.add('update', doOnUpdate, componentKey);
-        eventManager.add('destroy', () => {
-          doOnDestroy();
-          eventManager.removeKey(componentKey);
+    if (vNodes.length === 1) {
+      const eventManager = vNodes[0].data.eventManager as EventManager;
+      eventManager.add('mount', doOnMount, componentKey);
+      eventManager.add('update', doOnUpdate, componentKey);
+      eventManager.add('destroy', () => {
+        doOnDestroy();
+        eventManager.removeKey(componentKey);
+      }, componentKey);
+    } else {
+      vNodes.forEach((vNode) => {
+        const eventManager = vNode.data.eventManager as EventManager;
+        eventManager.add('mount', () => {
+          if (++mountedVNodeCount === childVNodes.length) doOnMount();
         }, componentKey);
-      } else {
-        vNodes.forEach((vNode) => {
-          const eventManager = vNode.data.eventManager as EventManager;
-          eventManager.add('mount', () => {
-            if (++mountedVNodeCount === childVNodes.length) doOnMount();
-          }, componentKey);
-          eventManager.add('destroy', () => {
-            if (--mountedVNodeCount === 0) {
-              doOnDestroy();
-              eventManager.removeKey(componentKey);
-            }
-          }, componentKey);
-        });
-      }
-
-      return vNodes;
+        eventManager.add('destroy', () => {
+          if (--mountedVNodeCount === 0) {
+            doOnDestroy();
+            eventManager.removeKey(componentKey);
+          }
+        }, componentKey);
+      });
     }
 
-    const rebuild = () => {
-      if (!mounted) {
-        if (debug) warn('Component triggering rebuild before it is mounted', builder);
-        return;
-      }
-      const newVNodes = render();
-      if (childVNodes.length === 1 && newVNodes.length === 1) {
-        patch(childVNodes[0], newVNodes[0]);
-        childVNodes[0] = newVNodes[0];
-      } else {
-        updateChildren({
-          parentElm: childVNodes[0].elm.parentElement,
-          oldCh: childVNodes,
-          newCh: newVNodes,
-          insertBefore: childVNodes[childVNodes.length - 1].elm.nextSibling,
-        });
-        childVNodes.length = newVNodes.length;
-        newVNodes.forEach((newVNode, index) => childVNodes[index] = newVNode);
-      }
-    }
+    return vNodes;
+  }
 
+  const rebuild = (prevVNodes?: VNode[]) => {
+    if (prevVNodes) {
+      childVNodes = prevVNodes;
+      mounted = true;
+    }
+    if (!mounted) {
+      if (debug) warn('Component triggering rebuild before it is mounted', builder);
+      return;
+    }
+    const newVNodes = render();
+    if (childVNodes.length === 1 && newVNodes.length === 1) {
+      patch(childVNodes[0], newVNodes[0]);
+      childVNodes[0] = newVNodes[0];
+    } else {
+      updateChildren({
+        parentElm: childVNodes[0].elm.parentElement,
+        oldCh: childVNodes,
+        newCh: newVNodes,
+        insertBefore: childVNodes[childVNodes.length - 1].elm.nextSibling,
+      });
+      childVNodes.length = newVNodes.length;
+      newVNodes.forEach((newVNode, index) => childVNodes[index] = newVNode);
+    }
+    return childVNodes;
+  }
+
+  instance.render = (aContext: Context, prevVNodes, prevStates) => {
+    init(aContext);
     if (onStateChange) onStateChange.push(() => rebuild());
-
+    if (debug) {
+      if (prevVNodes) {
+        if (states && prevStates) {
+          for (const stateKey in prevStates) {
+            const prevVal = prevStates[stateKey] as any;
+            const val = states[stateKey] as any;
+            if (!(val && prevVal)) continue;
+            if (prevVal.$devoidValue && val.$devoidValue) {
+              val.$(prevVal());
+            } else if (prevVal.$devoidState && val.$devoidState) {
+              patchStateProperties(prevVal, val);
+            }
+          }
+        }
+        return rebuild(prevVNodes);
+      }
+    }
     return (childVNodes = render());
   }
-});
+
+  if (debug) {
+    instance.reloadWith = (newComp) => {
+      childVNodes.forEach((vNode) => {
+        const eventManager = vNode.data.eventManager as EventManager;
+        eventManager.removeKey(componentKey);
+      });
+      newComp.render(context, childVNodes, states);
+    }
+  }
+
+  return instance;
+}
 
 export const memoComponent = (componentToCache: DevoidComponent): DevoidComponent => {
   let renderedComponent: VNode[];
