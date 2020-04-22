@@ -11,7 +11,7 @@ export type ChildType = DevoidComponent | string | number | false;
 
 /* global process */
 
-export const debug = process.env.NODE_ENV !== 'production';
+export const DEV = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
 /* istanbul ignore next */
 export const warn = (...data: any) => console.warn('[Devoid]:', ...data);

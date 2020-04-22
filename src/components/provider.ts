@@ -1,4 +1,4 @@
-import { debug, warn, copyMap, createKey, generateUniqueId } from '../utils';
+import { DEV, warn, copyMap, createKey, generateUniqueId } from '../utils';
 import { Component, build, onMount, onDestroy, getRebuilder, memoComponent, DevoidComponent } from '../component';
 import { Context } from '../context';
 
@@ -48,7 +48,7 @@ export const Provider = (options: ProviderOptions) => Component((context) => {
 
 Provider.of = <T extends Model>(context: Context, model: new() => T): T['data'] => {
   const providerMap = context.get<ProviderMap>(providerKey);
-  if (debug) {
+  if (DEV) {
     if (!providerMap) {
       warn('Provider.of should be called on descendant context of a Provider component, but no Provider ancestor found');
       return null;
@@ -71,7 +71,7 @@ export const Consumer = (options: ConsumerOptions) => Component((context) => {
   const memoizedComponent = memoComponent(options.child);
 
   onMount(() => {
-    if (debug) {
+    if (DEV) {
       if (!providerMap) warn('Consumer should be a descendant of a Provider, but no Provider ancestor found');
     }
     options.models.forEach((modelKey) => {
@@ -96,7 +96,7 @@ export const Consumer = (options: ConsumerOptions) => Component((context) => {
   build(() => options.builder(
     context,
     (model) => {
-      if (debug) {
+      if (DEV) {
         if (options.models.indexOf(model) < 0) warn('Consumer is not subscribed to the model you are trying to get. The builder function - ', options.builder);
       }
       return Provider.of(context, model);

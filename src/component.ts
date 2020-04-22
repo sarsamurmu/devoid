@@ -1,6 +1,6 @@
 import {
   EventManager,
-  debug,
+  DEV,
   warn,
   buildChild,
   generateUniqueId,
@@ -17,7 +17,7 @@ type voidFun = () => void;
 
 /* istanbul ignore next */
 const hookWarn = (array: any[], name: string) => {
-  if (debug) {
+  if (DEV) {
     if (array.length === 0) warn(`You shouldn't call ${name}() outside of Component function. This can cause error.`);
   }
 }
@@ -94,7 +94,7 @@ export const value = <T = any>(initialValue: T): Value<T> => {
       used = true;
     } else if (val !== newValue) {
       if (!valueData.canUseSetter) {
-        if (debug) warn('You cannot set value inside of watch callback, because it can cause infinite loops');
+        if (DEV) warn('You cannot set value inside of watch callback, because it can cause infinite loops');
         return;
       }
       val = newValue;
@@ -188,18 +188,15 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
     mountedCbs = onMountCbs.pop();
     updateCbs = onUpdateCbs.pop();
     destroyCbs = onDestroyCbs.pop();
-    states = debugStatesArr.pop();
     context = aContext;
     valueDataArr.pop();
 
-    if (debug) {
+    if (DEV) {
       if (!buildData[0]) {
         warn('build() function should be called inside of a component, but no build call found in', builder);
       }
 
-      if (states) {
-        instance.states = states;
-      }
+      instance.states = states = debugStatesArr.pop();
     }
   }
 
@@ -250,7 +247,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       mounted = true;
     }
     if (!mounted) {
-      if (debug) warn('Component triggering rebuild before it is mounted', builder);
+      if (DEV) warn('Component triggering rebuild before it is mounted', builder);
       return;
     }
     const newVNodes = render();
@@ -273,7 +270,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   instance.render = (aContext: Context, prevVNodes, prevStates) => {
     init(aContext);
     if (onStateChange) onStateChange.push(() => rebuild());
-    if (debug) {
+    if (DEV) {
       if (prevVNodes) {
         if (states && prevStates) {
           for (const stateKey in prevStates) {
@@ -293,7 +290,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
     return (childVNodes = render());
   }
 
-  if (debug) {
+  if (DEV) {
     instance.reloadWith = (newComp) => {
       childVNodes.forEach((vNode) => {
         const eventManager = vNode.data.eventManager as EventManager;
