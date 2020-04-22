@@ -7,6 +7,7 @@ module.exports = {
   devServer: {
     contentBase: './hmr/dist',
     hot: true,
+    open: true,
   },
   output: {
     filename: 'app.js',

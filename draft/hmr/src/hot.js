@@ -2,28 +2,34 @@
 const InstanceData = {};
 
 export const Hot = (mod, component) => {
-  if (mod.hot) {
-    mod.hot.accept();
+  if (process.env.NODE_ENV !== 'production') {
+    if (mod.hot) {
+      const compId = `${mod.id} ${component.name}`;
+      const reloadInstances = () => {
+        const instances = InstanceData[compId];
+        instances.forEach(([instance, args], index) => {
+          const newInstance = component(...args);
+          instance.reloadWith(newInstance);
+          instances[index][0] = newInstance;
+        });
+      }
 
-    if (!mod.hot.data) {
-      // Whenever code executes for the first time
-    } else {
-      // Reload instances
-      const instances = InstanceData[mod.id];
-      instances.forEach(([instance, args], index) => {
-        const newInstance = component(...args);
-        instance.reloadWith(newInstance);
-        instances[index][0] = newInstance;
-      });
-    }
+      mod.hot.accept(reloadInstances);
 
-    return (...args) => {
-      const modId = mod.id;
-      if (!InstanceData[modId]) InstanceData[modId] = [];
-      const instances = InstanceData[modId];
-      const instance = component(...args);
-      instances.push([instance, args]);
-      return instance;
+      if (mod.hot.data) {
+        // Reload instances
+        reloadInstances();
+      } else {
+        // Whenever code executes for the first time
+      }
+
+      return (...args) => {
+        if (!InstanceData[compId]) InstanceData[compId] = [];
+        const instances = InstanceData[compId];
+        const instance = component(...args);
+        instances.push([instance, args]);
+        return instance;
+      }
     }
   }
 

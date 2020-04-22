@@ -9,6 +9,7 @@ const MyComponent = () => Component(() => {
   debugStates({ charCode, state });
 
   const style = {
+    cursor: 'pointer',
     userSelect: 'none',
     fontFamily: 'Lexend Deca'
   };
@@ -17,11 +18,11 @@ const MyComponent = () => Component(() => {
     el('p', {
       style,
       on: { click: () => charCode(charCode() + 1) }
-    }, `Character is ${String.fromCharCode(charCode())}!!`),
+    }, `Character - ${String.fromCharCode(charCode())}`),
     el('p', {
       style,
       on: { click: () => setState((pState) => pState.count++) }
-    }, `Count is ${state.count}!!`),
+    }, `Count - ${state.count}`),
     el('br'),
   ]));
 });
