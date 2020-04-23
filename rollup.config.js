@@ -53,7 +53,7 @@ const getPlugins = (useES5 = false) => {
     //   ]
     // }),
     prod && terser({
-      toplevel: true,
+      toplevel: !useES5,
       output: {
         ascii_only: true
       },
