@@ -23,6 +23,7 @@ const hookWarn = (array: any[], name: string) => {
 }
 
 export interface DevoidComponent {
+  dComp: true;
   states?: StatesType;
   reloadWith?: (newComp: DevoidComponent) => void;
   render: (context: Context, prevVNodes?: VNode[], prevStates?: StatesType) => VNode[];
@@ -128,10 +129,10 @@ export const watchValues = <T extends readonly Value[]>(values: T, onChange: () 
 
 type StatesType = Record<string, Readonly<Record<string, any>> | Value>;
 const debugStatesArr: StatesType[] = [];
-export const debugStates = (states: StatesType) => {
+export const debugStates = DEV ? ((states: StatesType) => {
   hookWarn(debugStatesArr, 'debugStates');
   debugStatesArr[debugStatesArr.length - 1] = states;
-}
+}) : (() => {/* Do Nothing if production build */});
 
 export const getRebuilder = () => {
   hookWarn(stateChangeCbs, 'getRebuilder');
@@ -158,7 +159,7 @@ export const onDestroy = (callback: voidFun) => {
 }
 
 export const Component = (builder: (context: Context) => void): DevoidComponent => {
-  const instance = {} as DevoidComponent;
+  const instance = { dComp: true } as DevoidComponent;
 
   let mountedVNodeCount = 0;
   let childVNodes: VNode[];
@@ -198,6 +199,16 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
 
       instance.states = states = debugStatesArr.pop();
     }
+  }
+
+  const dispose = () => {
+    buildData = null;
+    onStateChange = null;
+    mountedCbs = null;
+    updateCbs = null;
+    destroyCbs = null;
+    states = null;
+    context = null;
   }
 
   const render = () => {
@@ -293,10 +304,10 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   if (DEV) {
     instance.reloadWith = (newComp) => {
       childVNodes.forEach((vNode) => {
-        const eventManager = vNode.data.eventManager as EventManager;
-        eventManager.removeKey(componentKey);
+        (vNode.data.eventManager as EventManager).removeKey(componentKey);
       });
       newComp.render(context, childVNodes, states);
+      dispose();
     }
   }
 
@@ -306,6 +317,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
 export const memoComponent = (componentToCache: DevoidComponent): DevoidComponent => {
   let renderedComponent: VNode[];
   return {
+    dComp: true,
     render: (context) => renderedComponent || (renderedComponent = componentToCache.render(context))
   }
 }
@@ -324,6 +336,7 @@ const createVNodeData = () => {
 export const Fragment = (children: ChildType[]): DevoidComponent => {
   const fragmentKey = generateUniqueId();
   return {
+    dComp: true,
     render: (context) => {
       const vNodes = buildChildren(context, children);
       if (vNodes.length === 0) vNodes.push(vnode('!', { key: fragmentKey }, undefined, 'dFrag', undefined));

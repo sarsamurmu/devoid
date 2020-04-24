@@ -46,11 +46,11 @@ export class EventManager {
 /* eslint-disable @typescript-eslint/no-use-before-define */
 
 export function buildChild(context: Context, child: ChildType): VNode[] {
+  const chD = child as DevoidComponent;
   if ((typeof child === 'string' && child.trim() !== '') || typeof child === 'number') {
     return [vnode(undefined, undefined, undefined, String(child), undefined)];
-  } else if (child && typeof (child as DevoidComponent).render === 'function') {
-    const ch = child as DevoidComponent;
-    return ch.render(context);
+  } else if (child && chD.dComp) {
+    return chD.render(context);
   }
   return [];
 }

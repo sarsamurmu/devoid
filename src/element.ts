@@ -87,11 +87,12 @@ export function elR(tagName: string, data: ElementData, children: ChildType[]): 
       if (data.ref) data.ref.el = vNode.elm;
       eventManager.trigger('mount');
     },
-    update() {
+    update(_: any, vNode: VNode) {
+      if (data.ref) data.ref.el = vNode.elm;
       eventManager.trigger('update');
     },
     destroy() {
-      if (data.ref) data.ref.el = undefined;
+      if (data.ref) data.ref.el = null;
       eventManager.trigger('destroy');
     },
   };
@@ -99,6 +100,7 @@ export function elR(tagName: string, data: ElementData, children: ChildType[]): 
   (data as any).eventManager = eventManager;
 
   return {
+    dComp: true,
     render: (context) => [vnode(tagName, data, buildChildren(context, children), undefined, undefined)],
   }
 }
@@ -123,6 +125,7 @@ export function el(selector: string, fArg?: any, sArg?: any): DevoidComponent {
   let data: ElementData;
   if (
     !sArg && (Array.isArray(fArg) ||
+    (fArg as DevoidComponent).dComp ||
     (typeof fArg === 'string' && fArg.trim() !== '') ||
     typeof fArg === 'number')
   ) {
