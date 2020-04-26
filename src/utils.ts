@@ -9,8 +9,6 @@ export interface FC {
 
 export type ChildType = DevoidComponent | string | number | false;
 
-/* global process */
-
 export const DEV = process.env.NODE_ENV !== 'production';
 export const log = console.log.bind(console);
 /* istanbul ignore next */

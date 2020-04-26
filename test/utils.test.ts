@@ -1,8 +1,6 @@
 import * as utils from '../src/utils';
 import { assert } from 'chai';
 
-/* global describe, it */
-
 describe('Utility functions', () => {
   it('generateUniqueId', () => {
     const uniqueIds = new Set();
@@ -77,11 +75,11 @@ describe('Utility functions', () => {
     eventManager2.trigger('unavailableEvent');
   });
 
-  it('globalSymbol', () => {
+  it('globalKey', () => {
     const firstSymbol = utils.globalKey('sameKey');
     const secondSymbol = utils.globalKey('sameKey');
 
-    assert(firstSymbol === secondSymbol, 'Global symbol with same key should be same');
+    assert(firstSymbol === secondSymbol, 'Global key with same name should be same');
   });
 
   it('isObject', () => {
@@ -164,4 +162,42 @@ describe('Utility functions', () => {
       (toMerge as any).nestedOther.second === 122
     );
   });
+
+  it('patchStateProperties', () => {
+    const state = {
+      first: 1,
+      second: 2,
+      nested: {
+        first: 11,
+        second: 12,
+        nested: {
+          first: 21,
+          second: 22
+        }
+      }
+    }
+
+    utils.patchStateProperties({
+      first: 10,
+      third: 30,
+      nested: {
+        second: 20,
+        other: 75,
+        nested: {
+          first: 40
+        }
+      }
+    }, state);
+
+    assert(
+      state.first === 10 &&
+      state.second === 2 &&
+      !('third' in state) &&
+      state.nested.first === 11 &&
+      state.nested.second === 20 &&
+      !('other' in state.nested) &&
+      state.nested.nested.first === 40 &&
+      state.nested.nested.second === 22
+    );
+  })
 });

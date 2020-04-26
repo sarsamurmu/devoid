@@ -3,11 +3,12 @@ import { terser } from 'rollup-plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
 import banner from 'rollup-plugin-banner';
 import replace from '@rollup/plugin-replace';
-import clear from 'rollup-plugin-delete';
 import cleanup from 'rollup-plugin-cleanup';
 import babel from 'rollup-plugin-babel';
 import fileSize from 'rollup-plugin-filesize';
 import pkg from './package.json';
+import { unlinkSync, readdirSync, existsSync, statSync, rmdirSync } from 'fs';
+import { join } from 'path';
 
 const prod = process.env.BUILD === 'production';
 
@@ -23,13 +24,28 @@ const iifeCommon = {
   name: 'Devoid',
 }
 
-const intro = `window.process = { env: { NODE_ENV: 'development' } };`;
+const intro = 'window.process = { env: { NODE_ENV: "development" } };';
 const input = 'src/index.ts';
-let filesCleared = false;
+
+if (prod) {
+  const deleteFiles = (dir) => {
+    if (!existsSync(dir)) return;
+    readdirSync(dir).forEach((file) => {
+      const filePath = join(dir, file);
+      if (statSync(filePath).isDirectory()) {
+        deleteFiles(filePath);
+        rmdirSync(filePath);
+        return;
+      }
+      unlinkSync(filePath);
+    });
+  }
+
+  ['dist', 'types'].forEach((dir) => deleteFiles(`./${dir}`));
+}
 
 const getPlugins = (useES5 = false) => {
   const plugins = [
-    prod && !filesCleared && clear({ targets: ['dist/*', 'types/*'] }),
     prod && replace({
       '__VERSION__': pkg.version
     }),
@@ -67,7 +83,6 @@ const getPlugins = (useES5 = false) => {
     prod && banner(devoidBanner),
     prod && fileSize()
   ];
-  filesCleared = true;
   return plugins;
 }
 
@@ -115,6 +130,6 @@ const exports = [
     cache: !prod,
     treeshake: prod,
   }
-];
+]
 
 export default prod ? exports : exports[process.env.TYPE === 'es' ? 0 : 1];

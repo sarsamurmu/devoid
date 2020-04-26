@@ -1,4 +1,3 @@
-
 import { mount, Component, build, el } from '../../../dist/devoid.es.js';
 import ChildComponent from './component.js';
 

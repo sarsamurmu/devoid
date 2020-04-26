@@ -1,7 +1,6 @@
-// Hot reload api
 const InstanceData = {};
 
-export const Hot = (mod, component) => {
+module.exports.Hot = (mod, component) => {
   if (process.env.NODE_ENV !== 'production') {
     if (mod.hot) {
       const compId = `${mod.id} ${component.name}`;

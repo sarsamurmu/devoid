@@ -1,15 +1,9 @@
-module.exports = {
+const TSOverrides = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
-  env: {
-    es6: true,
-    browser: true,
-    mocha: true,
-  },
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'module',
-    project: './tsconfig.json',
+    sourceType: 'module'
   },
   extends: [
     'eslint:recommended',
@@ -29,4 +23,40 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-for-in-array': 'error',
   }
+}
+
+module.exports = {
+  env: {
+    es6: true,
+    browser: true,
+    mocha: true,
+    commonjs: true,
+    node: true,
+  },
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module',
+  },
+  extends: ['eslint:recommended'],
+  rules: {
+    'quotes': ['error', 'single'],
+  },
+  overrides: [
+    {
+      files: ['src/**/*.ts'],
+      ...TSOverrides,
+      parserOptions: {
+        ...TSOverrides.parserOptions,
+        project: './tsconfig.json',
+      }
+    },
+    {
+      files: ['test/**/*.ts'],
+      ...TSOverrides,
+      parserOptions: {
+        ...TSOverrides.parserOptions,
+        project: './test/tsconfig.json',
+      }
+    }
+  ]
 }

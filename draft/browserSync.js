@@ -5,6 +5,7 @@ const chokidar = require('chokidar');
 
 const devoid = path.resolve(__dirname, '../dist/devoid.js');
 const devoidProd = path.resolve(__dirname, '../dist/devoid.prod.js');
+const ssr = path.resolve(__dirname, '../tools/ssr.js');
 
 browserSync.init({
   server: {
@@ -53,9 +54,17 @@ browserSync.init({
         });
         fs.createReadStream(devoidProd).pipe(res);
       });
+
+      bs.addMiddleware('/tools/ssr.js', (req, res) => {
+        res.writeHead(200, {
+          'Content-Type': 'text/javascript'
+        });
+        fs.createReadStream(ssr).pipe(res);
+      });
     }
   }
 });
+
 chokidar.watch(devoid).on('change', () => browserSync.reload('*.js'));
 
 browserSync.watch('*').on('change', browserSync.reload);

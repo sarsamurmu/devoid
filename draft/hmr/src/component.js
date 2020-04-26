@@ -1,4 +1,3 @@
-// Component functionality
 import { Component, build, value, el, debugStates, createState } from '../../../dist/devoid.es.js';
 import { Hot } from './hot.js';
 
