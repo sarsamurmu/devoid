@@ -71,7 +71,7 @@ interface Value<T = any> {
   (): T;
   /** Sets the new value and triggers rebuild process of the component */
   (newValue: T): T;
-  /** Sets the new value but doesn't trigger rebuild process of the component */
+  /** Sets the new value but doesn't trigger rebuild process of the component or of the value watchers */
   $(newValue: T): T;
 }
 
