@@ -146,6 +146,7 @@ export const parseSelector = (selector: string) => {
   let equalIndex;
   let attrValue;
   let attrKey;
+  
   selector.split(/(?=\.)|(?=#)|(?=\[)/g).forEach((token) => {
     switch (token[0]) {
       case '.':
@@ -157,7 +158,7 @@ export const parseSelector = (selector: string) => {
         equalIndex = token.indexOf('=');
         attrKey = equalIndex !== -1 ? token.substring(1, equalIndex) : token.substring(1, token.length - 1);
         attrValue = equalIndex !== -1 ? token.substring(equalIndex + 1, token.length - 1) : ' ';
-        attrs[attrKey] = attrValue[0].match(/[']/) && attrValue[attrValue.length - 1].match(/[']/)
+        attrs[attrKey] = attrValue[0].match(/["']/) && attrValue[attrValue.length - 1].match(/["']/)
           ? attrValue.substring(1, attrValue.length - 1) : attrValue;
         hasAttrs = true;
         break;
