@@ -97,11 +97,9 @@ type EventMap = {
   onWheel: (e: WheelEvent) => void;
 }
 
-// DXS
-
 export type ClassType = string | boolean | (string | boolean)[];
 
-type Ref<T> = { el: null | T };
+type Ref<T extends Tags | any> = { el: null | T extends null ? HTMLElement : T extends Tags ? HTMLElementTagNameMap[T] : T };
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
 export type Tags = keyof HTMLElementTagNameMap;
 
@@ -135,7 +133,7 @@ export type ElementData<T extends Tags = null> = {
 } & Partial<EventMap>;
 
 /* istanbul ignore next */
-export const ref = <T extends HTMLElement = HTMLElement>(): Ref<T> => ({ el: null });
+export const ref = <T extends Tags | any = null>(): Ref<T> => ({ el: null });
 
 export const parseSelector = (selector: string) => {
   let tag = 'div';
