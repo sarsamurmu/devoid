@@ -6,15 +6,15 @@ export type ClassType = string | boolean | (string | boolean)[];
 
 type Ref<T> = { el: null | T };
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
-type Tags = keyof HTMLElementTagNameMap;
+export type Tags = keyof HTMLElementTagNameMap;
 
-interface ElementData<T extends Tags = null> {
+export type ElementData<T extends Tags = null> = {
   key?: any;
   props?: (T extends Tags ? {
-    [P in keyof HTMLElementTagNameMap[T]]: HTMLElementTagNameMap[T][P];
+    [P in keyof HTMLElementTagNameMap[T]]?: HTMLElementTagNameMap[T][P];
   } : {
-    [P in keyof HTMLElement]: HTMLElement[P];
-  }) | Record<string, any>;
+    [P in keyof HTMLElement]?: HTMLElement[P];
+  }) & Record<string, any>;
   class?: ClassType;
   attrs?: Record<string, string | number | boolean>;
   style?: StyleMap & {

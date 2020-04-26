@@ -4,7 +4,7 @@ import vnode, { VNode } from 'snabbdom/es/vnode';
 
 export interface FC {
   (...args: any[]): DevoidComponent;
-  jsx(props: Record<string, any>): DevoidComponent;
+  jsx?(props: Record<string, any>): DevoidComponent;
 }
 
 export type ChildType = DevoidComponent | string | number | false;
