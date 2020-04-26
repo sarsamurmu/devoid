@@ -58,19 +58,13 @@
               hasDummyParagraph() && el('p', 'Paragraph Always'),
             ]) : el('p', 'No parent'),
             el('button.zust-btn', {
-              on: {
-                click: () => hasParent(!hasParent())
-              },
+              onClick: () => hasParent(!hasParent()),
             }, hasParent() ? 'Remove Parent' : 'Add Parent'),
             el('button.zust-btn', {
-              on: {
-                click: () => hasFragment(!hasFragment())
-              },
+              onClick: () => hasFragment(!hasFragment()),
             }, hasFragment() ? 'Remove Fragment' : 'Add Fragment'),
             el('button.zust-btn', {
-              on: {
-                click: () => hasDummyParagraph(!hasDummyParagraph())
-              },
+              onClick: () => hasDummyParagraph(!hasDummyParagraph()),
             }, hasDummyParagraph() ? 'Remove Dummy Paragraph' : 'Add Dummy Paragraph'),
           ]))
         });

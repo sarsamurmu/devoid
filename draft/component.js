@@ -28,11 +28,9 @@ window.addEventListener('load', () => {
 
       build(() => {
         return el('p', {
-          on: {
-            click: () => {
-              console.log(`Clicked ChildComponent`);
-              setState((aState) => aState.count++);
-            },
+          onClick() {
+            console.log(`Clicked ChildComponent`);
+            setState((aState) => aState.count++);
           }
         }, `I am child Component and my state is ${JSON.stringify(state)}`);
       });
@@ -59,9 +57,7 @@ window.addEventListener('load', () => {
       build(() => {
         return el('div', [
           el('p', {
-            on: {
-              click: () => setState((data) => data.name = 'Ho')
-            }
+            onClick: () => setState((data) => data.name = 'Ho')
           }, `Name is ${state.name}`),
           ChildComponent(),
         ])
@@ -83,28 +79,28 @@ window.addEventListener('load', () => {
 
     watchValues([count3], () => console.log('count3 Changed'));
 
-    const setVal = (valFun) => valFun(valFun() + 1);
+    const inc = (valFun) => valFun(valFun() + 1);
 
     build(() => el('div', [
       el('p', {
         style: { userSelect: 'none' },
-        on: { click: [setVal, count1] }
+        onClick: () => inc(count1)
       }, `Count 1 is ${count1()}`),
       el('p', {
         style: { userSelect: 'none' },
-        on: { click: [setVal, count2] }
+        onClick: () => inc(count2)
       }, `Count 2 is ${count2()}`),
       el('p', {
         style: { userSelect: 'none' },
-        on: { click: [setVal, count3] }
+        onClick: () => inc(count3)
       }, `Count 3 is ${count3()}`),
       el('p', {
         style: { userSelect: 'none' },
-        on: { click: [setVal, count4] }
+        onClick: () => inc(count4)
       }, `Count 4 is ${count4()}`),
       el('p', {
         style: { userSelect: 'none' },
-        on: { click: [setVal, count5] }
+        onClick: () => inc(count5)
       }, `Count 5 is ${count5()}`),
     ]))
   });

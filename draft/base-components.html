@@ -109,18 +109,14 @@
               el('div.zust-el-group', [
                 el('p.zust-form-el', [
                   el('input.zust-input[placeholder="Enter new value"]', {
-                    on: {
-                      input: (e) => {
-                        Provider.of(context, providerSample).tempVal = e.target.value;
-                      }
+                    onInput(e) {
+                      Provider.of(context, providerSample).tempVal = e.target.value;
                     }
                   }),
                 ]),
                 el('button.zust-btn.zust-link', {
-                  on: {
-                    click: () => {
-                      Provider.of(context, providerSample).val = Provider.of(context, providerSample).tempVal;
-                    }
+                  onClick() {
+                    Provider.of(context, providerSample).val = Provider.of(context, providerSample).tempVal;
                   }
                 }, 'Set value')
               ]),

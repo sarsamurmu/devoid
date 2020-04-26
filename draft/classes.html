@@ -39,9 +39,7 @@
               addClass() && 'second third fourth',
               addClass() && 'fifth',
             ],
-            on: {
-              click: () => addClass(!addClass()),
-            },
+            onClick: () => addClass(!addClass()),
           }, 'Class test'));
         })
         

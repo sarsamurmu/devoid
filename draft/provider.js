@@ -67,28 +67,22 @@ window.addEventListener('load', () => {
         el('h4', 'New Value'),
         el('p.zust-form-el', [
           el('input.zust-input[placeholder="Enter new value"]', {
-            on: {
-              input: (e) => {
-                modelValue = e.target.value;
-              }
+            onInput: (e) => {
+              modelValue = e.target.value;
             }
           }),
         ]),
         el('h4', 'Tag'),
         el('p.zust-form-el', [
           el('input.zust-input[placeholder="Enter tag"]', {
-            on: {
-              input: (e) => {
-                modelTag = e.target.value;
-              }
+            onInput: (e) => {
+              modelTag = e.target.value;
             }
           })
         ]),
         el('br'),
         Builder((context) => el('button.zust-btn', {
-          on: {
-            click: () => Provider.of(context, DataModel).setValue(modelValue, modelTag),
-          }
+          onClick: () => Provider.of(context, DataModel).setValue(modelValue, modelTag),
         }, 'Set value for tag'))
       ])
     }))
