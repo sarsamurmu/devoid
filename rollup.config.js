@@ -62,12 +62,14 @@ const getPlugins = (useES5 = false) => {
         }
       }
     }),
-    // prod && useES5 && babel({
-    //   extensions: ['.ts'],
-    //   presets: [
-    //     ['@babel/env', { targets: 'ie 11', loose: true }]
-    //   ]
-    // }),
+    /*
+    prod && useES5 && babel({
+      extensions: ['.ts'],
+      presets: [
+        ['@babel/env', { targets: 'ie 11', loose: true }]
+      ]
+    }),
+    */
     prod && terser({
       toplevel: !useES5,
       output: {

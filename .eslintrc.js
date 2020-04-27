@@ -16,7 +16,7 @@ const TSOverrides = {
     'no-useless-constructor': 'off',
     '@typescript-eslint/no-useless-constructor': 'error',
     'quotes': 'off',
-    '@typescript-eslint/quotes': ['error', 'single'],
+    '@typescript-eslint/quotes': ['error', 'single', { avoidEscape: true }],
     'require-await': 'off',
     '@typescript-eslint/require-await': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
@@ -39,7 +39,10 @@ module.exports = {
   },
   extends: ['eslint:recommended'],
   rules: {
-    'quotes': ['error', 'single'],
+    'quotes': ['error', 'single', { avoidEscape: true }],
+    'eqeqeq': 'error',
+    'arrow-parens': ['error', 'always'],
+    'no-var': 'error'
   },
   overrides: [
     {
