@@ -25,7 +25,8 @@ const hookWarn = (array: any[], name: string) => {
 export interface DevoidComponent {
   dComp: true;
   states?: StatesType;
-  reloadWith?: (newComp: DevoidComponent) => void;
+  events?: EventManager;
+  replaceHot?: (newComp: DevoidComponent) => void;
   render: (context: Context, prevVNodes?: VNode[], prevStates?: StatesType) => VNode[];
 }
 
@@ -160,6 +161,7 @@ export const onDestroy = (callback: voidFun) => {
 
 export const Component = (builder: (context: Context) => void): DevoidComponent => {
   const instance = { dComp: true } as DevoidComponent;
+  const events = new EventManager();
 
   let mountedVNodeCount = 0;
   let childVNodes: VNode[];
@@ -218,18 +220,19 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       if (mounted) return;
       mounted = true;
       mountedCbs.forEach((cb) => cb());
+      events.trigger('mount');
     }
-    const doOnUpdate = () => updateCbs.forEach((cb) => cb());
     const doOnDestroy = () => {
       if (!mounted) return;
       mounted = false;
       destroyCbs.forEach((cb) => cb());
+      events.trigger('destroy');
     }
 
     if (vNodes.length === 1) {
       const eventManager = vNodes[0].data.eventManager as EventManager;
       eventManager.add('mount', doOnMount, componentKey);
-      eventManager.add('update', doOnUpdate, componentKey);
+      eventManager.add('update', () => mounted = true, componentKey);
       eventManager.add('destroy', () => {
         doOnDestroy();
         eventManager.removeKey(componentKey);
@@ -253,9 +256,11 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   }
 
   const rebuild = (prevVNodes?: VNode[]) => {
-    if (prevVNodes) {
-      childVNodes = prevVNodes;
-      mounted = true;
+    if (DEV) {
+      if (prevVNodes) {
+        childVNodes = prevVNodes;
+        mounted = true;
+      }
     }
     if (!mounted) {
       if (DEV) warn('Component triggering rebuild before it is mounted', builder);
@@ -275,10 +280,12 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       childVNodes.length = newVNodes.length;
       newVNodes.forEach((newVNode, index) => childVNodes[index] = newVNode);
     }
+    updateCbs.forEach((cb) => cb());
+    events.trigger('update');
     return childVNodes;
   }
 
-  instance.render = (aContext: Context, prevVNodes, prevStates) => {
+  instance.render = (aContext, prevVNodes, prevStates) => {
     init(aContext);
     if (onStateChange) onStateChange.push(() => rebuild());
     if (DEV) {
@@ -301,8 +308,10 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
     return (childVNodes = render());
   }
 
+  instance.events = events;
+
   if (DEV) {
-    instance.reloadWith = (newComp) => {
+    instance.replaceHot = (newComp) => {
       childVNodes.forEach((vNode) => {
         (vNode.data.eventManager as EventManager).removeKey(componentKey);
       });

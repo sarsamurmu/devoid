@@ -49,6 +49,8 @@ export function buildChild(context: Context, child: ChildType): VNode[] {
     return [vnode(undefined, undefined, undefined, String(child), undefined)];
   } else if (child && chD.dComp) {
     return chD.render(context);
+  } else if (child === false) {
+    return [vnode('!', { key: generateUniqueId() }, undefined, 'dFalse', undefined)];
   }
   return [];
 }
