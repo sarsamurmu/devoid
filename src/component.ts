@@ -96,7 +96,7 @@ export const value = <T = any>(initialValue: T): Value<T> => {
       used = true;
     } else if (val !== newValue) {
       if (!valueData.canUseSetter) {
-        if (DEV) warn('You cannot set value inside of watch callback, because it can cause infinite loops');
+        if (DEV) warn('You cannot set value inside of watch callback, it can cause infinite loops');
         return;
       }
       val = newValue;

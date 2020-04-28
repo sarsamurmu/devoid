@@ -11,7 +11,7 @@
   "scripts": {
     "start": "rollup -c -w",
     "start:es": "rollup -c -w --environment TYPE:es",
-    "build": "rollup -c --environment BUILD:production && api-extractor run",
+    "build": "rollup -c --environment BUILD:production && node runExtractor",
     "test": "karma start",
     "lint": "eslint --ext .ts \"src/**\""
   },
