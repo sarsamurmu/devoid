@@ -4,9 +4,9 @@ const {
   ExtractorConfig
 } = require('@microsoft/api-extractor');
 
-console.log('\x1b[36m', `
+console.log(`\x1b[36m
 Running API Extractor
-`);
+\x1b[37m`);
 
 const extractorConfig = ExtractorConfig.loadFileAndPrepare(path.resolve(__dirname, './api-extractor.json'));
 
