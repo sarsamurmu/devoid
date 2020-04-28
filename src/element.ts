@@ -396,7 +396,7 @@ const composedElements = {} as ComposedElementsMap;
 
 export const composeEls = (): ComposedElementsMap => {
   if (!composedElements.initialized) {
-    for (const tag in tags) {
+    tags.forEach((tag) => {
       composedElements[tag] = (dataOrChild: ElementData | DevoidComponent, ...children: DevoidComponent[]) => {
         let data = {};
         if ((dataOrChild as DevoidComponent).dComp) {
@@ -406,7 +406,7 @@ export const composeEls = (): ComposedElementsMap => {
         }
         return elR(tag, data, children);
       }
-    }
+    });
     composedElements.initialized = true;
   }
   return composedElements;
