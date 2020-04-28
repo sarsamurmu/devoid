@@ -97,11 +97,133 @@ type EventMap = {
   onWheel: (e: WheelEvent) => void;
 }
 
+const tags = [
+  'a',
+  'abbr',
+  'address',
+  'applet',
+  'area',
+  'article',
+  'aside',
+  'audio',
+  'b',
+  'base',
+  'basefont',
+  'bdi',
+  'bdo',
+  'blockquote',
+  'body',
+  'br',
+  'button',
+  'canvas',
+  'caption',
+  'cite',
+  'code',
+  'col',
+  'colgroup',
+  'data',
+  'datalist',
+  'dd',
+  'del',
+  'details',
+  'dfn',
+  'dialog',
+  'dir',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'embed',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'font',
+  'footer',
+  'form',
+  'frame',
+  'frameset',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'head',
+  'header',
+  'hgroup',
+  'hr',
+  'html',
+  'i',
+  'iframe',
+  'img',
+  'input',
+  'ins',
+  'kbd',
+  'label',
+  'legend',
+  'li',
+  'link',
+  'main',
+  'map',
+  'mark',
+  'marquee',
+  'menu',
+  'meta',
+  'meter',
+  'nav',
+  'noscript',
+  'object',
+  'ol',
+  'optgroup',
+  'option',
+  'output',
+  'p',
+  'param',
+  'picture',
+  'pre',
+  'progress',
+  'q',
+  'rp',
+  'rt',
+  'ruby',
+  's',
+  'samp',
+  'script',
+  'section',
+  'select',
+  'slot',
+  'small',
+  'source',
+  'span',
+  'strong',
+  'style',
+  'sub',
+  'summary',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'template',
+  'textarea',
+  'tfoot',
+  'th',
+  'thead',
+  'time',
+  'title',
+  'tr',
+  'track',
+  'u',
+  'ul',
+  'var',
+  'video',
+  'wbr'
+] as const;
+
 export type ClassType = string | boolean | (string | boolean)[];
 
-type Ref<T extends Tags | any> = { el: null | T extends null ? HTMLElement : T extends Tags ? HTMLElementTagNameMap[T] : T };
+export type Ref<T extends Tags | any> = { el: null | T extends null ? HTMLElement : T extends Tags ? HTMLElementTagNameMap[T] : T };
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
-export type Tags = keyof HTMLElementTagNameMap;
+export type Tags = typeof tags[number];
 
 export type ElementData<T extends Tags = null> = {
   key?: any;
@@ -215,21 +337,23 @@ export const convertOnEvents = (data: Record<string, any>) => {
   }
 }
 
-export function el<T extends Tags>(selector: T): DevoidComponent;
-export function el(selector: string): DevoidComponent;
+interface El {
+  <T extends Tags>(selector: T): DevoidComponent;
+  (selector: string): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, data: ElementData<T>): DevoidComponent;
-export function el<T extends Tags>(selector: string, data: ElementData<T>): DevoidComponent;
-export function el(selector: string, data: ElementData): DevoidComponent;
+  <T extends Tags>(selector: T, data: ElementData<T>): DevoidComponent;
+  <T extends Tags>(selector: string, data: ElementData<T>): DevoidComponent;
+  (selector: string, data: ElementData): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, children: ChildType | ChildType[]): DevoidComponent;
-export function el(selector: string, children: ChildType | ChildType[]): DevoidComponent;
+  <T extends Tags>(selector: T, children: ChildType | ChildType[]): DevoidComponent;
+  (selector: string, children: ChildType | ChildType[]): DevoidComponent;
 
-export function el<T extends Tags>(selector: T, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
-export function el<T extends Tags>(selector: string, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
-export function el(selector: string, data: ElementData, children: ChildType | ChildType[]): DevoidComponent;
+  <T extends Tags>(selector: T, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
+  <T extends Tags>(selector: string, data: ElementData<T>, children: ChildType | ChildType[]): DevoidComponent;
+  (selector: string, data: ElementData, children: ChildType | ChildType[]): DevoidComponent;
+}
 
-export function el(selector: string, fArg?: any, sArg?: any): DevoidComponent {
+export const el: El = (selector: string, fArg?: any, sArg?: any): DevoidComponent => {
   const selData = parseSelector(selector);
   let children: ChildType[] = [];
   let data: ElementData;
@@ -257,4 +381,33 @@ export function el(selector: string, fArg?: any, sArg?: any): DevoidComponent {
   convertOnEvents(data);
 
   return elR(selData.tag, data, children);
+}
+
+type ComposedElementsMap = {
+  [T in Tags]: {
+    (...children: DevoidComponent[]): DevoidComponent;
+    (data: ElementData<T>, ...children: DevoidComponent[]): DevoidComponent;
+  };
+} & {
+  [key: string]: any;
+}
+
+const composedElements = {} as ComposedElementsMap;
+
+export const composeEls = (): ComposedElementsMap => {
+  if (!composedElements.initialized) {
+    for (const tag in tags) {
+      composedElements[tag] = (dataOrChild: ElementData | DevoidComponent, ...children: DevoidComponent[]) => {
+        let data = {};
+        if ((dataOrChild as DevoidComponent).dComp) {
+          children.push(dataOrChild as DevoidComponent);
+        } else {
+          data = dataOrChild;
+        }
+        return elR(tag, data, children);
+      }
+    }
+    composedElements.initialized = true;
+  }
+  return composedElements;
 }
