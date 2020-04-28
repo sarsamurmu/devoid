@@ -12,15 +12,15 @@ type PropType<T> = T extends FCWithJSX
   ? Parameters<T['jsx']>[0]
   : T extends FC
     ? Parameters<T>[0] extends undefined
-      ? null
+      ? {}
       : Parameters<T>[0] extends RSA
         ? Parameters<T>[0]
-        : null
+        : {}
     : T extends string
       ? T extends Tags
         ? ElementData<T>
         : ElementData
-      : null;
+      : {};
 
 export const createEl = <T extends FC | string>(
   component: T,

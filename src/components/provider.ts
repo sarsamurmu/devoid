@@ -19,7 +19,7 @@ export class Model<D = any> {
   }
 }
 
-interface ProviderOptions {
+export interface ProviderOptions {
   create: (context: Context) => Model;
   child: DevoidComponent;
 }
@@ -57,7 +57,7 @@ Provider.of = <T extends Model>(context: Context, model: new() => T): T['data'] 
   return providerMap.get(model).data;
 }
 
-interface ConsumerOptions {
+export interface ConsumerOptions {
   models: (new() => Model)[];
   tags: any[];
   child: DevoidComponent;

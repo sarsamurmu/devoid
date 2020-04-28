@@ -1,7 +1,7 @@
 import { Component, build, createState, onMount, DevoidComponent } from '../component';
 import { Context } from '../context';
 
-interface AsyncSnapshot<T> {
+export interface AsyncSnapshot<T> {
   data: T;
   hasData: boolean;
   resolved: boolean;
@@ -11,7 +11,7 @@ interface AsyncSnapshot<T> {
   rejectReason: any;
 }
 
-interface AsyncBuilderOptions<T> {
+export interface AsyncBuilderOptions<T> {
   getter: () => Promise<T>;
   builder: (context: Context, snapshot: AsyncSnapshot<T>) => DevoidComponent;
 }

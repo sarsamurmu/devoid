@@ -37,7 +37,7 @@ type DeepPartial<T> = {
   [K in keyof T]?: DeepPartial<T[K]> | T[K];
 };
 
-interface CallbackOrData<T extends Record<string, any>> {
+export interface CallbackOrData<T extends Record<string, any>> {
   (callback: (currentState: T) => void): void;
   (newData: DeepPartial<T>, shouldClone?: boolean): void;
 }
@@ -67,7 +67,7 @@ export const createState = <T extends Record<string, any>>(stateData: T): [Reado
   return [state, setState];
 }
 
-interface Value<T = any> {
+export interface Value<T = any> {
   /** Returns the value of the value holder */
   (): T;
   /** Sets the new value and triggers rebuild process of the component */
@@ -128,7 +128,7 @@ export const watchValues = <T extends readonly Value[]>(values: T, onChange: () 
   return () => removeCbs.forEach((removeCb) => removeCb());
 }
 
-type StatesType = Record<string, Readonly<Record<string, any>> | Value>;
+export type StatesType = Record<string, Readonly<Record<string, any>> | Value>;
 const debugStatesArr: StatesType[] = [];
 export const debugStates = DEV ? ((states: StatesType) => {
   hookWarn(debugStatesArr, 'debugStates');
