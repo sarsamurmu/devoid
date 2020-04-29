@@ -1,19 +1,18 @@
 version: 2.1
 orbs:
-  win: circleci/windows@2.3.0
   node: circleci/node@1.1.6
   browser-tools: circleci/browser-tools@1.0.0
 jobs:
   test:
     executor:
-      name: win/default
-      shell: bash.exe
+      name: node/default
     steps:
       - checkout
       - browser-tools/install-browser-tools
-      - node/install:
-        node-version: latest
-      - run: npm ci && npm run test
+      - node/with-cache:
+          steps:
+            - run: npm ci
+            - run: npm test
 workflows:
     test:
       jobs:
