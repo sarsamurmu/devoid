@@ -11,8 +11,7 @@ jobs:
       - browser-tools/install-browser-tools
       - node/install:
         node-version: latest
-      - run:
-        command: npm ci && npm run test
+      - run: npm ci && npm run test
 workflows:
     test:
       jobs:
