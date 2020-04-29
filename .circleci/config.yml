@@ -13,6 +13,7 @@ jobs:
           steps:
             - run: npm ci
             - run: npm test
+            - run: npx codecov
 workflows:
     test:
       jobs:
