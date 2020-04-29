@@ -1,4 +1,14 @@
-import * as utils from '../src/utils';
+import {
+  generateUniqueId,
+  copyMap,
+  isObject,
+  deepClone,
+  mergeProperties,
+  patchStateProperties,
+  EventManager,
+  createKey,
+  globalKey
+} from '../src/utils';
 import { assert } from 'chai';
 
 describe('Utility functions', () => {
@@ -6,7 +16,7 @@ describe('Utility functions', () => {
     const uniqueIds = new Set();
 
     for (let i = 0; i < 1000; i++) {
-      const uniqueId = utils.generateUniqueId();
+      const uniqueId = generateUniqueId();
       assert(!uniqueIds.has(uniqueId), 'Unique IDs should not contain a generated unique ID');
       uniqueIds.add(uniqueId);
     }
@@ -22,7 +32,7 @@ describe('Utility functions', () => {
     oldMap.set(objKey, true);
 
     const newMap = new Map();
-    utils.copyMap(oldMap, newMap);
+    copyMap(oldMap, newMap);
 
     assert(newMap.get(arrKey) === 100);
     assert(newMap.get(10) === 'Ten');
@@ -30,9 +40,9 @@ describe('Utility functions', () => {
   });
 
   it('EventManager', () => {
-    const eventManager = new utils.EventManager();
-    const key = utils.createKey('$key');
-    const key2 = utils.createKey('$key2');
+    const eventManager = new EventManager();
+    const key = createKey('$key');
+    const key2 = createKey('$key2');
     let initCallCount = 0;
     let initCallCount2 = 0;
     let updateCallCount = 0;
@@ -67,7 +77,7 @@ describe('Utility functions', () => {
     assert(initCallCount2 === 2, 'Call count should be 2 as @init callback is only removed for key');
     assert(updateCallCount === 2, 'Call count should be 2 as @init callback is only removed for key');
 
-    const eventManager2 = new utils.EventManager();
+    const eventManager2 = new EventManager();
 
     eventManager2.removeKey('unavailableKey');
     eventManager2.trigger('unavailableEvent');
@@ -76,15 +86,15 @@ describe('Utility functions', () => {
   });
 
   it('globalKey', () => {
-    const firstSymbol = utils.globalKey('sameKey');
-    const secondSymbol = utils.globalKey('sameKey');
+    const firstSymbol = globalKey('sameKey');
+    const secondSymbol = globalKey('sameKey');
 
     assert(firstSymbol === secondSymbol, 'Global key with same name should be same');
   });
 
   it('isObject', () => {
-    assert(utils.isObject({}), '{} should be an object');
-    assert(!utils.isObject(new (class TestClass {})), 'A class should not be an object');
+    assert(isObject({}), '{} should be an object');
+    assert(!isObject(new (class TestClass {})), 'A class should not be an object');
   });
 
   it('deepClone', () => {
@@ -101,7 +111,7 @@ describe('Utility functions', () => {
       }
     };
 
-    const clonedObj = utils.deepClone(obj);
+    const clonedObj = deepClone(obj);
 
     clonedObj.direct = false;
     clonedObj.nested.isNested = false;
@@ -147,7 +157,7 @@ describe('Utility functions', () => {
       }
     };
 
-    utils.mergeProperties(toMerge, toMergeWith, true);
+    mergeProperties(toMerge, toMergeWith, true);
 
     assert(
       toMerge.first === 1 &&
@@ -177,7 +187,7 @@ describe('Utility functions', () => {
       }
     }
 
-    utils.patchStateProperties({
+    patchStateProperties({
       first: 10,
       third: 30,
       nested: {

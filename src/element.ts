@@ -328,7 +328,7 @@ export function elR(tagName: string, data: ElementData, children: ChildType[]): 
   }
 }
 
-export const convertOnEvents = (data: Record<string, any>) => {
+export const convertEventKeys = (data: Record<string, any>) => {
   for (const key in data) {
     const match = /^on([A-Z])(.*)/.exec(key);
     if (!match) continue;
@@ -337,7 +337,7 @@ export const convertOnEvents = (data: Record<string, any>) => {
   }
 }
 
-const appendSelectorData = (selectorData: ReturnType<typeof parseSelector>, data: Record<string, any>) => {
+export const appendSelectorData = (selectorData: ReturnType<typeof parseSelector>, data: Record<string, any>) => {
   if (!data.attrs && selectorData.hasAttrs) data.attrs = {};
   if (!data.class && selectorData.hasClass) data.class = [];
   if (data.class && typeof data.class === 'string') data.class = [data.class];
@@ -381,14 +381,14 @@ export const el: El = (selector: string, fArg?: any, sArg?: any): DevoidComponen
 
   if (!data) data = {} as ElementData;
   
-  convertOnEvents(data);
+  convertEventKeys(data);
   appendSelectorData(selData, data);
 
   return elR(selData.tag, data, children);
 }
 
 type ElementDataWithSel<T extends Tags = null> = ElementData<T> & {
-  sel: string;
+  sel?: string;
 }
 
 type ComposedElementsMap = {
@@ -416,7 +416,7 @@ export const composeEls = (): ComposedElementsMap => {
           children.push(dataOrChild as ChildType);
         } else if (isObject(dataOrChild)) {
           data = dataOrChild;
-          convertOnEvents(data);
+          convertEventKeys(data);
           if (data.sel) appendSelectorData(parseSelector(data.sel), data);
         }
         return elR(tag, data, children);

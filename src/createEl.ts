@@ -1,4 +1,4 @@
-import { elR, convertOnEvents, ElementData, Tags } from './element';
+import { elR, convertEventKeys, ElementData, Tags } from './element';
 import { FC, ChildType } from './utils';
 import { DevoidComponent } from './component';
 
@@ -31,7 +31,7 @@ export const createEl = <T extends FC | string>(
   props.children = children;
 
   if (typeof component === 'string') {
-    convertOnEvents(props);
+    convertEventKeys(props);
     return elR(component, props, children);
   } else if (typeof component === 'function') {
     const comp = component as FC;

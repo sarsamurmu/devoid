@@ -1,5 +1,6 @@
-import { parseSelector } from '../src/element';
+import { ref, elR, parseSelector, convertEventKeys, appendSelectorData, composeEls } from '../src/element';
 import { assert } from 'chai';
+import { updateChildren, mount } from '../src/mount';
 
 let renderBox: HTMLDivElement;
 
@@ -12,7 +13,56 @@ afterEach(() => {
   renderBox.remove();
 });
 
+const resetRenderBox = () => {
+  renderBox.remove();
+  renderBox = document.createElement('div');
+  document.body.appendChild(renderBox);
+}
+
 describe('element', () => {
+  it('ref', () => {
+    const elRef = ref();
+    assert(elRef.el === null);
+
+    const element = elR('div', {
+      ref: elRef,
+      props: {
+        id: 'firstDiv'
+      }
+    }, []).render(null);
+
+    updateChildren({
+      parentElm: renderBox,
+      oldCh: [],
+      newCh: element,
+      insertBefore: null
+    });
+    assert(elRef.el === document.querySelector('#firstDiv'), 'Ref is not same as element');
+
+    const newElement = elR('div', {
+      ref: elRef,
+      props: {
+        id: 'secondDiv'
+      }
+    }, []).render(null);
+
+    updateChildren({
+      parentElm: renderBox,
+      oldCh: element,
+      newCh: newElement,
+      insertBefore: null
+    })
+    assert(elRef.el === document.querySelector('#secondDiv'), 'Ref should update when element is replaced');
+
+    updateChildren({
+      parentElm: renderBox,
+      oldCh: newElement,
+      newCh: [],
+      insertBefore: null
+    });
+    assert(elRef.el === null, 'Ref should be null when element is removed');
+  });
+
   it('parseSelector', () => {
     let selData = parseSelector('a');
     assert(
@@ -21,6 +71,13 @@ describe('element', () => {
       Object.keys(selData.attrs).length === 0 &&
       !selData.hasAttrs &&
       !selData.hasClass
+    );
+
+    selData = parseSelector('button#someID');
+    assert(
+      selData.tag === 'button' &&
+      selData.hasAttrs &&
+      selData.attrs.id === 'someID'
     );
 
     selData = parseSelector('.aClass');
@@ -55,5 +112,125 @@ describe('element', () => {
       selData.tag === 'p' &&
       selData.attrs.editable === ' '
     );
+  });
+
+  it('convertEventKeys', () => {
+    let dataToConvert = {
+      otherKey: 'someKey',
+      onClick: 'Do on click',
+      onFocus: 'Do on focus'
+    } as Record<string, any>;
+
+    convertEventKeys(dataToConvert);
+    assert(
+      ('on' in dataToConvert) &&
+      dataToConvert.on.click === 'Do on click' &&
+      dataToConvert.on.focus === 'Do on focus'
+    );
+
+    dataToConvert = {
+      otherKey: 'someKey',
+      onClick: 'Do on click',
+      onFocus: 'Do on focus',
+      on: {
+        input: 'Do on input'
+      }
+    }
+
+    convertEventKeys(dataToConvert);
+    assert(
+      dataToConvert.on.click === 'Do on click' &&
+      dataToConvert.on.focus === 'Do on focus' &&
+      dataToConvert.on.input === 'Do on input'
+    );
+  });
+
+  it('appendSelectorData', () => {
+    let data = {} as Record<string, any>;
+
+    appendSelectorData(parseSelector('.classOne.classTwo[attribute]'), data);
+    assert(
+      data.attrs &&
+      data.attrs.attribute === ' ' &&
+      data.class[0] === 'classOne' &&
+      data.class[1] === 'classTwo'
+    );
+
+    data = {
+      attrs: {
+        disabled: true
+      },
+      class: ['first', 'second']
+    }
+
+    appendSelectorData(parseSelector('.classOne.classTwo[some=val]'), data);
+    assert(
+      data.attrs &&
+      data.attrs.disabled === true &&
+      data.attrs.some === 'val' &&
+      data.class[0] === 'first' &&
+      data.class[1] === 'second' &&
+      data.class[2] === 'classOne' &&
+      data.class[3] === 'classTwo'
+    );
+
+    data = {
+      class: 'class as string'
+    }
+
+    appendSelectorData(parseSelector('.classOne.classTwo'), data);
+    assert(
+      data.class[0] === 'class as string' &&
+      data.class[1] === 'classOne' &&
+      data.class[2] === 'classTwo'
+    );
+  });
+
+  it('composeEls', () => {
+    let { div, p, a } = composeEls();
+    let element;
+
+    const runTest = () => {
+      const qs = (selector: string) => renderBox.querySelector(selector) as HTMLElement;
+      element = div('With just text');
+      mount(element, renderBox);
+      assert(qs('div').innerText === 'With just text');
+
+      element = p(
+        {
+          attrs: { id: 'p1' },
+          class: 'firstClass'
+        },
+        'With data and child and num - ',
+        '' /* Empty text = ignored */,
+        20
+      );
+      mount(element, renderBox);
+      assert(
+        qs('#p1').innerText === 'With data and child and num - 20' &&
+        qs('#p1').classList.contains('firstClass')
+      );
+
+      element = a({ sel: '.hyperLink#link' }, '<a> using `sel`', div('Just a <div>'));
+      mount(element, renderBox);
+      assert(
+        qs('#link').querySelector('div').innerText === 'Just a <div>' &&
+        qs('#link').classList.contains('hyperLink')
+      );
+
+      element = p(null, 'With incompatible child');
+      mount(element, renderBox);
+      assert(qs('p:last-child').innerText === 'With incompatible child');
+    }
+
+    runTest();
+
+    const elements = composeEls();
+    div = elements.div;
+    p = elements.p;
+    a = elements.a;
+
+    resetRenderBox();
+    runTest();
   });
 });
