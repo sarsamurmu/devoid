@@ -5,8 +5,9 @@ orbs:
   browser-tools: circleci/browser-tools@1.0.0
 jobs:
   test:
-    executor: win/default
-    shell: bash.exe
+    executor:
+      name: win/default
+      shell: bash.exe
     steps:
       - checkout
       - browser-tools/install-browser-tools
