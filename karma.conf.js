@@ -12,7 +12,7 @@ module.exports = (config) => {
     },
     karmaTypescriptConfig: {
       bundlerOptions: {
-        transforms: [require("karma-typescript-es6-transform")()],
+        transforms: [require('karma-typescript-es6-transform')()],
         constants: {
           'process.env.NODE_ENV': JSON.stringify('production')
         }

@@ -1,4 +1,4 @@
-import { buildChildren, EventManager, ChildType } from './utils';
+import { buildChildren, EventManager, ChildType, isObject } from './utils';
 import vnode, { VNode } from 'snabbdom/es/vnode';
 import { DevoidComponent } from './component';
 
@@ -337,6 +337,15 @@ export const convertOnEvents = (data: Record<string, any>) => {
   }
 }
 
+const appendSelectorData = (selectorData: ReturnType<typeof parseSelector>, data: Record<string, any>) => {
+  if (!data.attrs && selectorData.hasAttrs) data.attrs = {};
+  if (!data.class && selectorData.hasClass) data.class = [];
+  if (data.class && typeof data.class === 'string') data.class = [data.class];
+
+  if (data.attrs) data.attrs = Object.assign(selectorData.attrs, data.attrs);
+  if (data.class) (data.class as (string | boolean)[]).push(...selectorData.class);
+}
+
 interface El {
   <T extends Tags>(selector: T): DevoidComponent;
   (selector: string): DevoidComponent;
@@ -371,22 +380,21 @@ export const el: El = (selector: string, fArg?: any, sArg?: any): DevoidComponen
   if (sArg) children = Array.isArray(sArg) ? sArg : [sArg];
 
   if (!data) data = {} as ElementData;
-  if (!data.attrs && selData.hasAttrs) data.attrs = {};
-  if (!data.class && selData.hasClass) data.class = [];
-  if (data.class && typeof data.class === 'string') data.class = [data.class];
-
-  if (data.attrs) data.attrs = Object.assign(selData.attrs, data.attrs);
-  if (data.class) (data.class as any[]).push(...selData.class);
-
+  
   convertOnEvents(data);
+  appendSelectorData(selData, data);
 
   return elR(selData.tag, data, children);
 }
 
+type ElementDataWithSel<T extends Tags = null> = ElementData<T> & {
+  sel: string;
+}
+
 type ComposedElementsMap = {
   [T in Tags]: {
-    (...children: DevoidComponent[]): DevoidComponent;
-    (data: ElementData<T>, ...children: DevoidComponent[]): DevoidComponent;
+    (...children: ChildType[]): DevoidComponent;
+    (data: ElementDataWithSel<T>, ...children: ChildType[]): DevoidComponent;
   };
 } & {
   [key: string]: any;
@@ -397,15 +405,23 @@ const composedElements = {} as ComposedElementsMap;
 export const composeEls = (): ComposedElementsMap => {
   if (!composedElements.initialized) {
     tags.forEach((tag) => {
-      composedElements[tag] = (dataOrChild: ElementData | DevoidComponent, ...children: DevoidComponent[]) => {
-        let data = {};
-        if ((dataOrChild as DevoidComponent).dComp) {
-          children.push(dataOrChild as DevoidComponent);
-        } else {
+      const createElFun = (dataOrChild: any, ...children: ChildType[]) => {
+        let data = {} as ElementDataWithSel;
+        if (
+          dataOrChild &&
+          ((dataOrChild as DevoidComponent).dComp ||
+          (typeof dataOrChild === 'string' && dataOrChild.trim() !== '') ||
+          typeof dataOrChild === 'number')
+        ) {
+          children.push(dataOrChild as ChildType);
+        } else if (isObject(dataOrChild)) {
           data = dataOrChild;
+          convertOnEvents(data);
+          if (data.sel) appendSelectorData(parseSelector(data.sel), data);
         }
         return elR(tag, data, children);
       }
+      composedElements[tag] = createElFun;
     });
     composedElements.initialized = true;
   }

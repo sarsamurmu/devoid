@@ -42,7 +42,8 @@ module.exports = {
     'quotes': ['error', 'single', { avoidEscape: true }],
     'eqeqeq': 'error',
     'arrow-parens': ['error', 'always'],
-    'no-var': 'error'
+    'no-var': 'error',
+    'no-unneeded-ternary': 'error'
   },
   overrides: [
     {

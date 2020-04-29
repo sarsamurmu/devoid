@@ -44,7 +44,7 @@ if (prod) {
   ['dist', 'types'].forEach((dir) => deleteFiles(`./${dir}`));
 }
 
-const getPlugins = (useES5 = false) => {
+const getPlugins = (browserBuild = false) => {
   const plugins = [
     prod && replace({
       '__VERSION__': pkg.version
@@ -58,7 +58,7 @@ const getPlugins = (useES5 = false) => {
       tsconfigOverride: {
         compilerOptions: {
           declaration: prod,
-          ...(useES5 ? { target: 'ES5' } : {})
+          ...(browserBuild ? { target: 'ES5' } : {})
         }
       }
     }),
@@ -71,7 +71,6 @@ const getPlugins = (useES5 = false) => {
     }),
     */
     prod && terser({
-      toplevel: !useES5,
       output: {
         ascii_only: true
       },
