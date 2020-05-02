@@ -8,9 +8,9 @@ import {
   mergeProperties,
   patchStateProperties
 } from './utils';
-import { updateChildren, patch } from './mount';
+import { updateChildren, patch } from './vdom';
 import { Context } from './context';
-import vnode, { VNode } from 'snabbdom/es/vnode';
+import { createVNode, VNode } from './vdom/vnode';
 import { ChildType } from './utils';
 
 type voidFun = () => void;
@@ -230,7 +230,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
     }
 
     if (vNodes.length === 1) {
-      const eventManager = vNodes[0].data.eventManager as EventManager;
+      const eventManager = vNodes[0].data.events;
       eventManager.add('mount', doOnMount, componentKey);
       eventManager.add('update', () => mounted = true, componentKey);
       eventManager.add('destroy', () => {
@@ -239,7 +239,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       }, componentKey);
     } else {
       vNodes.forEach((vNode) => {
-        const eventManager = vNode.data.eventManager as EventManager;
+        const eventManager = vNode.data.events;
         eventManager.add('mount', () => {
           if (++mountedVNodeCount === childVNodes.length) doOnMount();
         }, componentKey);
@@ -313,7 +313,7 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
   if (DEV) {
     instance.replaceHot = (newComp) => {
       childVNodes.forEach((vNode) => {
-        (vNode.data.eventManager as EventManager).removeKey(componentKey);
+        vNode.data.events.removeKey(componentKey);
       });
       newComp.render(context, childVNodes, states);
       dispose();
@@ -338,7 +338,7 @@ const createVNodeData = () => {
       insert() { eventManager.trigger('mount') },
       destroy() { eventManager.trigger('destroy') }
     },
-    eventManager
+    evm: eventManager
   }
 }
 
@@ -348,7 +348,7 @@ export const Fragment = (children: ChildType[]): DevoidComponent => {
     dComp: true,
     render: (context) => {
       const vNodes = buildChildren(context, children);
-      if (vNodes.length === 0) vNodes.push(vnode('!', { key: fragmentKey }, undefined, 'dFrag', undefined));
+      if (vNodes.length === 0) vNodes.push(createVNode('!', { key: fragmentKey }, undefined, 'dFrag', undefined));
       vNodes.forEach((vNode) => {
         if (!vNode.data) {
           vNode.data = createVNodeData();

@@ -1,6 +1,6 @@
 import { DevoidComponent } from './component';
 import { Context } from './context';
-import vnode, { VNode } from 'snabbdom/es/vnode';
+import { createVNode, VNode } from './vdom/vnode';
 
 export interface FC {
   (...args: any[]): DevoidComponent;
@@ -46,11 +46,11 @@ export class EventManager {
 export function buildChild(context: Context, child: ChildType): VNode[] {
   const chD = child as DevoidComponent;
   if ((typeof child === 'string' && child.trim() !== '') || typeof child === 'number') {
-    return [vnode(undefined, undefined, undefined, String(child), undefined)];
+    return [createVNode(undefined, undefined, undefined, String(child), undefined)];
   } else if (child && chD.dComp) {
     return chD.render(context);
   } else if (child === false) {
-    return [vnode('!', { key: generateUniqueId() }, undefined, 'dFalse', undefined)];
+    return [createVNode('!', { key: generateUniqueId() }, undefined, 'dFalse', undefined)];
   }
   return [];
 }

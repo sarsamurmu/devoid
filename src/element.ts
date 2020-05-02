@@ -1,6 +1,7 @@
 import { buildChildren, EventManager, ChildType, isObject } from './utils';
-import vnode, { VNode } from 'snabbdom/es/vnode';
 import { DevoidComponent } from './component';
+import { Classes } from './vdom/modules/class';
+import { Key, createVNode, VNode, VNodeData } from './vdom/vnode';
 
 type EventMap = {
   onAbort: (e: UIEvent) => void;
@@ -219,20 +220,18 @@ const tags = [
   'wbr'
 ] as const;
 
-export type ClassType = string | boolean | (string | boolean)[];
-
 export type Ref<T extends Tags | any> = { el: null | T extends null ? HTMLElement : T extends Tags ? HTMLElementTagNameMap[T] : T };
 type StyleMap = Record<string, string> & Partial<Omit<CSSStyleDeclaration, 'length' | 'parentRule' | 'getPropertyPriority' | 'getPropertyValue' | 'item' | 'removeProperty' | 'setProperty'>>;
 export type Tags = typeof tags[number];
 
 export type ElementData<T extends Tags = null> = {
-  key?: any;
+  key?: Key;
   props?: (T extends Tags ? {
     [P in keyof HTMLElementTagNameMap[T]]?: HTMLElementTagNameMap[T][P];
   } : {
     [P in keyof HTMLElement]?: HTMLElement[P];
   }) & Record<string, any>;
-  class?: ClassType;
+  class?: Classes;
   attrs?: Record<string, string | number | boolean>;
   style?: StyleMap & {
     /** Whenever these properties change, the change is not applied until after the next frame. */
@@ -302,10 +301,10 @@ export const parseSelector = (selector: string) => {
   }
 }
 
-export function elR(tagName: string, data: ElementData, children: ChildType[]): DevoidComponent {
+export const elR = (tagName: string, data: ElementData, children: ChildType[]): DevoidComponent => {
   const eventManager = new EventManager();
 
-  (data as any).hook = {
+  (data as VNodeData).hook = {
     insert(vNode: VNode) {
       if (data.ref) data.ref.el = vNode.elm;
       eventManager.trigger('mount');
@@ -320,11 +319,11 @@ export function elR(tagName: string, data: ElementData, children: ChildType[]): 
     },
   };
 
-  (data as any).eventManager = eventManager;
+  (data as VNodeData).events = eventManager;
 
   return {
     dComp: true,
-    render: (context) => [vnode(tagName, data, buildChildren(context, children), undefined, undefined)],
+    render: (context) => [createVNode(tagName, data, buildChildren(context, children), undefined, undefined)],
   }
 }
 

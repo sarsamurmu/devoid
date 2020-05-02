@@ -5,6 +5,9 @@
   "compiler": {
     "tsconfigFilePath": "<projectFolder>/tsconfig.json"
   },
+  "tsdocMetadata": {
+    "enabled": false
+  },
   "apiReport": {
     "enabled": false
   },

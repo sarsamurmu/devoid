@@ -22,6 +22,12 @@ const TSOverrides = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-for-in-array': 'error',
+    'space-before-function-paren': 'off',
+    '@typescript-eslint/space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always'
+    }]
   }
 }
 
@@ -43,7 +49,12 @@ module.exports = {
     'eqeqeq': 'error',
     'arrow-parens': ['error', 'always'],
     'no-var': 'error',
-    'no-unneeded-ternary': 'error'
+    'no-unneeded-ternary': 'error',
+    'space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always'
+    }],
   },
   overrides: [
     {

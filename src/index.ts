@@ -19,7 +19,6 @@ export {
 export { Context } from './context';
 export { createEl } from './createEl';
 export {
-  ClassType,
   Ref,
   Tags,
   ElementData,

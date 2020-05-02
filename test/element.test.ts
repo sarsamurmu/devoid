@@ -1,6 +1,7 @@
 import { ref, elR, parseSelector, convertEventKeys, appendSelectorData, composeEls } from '../src/element';
 import { assert } from 'chai';
-import { updateChildren, mount } from '../src/mount';
+import { updateChildren } from '../src/vdom';
+import { mount } from '../src/mount';
 
 let renderBox: HTMLDivElement;
 
@@ -34,8 +35,7 @@ describe('element', () => {
     updateChildren({
       parentElm: renderBox,
       oldCh: [],
-      newCh: element,
-      insertBefore: null
+      newCh: element
     });
     assert(elRef.el === document.querySelector('#firstDiv'), 'Ref is not same as element');
 
@@ -49,16 +49,14 @@ describe('element', () => {
     updateChildren({
       parentElm: renderBox,
       oldCh: element,
-      newCh: newElement,
-      insertBefore: null
+      newCh: newElement
     })
     assert(elRef.el === document.querySelector('#secondDiv'), 'Ref should update when element is replaced');
 
     updateChildren({
       parentElm: renderBox,
       oldCh: newElement,
-      newCh: [],
-      insertBefore: null
+      newCh: []
     });
     assert(elRef.el === null, 'Ref should be null when element is removed');
   });
