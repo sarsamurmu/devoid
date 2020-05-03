@@ -11,7 +11,7 @@ export type Key = string | number;
 export interface VNode {
   sel: string | undefined;
   data: VNodeData | undefined;
-  children: (VNode | string)[] | undefined;
+  children: VNode[] | undefined;
   elm: Node | undefined;
   text: string | undefined;
   key: Key | undefined;
@@ -27,7 +27,6 @@ export interface VNodeData {
   hook?: Hooks;
   events?: EventManager;
   ns?: string; // for SVGs
-  [key: string]: any; // for any other 3rd party module
 }
 
 export const createVNode = (
@@ -39,4 +38,27 @@ export const createVNode = (
 ): VNode => {
   const key = data === undefined ? undefined : data.key;
   return { sel, data, children, text, elm, key };
+}
+
+export const h = (sel: string, fArg?: any, sArg?: any) => {
+  let data = {};
+  let children: any = [];
+  if (
+    !sArg && (
+      Array.isArray(fArg) ||
+      typeof fArg === 'string'
+    )
+  ) {
+    children = fArg;
+  } else if (typeof fArg === 'object') {
+    data = fArg;
+  }
+
+  if (sArg) children = sArg;
+
+  if (!Array.isArray(children)) children = [children];
+
+  children = children.map((child: any) => typeof child === 'string' ? createVNode(undefined, undefined, undefined, child, undefined) : child);
+
+  return createVNode(sel, data, children, undefined, undefined);
 }
