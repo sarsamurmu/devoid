@@ -10,7 +10,7 @@ import {
 } from './utils';
 import { updateChildren, patch } from './vdom';
 import { Context } from './context';
-import { createVNode, VNode } from './vdom/vnode';
+import { createVNode, VNode, VNodeData } from './vdom/vnode';
 import { ChildType } from './utils';
 
 type voidFun = () => void;
@@ -37,13 +37,13 @@ type DeepPartial<T> = {
   [K in keyof T]?: DeepPartial<T[K]> | T[K];
 };
 
-export interface CallbackOrData<T extends Record<string, any>> {
+export interface SetStateFun<T extends Record<string, any>> {
   (callback: (currentState: T) => void): void;
   (newData: DeepPartial<T>, shouldClone?: boolean): void;
 }
 
 const stateChangeCbs: voidFun[][] = [];
-export const createState = <T extends Record<string, any>>(stateData: T): [Readonly<T>, CallbackOrData<T>] => {
+export const createState = <T extends Record<string, any>>(stateData: T): [Readonly<T>, SetStateFun<T>] => {
   hookWarn(stateChangeCbs, 'createState');
 
   const state = stateData;
@@ -331,14 +331,14 @@ export const memoComponent = (componentToCache: DevoidComponent): DevoidComponen
   }
 }
 
-const createVNodeData = () => {
+const createVNodeData = (): Partial<VNodeData> => {
   const eventManager = new EventManager();
   return {
     hook: {
       insert() { eventManager.trigger('mount') },
       destroy() { eventManager.trigger('destroy') }
     },
-    evm: eventManager
+    events: eventManager
   }
 }
 

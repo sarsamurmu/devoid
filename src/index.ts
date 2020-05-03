@@ -1,7 +1,7 @@
 export {
   DevoidComponent,
   build,
-  CallbackOrData,
+  SetStateFun,
   createState,
   Value,
   value,
