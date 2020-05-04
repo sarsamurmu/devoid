@@ -17,7 +17,7 @@ const xChar = 120;
 
 const updateAttrs = (oldVNode: VNode, vNode: VNode) => {
   let key: string;
-  const elm: Element = vNode.elm as Element;
+  const el: Element = vNode.el as Element;
   let oldAttrs = (oldVNode.data as VNodeData).attrs;
   let attrs = (vNode.data as VNodeData).attrs;
 
@@ -31,27 +31,27 @@ const updateAttrs = (oldVNode: VNode, vNode: VNode) => {
     const old = oldAttrs[key];
     if (old !== cur) {
       if (cur === true) {
-        elm.setAttribute(key, '');
+        el.setAttribute(key, '');
       } else if (cur === false) {
-        elm.removeAttribute(key);
+        el.removeAttribute(key);
       } else {
         if (key.charCodeAt(0) !== xChar) {
-          elm.setAttribute(key, cur);
+          el.setAttribute(key, cur);
         } else if (key.charCodeAt(3) === colonChar) {
           // Assume xml namespace
-          elm.setAttributeNS(xmlNS, key, cur);
+          el.setAttributeNS(xmlNS, key, cur);
         } else if (key.charCodeAt(5) === colonChar) {
           // Assume xlink namespace
-          elm.setAttributeNS(xlinkNS, key, cur);
+          el.setAttributeNS(xlinkNS, key, cur);
         } else {
-          elm.setAttribute(key, cur);
+          el.setAttribute(key, cur);
         }
       }
     }
   }
 
   for (key in oldAttrs) {
-    if (!(key in attrs)) elm.removeAttribute(key);
+    if (!(key in attrs)) el.removeAttribute(key);
   }
 }
 

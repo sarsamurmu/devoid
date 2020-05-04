@@ -306,11 +306,11 @@ export const elR = (tagName: string, data: ElementData, children: ChildType[]): 
 
   (data as VNodeData).hook = {
     insert(vNode: VNode) {
-      if (data.ref) data.ref.el = vNode.elm;
+      if (data.ref) data.ref.el = vNode.el;
       eventManager.trigger('mount');
     },
     update(_: any, vNode: VNode) {
-      if (data.ref) data.ref.el = vNode.elm;
+      if (data.ref) data.ref.el = vNode.el;
       eventManager.trigger('update');
     },
     destroy() {

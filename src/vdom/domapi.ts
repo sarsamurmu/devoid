@@ -8,7 +8,7 @@ export interface DOMAPI {
   appendChild: (node: Node, child: Node) => void;
   parentNode: (node: Node) => Node | null;
   nextSibling: (node: Node) => Node | null;
-  tagName: (elm: Element) => string;
+  tagName: (el: Element) => string;
   setTextContent: (node: Node, text: string | null) => void;
   getTextContent: (node: Node) => string | null;
   isElement: (node: Node) => node is Element;
@@ -42,7 +42,7 @@ const parentNode = (node: Node): Node | null => node.parentNode;
 
 const nextSibling = (node: Node): Node | null => node.nextSibling;
 
-const tagName = (elm: Element): string => elm.tagName;
+const tagName = (el: Element): string => el.tagName;
 
 const setTextContent = (node: Node, text: string | null) => {
   node.textContent = text;

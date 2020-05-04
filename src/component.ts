@@ -272,10 +272,10 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
       childVNodes[0] = newVNodes[0];
     } else {
       updateChildren({
-        parentElm: childVNodes[0].elm.parentElement,
+        parentEl: childVNodes[0].el.parentElement,
         oldCh: childVNodes,
         newCh: newVNodes,
-        insertBefore: childVNodes[childVNodes.length - 1].elm.nextSibling,
+        insertBefore: childVNodes[childVNodes.length - 1].el.nextSibling,
       });
       childVNodes.length = newVNodes.length;
       newVNodes.forEach((newVNode, index) => childVNodes[index] = newVNode);

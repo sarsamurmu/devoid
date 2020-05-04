@@ -4,7 +4,7 @@
  * Licensed under MIT License - https://github.com/snabbdom/snabbdom/blob/master/LICENSE
  */
 
-import { createVNode, VNode } from './vnode';
+import { createVNode, VNode, h } from './vnode';
 import { htmlDomApi, DOMAPI } from './domapi';
 
 import { Module } from './modules/module';
@@ -29,7 +29,7 @@ const emptyNode = createVNode('', {}, [], undefined, undefined);
 
 const sameVNode = (aVNode: VNode, bVNode: VNode): boolean => aVNode.key === bVNode.key && aVNode.sel === bVNode.sel;
 const isVNode = (vNode: any): vNode is VNode => isDef(vNode.sel);
-const isFragment = (vNode: VNode) => vNode.sel === 'fragment';
+const isFragment = (vNode: VNode) => vNode.sel === '<>';
 
 const flattenFragment = (fragment: VNode, insertedVNodeQueue?: VNode[]) => {
   const vNodes: VNode[] = [];
@@ -77,26 +77,24 @@ for (i = 0; i < hooks.length; ++i) {
   cbs[hooks[i]] = [];
   for (j = 0; j < modules.length; ++j) {
     const hook = modules[j][hooks[i]];
-    if (isDef(hook)) {
-      (cbs[hooks[i]] as any[]).push(hook);
-    }
+    if (hook) (cbs[hooks[i]] as any[]).push(hook);
   }
 }
 
-const emptyNodeAt = (elm: Element) => {
-  return createVNode(api.tagName(elm).toLowerCase(), {}, [], undefined, elm);
+const emptyNodeAt = (el: Element) => {
+  return createVNode(api.tagName(el).toLowerCase(), {}, [], undefined, el);
 }
 
-const createRmCb = (childElm: Node, listeners: number) => {
+const createRmCb = (childEl: Node, listeners: number) => {
   return () => {
     if (--listeners === 0) {
-      const parent = api.parentNode(childElm);
-      api.removeChild(parent, childElm);
+      const parent = api.parentNode(childEl);
+      api.removeChild(parent, childEl);
     }
   }
 }
 
-const createElm = (vNode: VNode, insertedVNodeQueue: VNode[]): Node => {
+const createEl = (vNode: VNode, insertedVNodeQueue: VNode[]): Node => {
   let i: any;
   const data = vNode.data;
   // We don't use `init` hook so it's disabled
@@ -113,39 +111,39 @@ const createElm = (vNode: VNode, insertedVNodeQueue: VNode[]): Node => {
   const sel = vNode.sel;
   if (sel === '!') {
     if (isUndef(vNode.text)) vNode.text = '';
-    vNode.elm = api.createComment(vNode.text);
+    vNode.el = api.createComment(vNode.text);
     if (isDef(vNode.data) && isDef(vNode.data.hook) && vNode.data.hook.insert) {
       insertedVNodeQueue.push(vNode);
     }
   } else if (isDef(sel)) {
     const tag = sel;
-    const elm = vNode.elm = isDef(data) && isDef(i = data.ns)
+    const el = vNode.el = isDef(data) && isDef(i = data.ns)
       ? api.createElementNS(i, tag)
       : api.createElement(tag);
     for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vNode);
     for (i = 0; i < children.length; ++i) {
       const ch = children[i];
       if (ch) {
-        api.appendChild(elm, createElm(ch as VNode, insertedVNodeQueue));
+        api.appendChild(el, createEl(ch as VNode, insertedVNodeQueue));
       }
     }
     const hook = vNode.data.hook;
-    if (isDef(hook)) {
+    if (hook) {
       // We don't use `create` hook at VNode level
       // hook.create?.(emptyNode, vNode);
       if (hook.insert) insertedVNodeQueue.push(vNode);
     }
   } else {
-    vNode.elm = api.createTextNode(vNode.text);
+    vNode.el = api.createTextNode(vNode.text);
     if (isDef(vNode.data) && isDef(vNode.data.hook) && vNode.data.hook.insert) {
       insertedVNodeQueue.push(vNode);
     }
   }
-  return vNode.elm;
+  return vNode.el;
 }
 
 const addVNodes = (
-  parentElm: Node,
+  parentEl: Node,
   before: Node | null,
   vNodes: VNode[],
   startIdx: number,
@@ -157,11 +155,11 @@ const addVNodes = (
     if (ch) {
       if (isFragment(ch)) {
         const children = ch.children;
-        ch.elm = parentElm;
+        ch.el = parentEl;
         insertedVNodeQueue.push(ch);
-        addVNodes(parentElm, before, children, 0, children.length - 1, insertedVNodeQueue);
+        addVNodes(parentEl, before, children, 0, children.length - 1, insertedVNodeQueue);
       } else {
-        api.insertBefore(parentElm, createElm(ch, insertedVNodeQueue), before);
+        api.insertBefore(parentEl, createEl(ch, insertedVNodeQueue), before);
       }
     }
   }
@@ -169,10 +167,10 @@ const addVNodes = (
 
 const invokeDestroyHook = (vNode: VNode) => {
   const data = vNode.data;
-  if (isDef(data)) {
+  if (data) {
     if (data.hook && data.hook.destroy) data.hook.destroy(vNode);
     for (let i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vNode);
-    if (isDef(vNode.children)) {
+    if (vNode.children) {
       for (let j = 0; j < vNode.children.length; ++j) {
         const child = vNode.children[j];
         if (child && typeof child !== 'string') {
@@ -184,7 +182,7 @@ const invokeDestroyHook = (vNode: VNode) => {
 }
 
 const removeVNodes = (
-  parentElm: Node,
+  parentEl: Node,
   vNodes: VNode[],
   startIdx: number,
   endIdx: number
@@ -198,10 +196,10 @@ const removeVNodes = (
         invokeDestroyHook(ch);
         if (isFragment(ch)) {
           const children = flattenFragment(ch);
-          removeVNodes(ch.elm, children, 0, children.length - 1);
+          removeVNodes(ch.el, children, 0, children.length - 1);
         } else {
           listeners = cbs.remove.length + 1;
-          rm = createRmCb(ch.elm, listeners);
+          rm = createRmCb(ch.el, listeners);
           for (let i = 0; i < cbs.remove.length; ++i) cbs.remove[i](ch, rm);
           if (ch.data && ch.data.hook && ch.data.hook.remove) {
             ch.data.hook.remove(ch, rm);
@@ -210,7 +208,7 @@ const removeVNodes = (
           }
         }
       } else { // Text node
-        api.removeChild(parentElm, ch.elm);
+        api.removeChild(parentEl, ch.el);
         invokeDestroyHook(ch);
       }
     }
@@ -220,7 +218,7 @@ const removeVNodes = (
 /* eslint-disable @typescript-eslint/no-use-before-define */
 
 function updateChildren(
-  parentElm: Node,
+  parentEl: Node,
   oldCh: VNode[],
   newCh: VNode[],
   insertedVNodeQueue: VNode[],
@@ -236,7 +234,7 @@ function updateChildren(
   let newEndVNode = newCh[newEndIdx];
   let oldKeyToIdx: KeyToIndexMap | undefined;
   let idxInOld: number;
-  let elmToMove: VNode;
+  let elToMove: VNode;
   let before: Node;
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -258,27 +256,27 @@ function updateChildren(
       newEndVNode = newCh[--newEndIdx];
     } else if (sameVNode(oldStartVNode, newEndVNode)) { // VNode moved right
       patchVNode(oldStartVNode, newEndVNode, insertedVNodeQueue);
-      const toInsertBefore = api.nextSibling(last(toVNodeArr(oldEndVNode)).elm);
+      const toInsertBefore = api.nextSibling(last(toVNodeArr(oldEndVNode)).el);
       if (isFragment(oldStartVNode)) {
         // If fragment, get all children and insert before the next children of last element
         flattenFragment(oldStartVNode).forEach((child) => {
-          api.insertBefore(parentElm, child.elm, toInsertBefore);
+          api.insertBefore(parentEl, child.el, toInsertBefore);
         });
       } else {
-        api.insertBefore(parentElm, oldStartVNode.elm, toInsertBefore);
+        api.insertBefore(parentEl, oldStartVNode.el, toInsertBefore);
       }
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (sameVNode(oldEndVNode, newStartVNode)) { // VNode moved left
       patchVNode(oldEndVNode, newStartVNode, insertedVNodeQueue);
-      const toInsertBefore = toVNodeArr(oldStartVNode)[0].elm;
+      const toInsertBefore = toVNodeArr(oldStartVNode)[0].el;
       if (isFragment(oldEndVNode)) {
         // If fragment, get all children and insert before the first children of first element
         flattenFragment(oldEndVNode).forEach((child) => {
-          api.insertBefore(parentElm, child.elm, toInsertBefore);
+          api.insertBefore(parentEl, child.el, toInsertBefore);
         });
       } else {
-        api.insertBefore(parentElm, oldEndVNode.elm, toInsertBefore);
+        api.insertBefore(parentEl, oldEndVNode.el, toInsertBefore);
       }
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
@@ -288,36 +286,36 @@ function updateChildren(
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (isUndef(idxInOld)) { // New Element
-        const toInsertBefore = toVNodeArr(oldStartVNode)[0].elm;
+        const toInsertBefore = toVNodeArr(oldStartVNode)[0].el;
         if (isFragment(newStartVNode)) {
           insertedVNodeQueue.push(newStartVNode);
           flattenFragment(newStartVNode, insertedVNodeQueue).forEach((child) => {
-            api.insertBefore(parentElm, createElm(child, insertedVNodeQueue), toInsertBefore);
+            api.insertBefore(parentEl, createEl(child, insertedVNodeQueue), toInsertBefore);
           });
         } else {
-          api.insertBefore(parentElm, createElm(newStartVNode, insertedVNodeQueue), toInsertBefore);
+          api.insertBefore(parentEl, createEl(newStartVNode, insertedVNodeQueue), toInsertBefore);
         }
       } else {
-        elmToMove = oldCh[idxInOld];
-        if (elmToMove.sel !== newStartVNode.sel) {
-          const toInsertBefore = toVNodeArr(oldStartVNode)[0].elm;
+        elToMove = oldCh[idxInOld];
+        if (elToMove.sel !== newStartVNode.sel) {
+          const toInsertBefore = toVNodeArr(oldStartVNode)[0].el;
           if (isFragment(newStartVNode)) {
             flattenFragment(newStartVNode, insertedVNodeQueue).forEach((child) => {
-              api.insertBefore(parentElm, createElm(child, insertedVNodeQueue), toInsertBefore);
+              api.insertBefore(parentEl, createEl(child, insertedVNodeQueue), toInsertBefore);
             });
           } else {
-            api.insertBefore(parentElm, createElm(newStartVNode, insertedVNodeQueue), toInsertBefore);
+            api.insertBefore(parentEl, createEl(newStartVNode, insertedVNodeQueue), toInsertBefore);
           }
         } else {
-          patchVNode(elmToMove, newStartVNode, insertedVNodeQueue);
+          patchVNode(elToMove, newStartVNode, insertedVNodeQueue);
           oldCh[idxInOld] = undefined as any;
-          const toInsertBefore = toVNodeArr(oldStartVNode)[0].elm;
-          if (isFragment(elmToMove)) {
-            flattenFragment(elmToMove).forEach((child) => {
-              api.insertBefore(parentElm, child.elm, toInsertBefore);
+          const toInsertBefore = toVNodeArr(oldStartVNode)[0].el;
+          if (isFragment(elToMove)) {
+            flattenFragment(elToMove).forEach((child) => {
+              api.insertBefore(parentEl, child.el, toInsertBefore);
             });
           } else {
-            api.insertBefore(parentElm, elmToMove.elm, toInsertBefore);
+            api.insertBefore(parentEl, elToMove.el, toInsertBefore);
           }
         }
       }
@@ -328,14 +326,14 @@ function updateChildren(
     if (oldStartIdx > oldEndIdx) {
       const beforeVNode = newCh[newEndIdx + 1];
       if (beforeVNode && isFragment(beforeVNode)) {
-        before = toVNodeArr(beforeVNode)[0].elm;
+        before = toVNodeArr(beforeVNode)[0].el;
       } else {
-        before = !newCh[newEndIdx + 1] ? insertBefore : newCh[newEndIdx + 1].elm;
+        before = !newCh[newEndIdx + 1] ? insertBefore : newCh[newEndIdx + 1].el;
       }
 
-      addVNodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVNodeQueue);
+      addVNodes(parentEl, before, newCh, newStartIdx, newEndIdx, insertedVNodeQueue);
     } else {
-      removeVNodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
+      removeVNodes(parentEl, oldCh, oldStartIdx, oldEndIdx);
     }
   }
 }
@@ -344,30 +342,30 @@ function patchVNode(oldVNode: VNode, vNode: VNode, insertedVNodeQueue: VNode[]) 
   // const hook = vNode.data?.hook;
   // We don't use prePatch hook
   // hook?.prePatch?.(oldVNode, vNode);
-  const elm = vNode.elm = oldVNode.elm;
+  const el = vNode.el = oldVNode.el;
   const oldCh = oldVNode.children as VNode[];
   const ch = vNode.children as VNode[];
   if (oldVNode === vNode) return;
-  if (isDef(vNode.data)) {
+  if (vNode.data) {
     for (let i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVNode, vNode);
     if (vNode.data.hook && vNode.data.hook.update) vNode.data.hook.update(oldVNode, vNode);
   }
   if (isUndef(vNode.text)) {
     if (isDef(oldCh) && isDef(ch)) {
-      if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVNodeQueue);
+      if (oldCh !== ch) updateChildren(el, oldCh, ch, insertedVNodeQueue);
     } else if (isDef(ch)) {
-      if (isDef(oldVNode.text)) api.setTextContent(elm, '');
-      addVNodes(elm, null, ch, 0, ch.length - 1, insertedVNodeQueue);
+      if (isDef(oldVNode.text)) api.setTextContent(el, '');
+      addVNodes(el, null, ch, 0, ch.length - 1, insertedVNodeQueue);
     } else if (isDef(oldCh)) {
-      removeVNodes(elm, oldCh, 0, oldCh.length - 1);
+      removeVNodes(el, oldCh, 0, oldCh.length - 1);
     } else if (isDef(oldVNode.text)) {
-      api.setTextContent(elm, '');
+      api.setTextContent(el, '');
     }
   } else if (oldVNode.text !== vNode.text) {
     if (isDef(oldCh)) {
-      removeVNodes(elm, oldCh, 0, oldCh.length - 1);
+      removeVNodes(el, oldCh, 0, oldCh.length - 1);
     }
-    api.setTextContent(elm, vNode.text);
+    api.setTextContent(el, vNode.text);
   }
   // We don't use prePatch hook
   // hook?.postPatch?.(oldVNode, vNode);
@@ -376,7 +374,7 @@ function patchVNode(oldVNode: VNode, vNode: VNode, insertedVNodeQueue: VNode[]) 
 /* eslint-enable */
 
 export const patch = (oldVNode: VNode | Element, vNode: VNode): VNode => {
-  let i: number, elm: Node, parent: Node;
+  let i: number, el: Node, parent: Node;
   const insertedVNodeQueue: VNode[] = [];
   for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
 
@@ -387,38 +385,45 @@ export const patch = (oldVNode: VNode | Element, vNode: VNode): VNode => {
   if (sameVNode(oldVNode, vNode)) {
     patchVNode(oldVNode, vNode, insertedVNodeQueue);
   } else {
-    elm = oldVNode.elm;
-    parent = api.parentNode(elm);
+    el = oldVNode.el;
+    parent = api.parentNode(el);
 
-    createElm(vNode, insertedVNodeQueue);
+    createEl(vNode, insertedVNodeQueue);
 
     if (parent) {
-      api.insertBefore(parent, vNode.elm, api.nextSibling(elm));
+      api.insertBefore(parent, vNode.el, api.nextSibling(el));
       removeVNodes(parent, [oldVNode], 0, 0);
     }
   }
 
   for (i = 0; i < insertedVNodeQueue.length; ++i) {
-    insertedVNodeQueue[i]?.data?.hook?.insert?.(insertedVNodeQueue[i]);
+    const iVNode = insertedVNodeQueue[i];
+    if (iVNode.data && iVNode.data.hook && iVNode.data.hook.insert) {
+      iVNode.data.hook.insert(iVNode);
+    }
   }
   for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
   return vNode;
 }
 
 const expUpdateChildren = ({
-  parentElm,
+  parentEl,
   oldCh,
   newCh,
   insertBefore = null
 }: {
-  parentElm: Node;
+  parentEl: Node;
   oldCh: VNode[];
   newCh: VNode[];
   insertBefore?: Node;
 }) => {
   const insertedVNodeQueue: VNode[] = [];
-  updateChildren(parentElm, oldCh, newCh, insertedVNodeQueue, insertBefore);
-  insertedVNodeQueue.forEach((insertedVNode) => insertedVNode.data?.hook?.insert?.(insertedVNode));
+  updateChildren(parentEl, oldCh, newCh, insertedVNodeQueue, insertBefore);
+  insertedVNodeQueue.forEach((iVNode) => {
+    if (iVNode.data && iVNode.data.hook && iVNode.data.hook.insert) {
+      iVNode.data.hook.insert(iVNode);
+    }
+  });
 }
 
 export { expUpdateChildren as updateChildren }

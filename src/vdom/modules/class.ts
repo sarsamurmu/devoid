@@ -18,7 +18,7 @@ const getClassSet = (data: Classes) => {
 const updateClass = (oldVNode: VNode, newVNode: VNode) => {
   const oldClassSet = getClassSet(oldVNode.data.class);
   const newClassSet = getClassSet(newVNode.data.class);
-  const el = newVNode.elm as Element;
+  const el = newVNode.el as Element;
 
   newClassSet.forEach((className) => {
     if (!oldClassSet.has(className)) el.classList.add(className);

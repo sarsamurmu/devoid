@@ -7,7 +7,7 @@ const updateProps = (oldVNode: VNode, vNode: VNode) => {
   let key: string;
   let cur: any;
   let old: any;
-  const elm = vNode.elm;
+  const el = vNode.el;
   let oldProps = oldVNode.data.props;
   let props = vNode.data.props;
 
@@ -18,14 +18,14 @@ const updateProps = (oldVNode: VNode, vNode: VNode) => {
 
   for (key in oldProps) {
     if (!props[key]) {
-      delete (elm as any)[key];
+      delete (el as any)[key];
     }
   }
   for (key in props) {
     cur = props[key];
     old = oldProps[key];
-    if (old !== cur && (key !== 'value' || (elm as any)[key] !== cur)) {
-      (elm as any)[key] = cur;
+    if (old !== cur && (key !== 'value' || (el as any)[key] !== cur)) {
+      (el as any)[key] = cur;
     }
   }
 }

@@ -55,9 +55,9 @@ const createListener = () => {
 const updateEventListeners = (oldVNode: VNode, vNode?: VNode) => {
   const oldOn = (oldVNode.data as VNodeData).on;
   const oldListener = (oldVNode as any).listener;
-  const oldElm: Element = oldVNode.elm as Element;
+  const oldEl: Element = oldVNode.el as Element;
   const on = vNode && (vNode.data as VNodeData).on;
-  const elm: Element = (vNode && vNode.elm) as Element;
+  const el: Element = (vNode && vNode.el) as Element;
   let name: string;
 
   // optimization for reused immutable handlers
@@ -71,13 +71,13 @@ const updateEventListeners = (oldVNode: VNode, vNode?: VNode) => {
     if (!on) {
       for (name in oldOn) {
         // remove listener if element was changed or existing listeners removed
-        oldElm.removeEventListener(name, oldListener, false);
+        oldEl.removeEventListener(name, oldListener, false);
       }
     } else {
       for (name in oldOn) {
         // remove listener if existing listener removed
         if (!on[name]) {
-          oldElm.removeEventListener(name, oldListener, false);
+          oldEl.removeEventListener(name, oldListener, false);
         }
       }
     }
@@ -94,13 +94,13 @@ const updateEventListeners = (oldVNode: VNode, vNode?: VNode) => {
     if (!oldOn) {
       for (name in on) {
         // add listener if element was changed or new listeners added
-        elm.addEventListener(name, listener, false);
+        el.addEventListener(name, listener, false);
       }
     } else {
       for (name in on) {
         // add listener if new listener added
         if (!oldOn[name]) {
-          elm.addEventListener(name, listener, false);
+          el.addEventListener(name, listener, false);
         }
       }
     }
