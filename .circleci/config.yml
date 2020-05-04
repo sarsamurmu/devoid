@@ -9,10 +9,8 @@ jobs:
     steps:
       - checkout
       - browser-tools/install-browser-tools
-      - node/with-cache:
-          steps:
-            - run: npm test
-            - run: npx codecov
+      - node/test
+      - run: npx codecov
 workflows:
     test:
       jobs:
