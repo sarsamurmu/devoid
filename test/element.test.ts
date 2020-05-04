@@ -33,7 +33,7 @@ describe('element', () => {
     }, []).render(null);
 
     updateChildren({
-      parentElm: renderBox,
+      parentEl: renderBox,
       oldCh: [],
       newCh: element
     });
@@ -47,14 +47,14 @@ describe('element', () => {
     }, []).render(null);
 
     updateChildren({
-      parentElm: renderBox,
+      parentEl: renderBox,
       oldCh: element,
       newCh: newElement
     })
     assert(elRef.el === document.querySelector('#secondDiv'), 'Ref should update when element is replaced');
 
     updateChildren({
-      parentElm: renderBox,
+      parentEl: renderBox,
       oldCh: newElement,
       newCh: []
     });
