@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout
       - browser-tools/install-browser-tools
-      - node/test
+      - node/install-packages
       - run: npx codecov
 workflows:
     test:
