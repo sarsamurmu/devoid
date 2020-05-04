@@ -54,6 +54,7 @@ const getPlugins = (browserBuild = false) => {
       typescript: require('typescript'),
       abortOnError: false,
       check: prod,
+      tsconfig: './build.tsconfig.json',
       useTsconfigDeclarationDir: true,
       tsconfigOverride: {
         compilerOptions: {

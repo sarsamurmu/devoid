@@ -1,36 +1,3 @@
-const TSOverrides = {
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
-  parserOptions: {
-    ecmaVersion: 2020,
-    sourceType: 'module'
-  },
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended'
-  ],
-  rules: {
-    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
-    'comma-spacing': 'off',
-    '@typescript-eslint/comma-spacing': 'error',
-    'no-useless-constructor': 'off',
-    '@typescript-eslint/no-useless-constructor': 'error',
-    'quotes': 'off',
-    '@typescript-eslint/quotes': ['error', 'single', { avoidEscape: true }],
-    'require-await': 'off',
-    '@typescript-eslint/require-await': 'error',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/no-for-in-array': 'error',
-    'space-before-function-paren': 'off',
-    '@typescript-eslint/space-before-function-paren': ['error', {
-      anonymous: 'always',
-      named: 'never',
-      asyncArrow: 'always'
-    }]
-  }
-}
-
 module.exports = {
   env: {
     es6: true,
@@ -58,19 +25,38 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['src/**/*.ts'],
+      files: ['src/**/*.ts', 'test/**/*'],
       ...TSOverrides,
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
       parserOptions: {
-        ...TSOverrides.parserOptions,
-        project: './tsconfig.json',
-      }
-    },
-    {
-      files: ['test/**/*.ts'],
-      ...TSOverrides,
-      parserOptions: {
-        ...TSOverrides.parserOptions,
-        project: './test/tsconfig.json',
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        project: './tsconfig.json'
+      },
+      extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended'
+      ],
+      rules: {
+        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+        'comma-spacing': 'off',
+        '@typescript-eslint/comma-spacing': 'error',
+        'no-useless-constructor': 'off',
+        '@typescript-eslint/no-useless-constructor': 'error',
+        'quotes': 'off',
+        '@typescript-eslint/quotes': ['error', 'single', { avoidEscape: true }],
+        'require-await': 'off',
+        '@typescript-eslint/require-await': 'error',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-for-in-array': 'error',
+        'space-before-function-paren': 'off',
+        '@typescript-eslint/space-before-function-paren': ['error', {
+          anonymous: 'always',
+          named: 'never',
+          asyncArrow: 'always'
+        }]
       }
     }
   ]
