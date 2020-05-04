@@ -11,7 +11,6 @@ jobs:
       - browser-tools/install-browser-tools
       - node/with-cache:
           steps:
-            - run: npm ci
             - run: npm test
             - run: npx codecov
 workflows:
