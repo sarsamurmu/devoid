@@ -4,7 +4,7 @@
  * Licensed under MIT License - https://github.com/snabbdom/snabbdom/blob/master/LICENSE
  */
 
-import { createVNode, VNode, h } from './vnode';
+import { createVNode, VNode } from './vnode';
 import { htmlDomApi, DOMAPI } from './domapi';
 
 import { Module } from './modules/module';
@@ -185,7 +185,8 @@ const removeVNodes = (
   parentEl: Node,
   vNodes: VNode[],
   startIdx: number,
-  endIdx: number
+  endIdx: number,
+  invokeHook = true
 ) => {
   for (; startIdx <= endIdx; ++startIdx) {
     let listeners: number;
@@ -193,10 +194,10 @@ const removeVNodes = (
     const ch = vNodes[startIdx];
     if (ch) {
       if (isDef(ch.sel)) {
-        invokeDestroyHook(ch);
+        if (invokeHook) invokeDestroyHook(ch);
         if (isFragment(ch)) {
           const children = flattenFragment(ch);
-          removeVNodes(ch.el, children, 0, children.length - 1);
+          removeVNodes(ch.el, children, 0, children.length - 1, false);
         } else {
           listeners = cbs.remove.length + 1;
           rm = createRmCb(ch.el, listeners);
