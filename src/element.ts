@@ -399,30 +399,26 @@ type ComposedElementsMap = {
   [key: string]: any;
 }
 
-const composedElements = {} as ComposedElementsMap;
-
-export const composeEls = (): ComposedElementsMap => {
-  if (!composedElements.initialized) {
-    tags.forEach((tag) => {
-      const createElFun = (dataOrChild: any, ...children: ChildType[]) => {
-        let data = {} as ElementDataWithSel;
-        if (
-          dataOrChild &&
-          ((dataOrChild as DevoidComponent).dComp ||
+export const elements: ComposedElementsMap = (() => {
+  const composedElements = {} as ComposedElementsMap;
+  tags.forEach((tag) => {
+    const createElFun = (dataOrChild: any, ...children: ChildType[]) => {
+      let data = {} as ElementDataWithSel;
+      if (
+        dataOrChild &&
+        ((dataOrChild as DevoidComponent).dComp ||
           (typeof dataOrChild === 'string' && dataOrChild.trim() !== '') ||
           typeof dataOrChild === 'number')
-        ) {
-          children.push(dataOrChild as ChildType);
-        } else if (isObject(dataOrChild)) {
-          data = dataOrChild;
-          convertEventKeys(data);
-          if (data.sel) appendSelectorData(parseSelector(data.sel), data);
-        }
-        return elR(tag, data, children);
+      ) {
+        children.push(dataOrChild as ChildType);
+      } else if (isObject(dataOrChild)) {
+        data = dataOrChild;
+        convertEventKeys(data);
+        if (data.sel) appendSelectorData(parseSelector(data.sel), data);
       }
-      composedElements[tag] = createElFun;
-    });
-    composedElements.initialized = true;
-  }
+      return elR(tag, data, children);
+    }
+    composedElements[tag] = createElFun;
+  });
   return composedElements;
-}
+})();

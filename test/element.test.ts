@@ -1,4 +1,4 @@
-import { ref, elR, parseSelector, convertEventKeys, appendSelectorData, composeEls } from '../src/element';
+import { ref, elR, parseSelector, convertEventKeys, appendSelectorData, elements } from '../src/element';
 import { assert } from 'chai';
 import { updateChildren } from '../src/vdom';
 import { mount } from '../src/mount';
@@ -13,12 +13,6 @@ beforeEach(() => {
 afterEach(() => {
   renderBox.remove();
 });
-
-const resetRenderBox = () => {
-  renderBox.remove();
-  renderBox = document.createElement('div');
-  document.body.appendChild(renderBox);
-}
 
 describe('element', () => {
   it('ref', () => {
@@ -184,51 +178,39 @@ describe('element', () => {
     );
   });
 
-  it('composeEls', () => {
-    let { div, p, a } = composeEls();
+  it('elements', () => {
+    const { div, p, a } = elements;
     let element;
 
-    const runTest = () => {
-      const qs = (selector: string) => renderBox.querySelector(selector) as HTMLElement;
-      element = div('With just text');
-      mount(element, renderBox);
-      assert.strictEqual(qs('div').innerText, 'With just text');
+    const qs = (selector: string) => renderBox.querySelector(selector) as HTMLElement;
+    element = div('With just text');
+    mount(element, renderBox);
+    assert.strictEqual(qs('div').innerText, 'With just text');
 
-      element = p(
-        {
-          attrs: { id: 'p1' },
-          class: 'firstClass'
-        },
-        'With data and child and num - ',
-        '' /* Empty text = ignored */,
-        20
-      );
-      mount(element, renderBox);
-      assert(
-        qs('#p1').innerText === 'With data and child and num - 20' &&
-        qs('#p1').classList.contains('firstClass')
-      );
+    element = p(
+      {
+        attrs: { id: 'p1' },
+        class: 'firstClass'
+      },
+      'With data and child and num - ',
+      '' /* Empty text = ignored */,
+      20
+    );
+    mount(element, renderBox);
+    assert(
+      qs('#p1').innerText === 'With data and child and num - 20' &&
+      qs('#p1').classList.contains('firstClass')
+    );
 
-      element = a({ sel: '.hyperLink#link' }, '<a> using `sel`', div('Just a <div>'));
-      mount(element, renderBox);
-      assert(
-        qs('#link').querySelector('div').innerText === 'Just a <div>' &&
-        qs('#link').classList.contains('hyperLink')
-      );
+    element = a({ sel: '.hyperLink#link' }, '<a> using `sel`', div('Just a <div>'));
+    mount(element, renderBox);
+    assert(
+      qs('#link').querySelector('div').innerText === 'Just a <div>' &&
+      qs('#link').classList.contains('hyperLink')
+    );
 
-      element = p(null, 'With incompatible child');
-      mount(element, renderBox);
-      assert.strictEqual(qs('p:last-child').innerText, 'With incompatible child');
-    }
-
-    runTest();
-
-    const elements = composeEls();
-    div = elements.div;
-    p = elements.p;
-    a = elements.a;
-
-    resetRenderBox();
-    runTest();
+    element = p(null, 'With incompatible child');
+    mount(element, renderBox);
+    assert.strictEqual(qs('p:last-child').innerText, 'With incompatible child');
   });
 });

@@ -25,7 +25,7 @@ export {
   ref,
   elR,
   el,
-  composeEls
+  elements
 } from './element';
 export {
   EventManager,

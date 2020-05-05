@@ -49,7 +49,7 @@ export const createState = <T extends Record<string, any>>(stateData: T): [Reado
   const state = stateData;
   const listeners = stateChangeCbs[stateChangeCbs.length - 1];
 
-  Object.defineProperty(state, '$devoidState', {
+  Object.defineProperty(state, '$dState', {
     enumerable: false,
     configurable: false,
     get: () => true
@@ -113,7 +113,7 @@ export const value = <T = any>(initialValue: T): Value<T> => {
     return () => valueListeners.delete(onChange);
   }
 
-  Object.defineProperty(setOrGet, '$devoidValue', {
+  Object.defineProperty(setOrGet, '$dValue', {
     enumerable: false,
     configurable: false,
     get: () => true
@@ -295,9 +295,9 @@ export const Component = (builder: (context: Context) => void): DevoidComponent 
             const prevVal = prevStates[stateKey] as any;
             const val = states[stateKey] as any;
             if (!(val && prevVal)) continue;
-            if (prevVal.$devoidValue && val.$devoidValue) {
+            if (prevVal.$dValue && val.$dValue) {
               val.$(prevVal());
-            } else if (prevVal.$devoidState && val.$devoidState) {
+            } else if (prevVal.$dState && val.$dState) {
               patchStateProperties(prevVal, val);
             }
           }
