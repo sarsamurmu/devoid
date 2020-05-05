@@ -18,6 +18,7 @@ const map = (list: any, cb: (item: any) => any) => {
 }
 
 const html = (item: HTMLElement) => item.innerHTML;
+const tagName = (item: HTMLElement) => item.tagName;
 const str = (a: any) => String(a);
 
 describe('Virtual DOM', () => {
@@ -64,7 +65,7 @@ describe('Virtual DOM', () => {
         assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5].map(str));
       });
 
-      it('add elements at begin and end', () => {
+      it('adds elements at the begin and the end', () => {
         const v1 = h('i', asI(2, 3, 4));
         const v2 = h('i', asI(1, 2, 3, 4, 5));
 
@@ -337,6 +338,26 @@ describe('Virtual DOM', () => {
         v1 = v2;
       }
     });
+
+    it('handles changing sel with same key', () => {
+      const v1 = h('i', [
+        h('i', { key: 1 }, 'First'),
+        h('i', { key: 2 }, 'Second'),
+        h('i', { key: 3 }, 'Third')
+      ]);
+      const v2 = h('i', [
+        h('b', { key: 1 }, 'First'),
+        h('i', { key: 2 }, 'Second'),
+        h('i', { key: 3 }, 'Third')
+      ]);
+
+      el = patch(v0, v1).el;
+      assert.strictEqual(el.children.length, 3);
+
+      el = patch(v1, v2).el;
+      assert.deepEqual(map(el.children, html), ['First', 'Second', 'Third']);
+      assert.deepEqual(map(el.children, tagName), ['B', 'I', 'I']);
+    });
   });
 
   describe('updating children without keys', () => {
@@ -426,7 +447,7 @@ describe('Virtual DOM', () => {
 
       el = patch(v1, v2).el;
       assert.deepEqual(map(el.children, html), ['Hi', 'There']);
-      assert.deepEqual(map(el.children, (node: Element) => node.tagName), ['DIV', 'I']);
+      assert.deepEqual(map(el.children, tagName), ['DIV', 'I']);
     });
 
     it('removes elements', () => {
@@ -492,7 +513,7 @@ describe('Virtual DOM', () => {
 
       el = patch(v1, v2).el;
       assert.deepEqual(map(el.children, html), [3, 1, 2].map(str));
-      assert.deepEqual(map(el.children, (node: Element) => node.tagName), ['B', 'U', 'I']);
+      assert.deepEqual(map(el.children, tagName), ['B', 'U', 'I']);
     });
 
     it('support null/undefined children', () => {
@@ -542,6 +563,333 @@ describe('Virtual DOM', () => {
 
       el = patch(v2, v3).el;
       assert.deepEqual(map(el.children, html), ['2', '1']);
+    });
+  });
+
+  describe('Fragment system', () => {
+    const asI = (...items: (number | string)[]) => items.map((item) => h('i', item + ''));
+    it('can create fragment', () => {
+      const v1 = h('i', [
+        h('<>', asI(1, 2, 3, 4, 5)),
+        ...asI(6, 7, 8, 9, 10)
+      ]);
+
+      el = patch(v0, v1).el;
+      assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(str));
+    });
+
+    it('can create nested fragment', () => {
+      const v1 = h('i', [
+        h('<>', [
+          ...asI(1, 2),
+          h('<>', [
+            h('<>', asI(3, 4)),
+            ...asI(5, 6),
+          ]),
+          ...asI(7, 8),
+        ]),
+        ...asI(9, 10)
+      ]);
+
+      el = patch(v0, v1).el;
+      assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(str));
+    });
+
+    describe('audition of fragment', () => {
+      it('appends fragment', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'f' }, asI(1, 2, 3)),
+          ...asI(7, 8, 9)
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'f' }, asI(1, 2, 3)),
+          h('<>', { key: 'g' }, asI(4, 5, 6)),
+          ...asI(7, 8, 9, 10)
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 7, 8, 9].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(str));
+      });
+
+      it('prepends fragment', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'g' }, asI(4, 5, 6)),
+          ...asI(7, 8, 9)
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'f' }, asI(1, 2, 3)),
+          h('<>', { key: 'g' }, asI(4, 5, 6)),
+          ...asI(7, 8, 9, 10)
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [4, 5, 6, 7, 8, 9].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(str));
+      });
+
+      it('adds fragment in the middle', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'f' }, asI(1, 2)),
+          h('<>', { key: 'h' }, asI(5, 6)),
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'f' }, asI(1, 2)),
+          h('<>', { key: 'g' }, asI(3, 4)),
+          h('<>', { key: 'h' }, asI(5, 6)),
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 5, 6].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6].map(str));
+      });
+
+      it('adds fragments at the begin and the end', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8)),
+          h('<>', { key: 'e' }, asI(9, 10)),
+          h('<>', { key: 'f' }, asI(11, 12))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(str));
+      });
+    });
+
+    describe('removal of fragments', () => {
+      it('removes fragments from the beginning', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [5, 6, 7, 8].map(str));
+      });
+
+      it('removes fragments from the end', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4].map(str));
+      });
+
+      it('removes fragments from the beginning and the end', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'b' }, asI(3, 4))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [3, 4].map(str));
+      });
+    });
+
+    describe('reordering of fragments', () => {
+      it('moves fragment forward', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [3, 4, 5, 6, 1, 2, 7, 8].map(str));
+      });
+
+      it('moves fragment to end', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'a' }, asI(1, 2))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [3, 4, 5, 6, 1, 2].map(str));
+      });
+
+      it('moves fragment backwards', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'd' }, asI(7, 8)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 7, 8, 3, 4, 5, 6].map(str));
+      });
+
+      it('swaps first and last', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'd' }, asI(7, 8)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'a' }, asI(1, 2))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [7, 8, 3, 4, 5, 6, 1, 2].map(str));
+      });
+    });
+
+    describe('combination of addition, removals and re-orderings', () => {
+      it('move to left and replace', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'd' }, asI(7, 8)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'c' }, asI(9, 10))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [7, 8, 3, 4, 1, 2, 9, 10].map(str));
+      });
+
+      it('moves to left and leaves hole', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(7, 8))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [3, 4, 7, 8].map(str));
+      });
+
+      it('reverses fragments', () => {
+        const v1 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'd' }, asI(7, 8))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'd' }, asI(7, 8)),
+          h('<>', { key: 'c' }, asI(5, 6)),
+          h('<>', { key: 'b' }, asI(3, 4)),
+          h('<>', { key: 'a' }, asI(1, 2))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5, 6, 7, 8].map(str));
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.children, html), [7, 8, 5, 6, 3, 4, 1, 2].map(str));
+      });
+
+      it('handles swapping element with fragment which with same key', () => {
+        const v1 = h('i', [
+          h('div', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4))
+        ]);
+        const v2 = h('i', [
+          h('<>', { key: 'a' }, asI(1, 2)),
+          h('<>', { key: 'b' }, asI(3, 4))
+        ]);
+
+        el = patch(v0, v1).el;
+        assert.deepEqual(map(el.childNodes, tagName), ['DIV', 'I', 'I']);
+
+        el = patch(v1, v2).el;
+        assert.deepEqual(map(el.childNodes, tagName), ['I', 'I', 'I', 'I']);
+      });
     });
   });
 });
