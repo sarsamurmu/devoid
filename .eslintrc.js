@@ -25,8 +25,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['src/**/*.ts', 'test/**/*'],
-      ...TSOverrides,
+      files: ['src/**/*.ts', 'test/**/*.ts'],
       parser: '@typescript-eslint/parser',
       plugins: ['@typescript-eslint'],
       parserOptions: {
