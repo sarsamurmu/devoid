@@ -115,5 +115,4 @@ export const styleModule: Module = {
   update: updateStyle,
   destroy: applyDestroyStyle,
   remove: applyRemoveStyle
-};
-export default styleModule;
+}

@@ -112,19 +112,26 @@ const createEl = (vNode: VNode, insertedVNodeQueue: VNode[]): Node => {
   if (sel === '!') {
     if (isUndef(vNode.text)) vNode.text = '';
     vNode.el = api.createComment(vNode.text);
-    if (isDef(vNode.data) && isDef(vNode.data.hook) && vNode.data.hook.insert) {
+    if (vNode.data && vNode.data.hook && vNode.data.hook.insert) {
       insertedVNodeQueue.push(vNode);
     }
   } else if (isDef(sel)) {
     const tag = sel;
-    const el = vNode.el = isDef(data) && isDef(i = data.ns)
+    const el = vNode.el = data && isDef(i = data.ns)
       ? api.createElementNS(i, tag)
       : api.createElement(tag);
     for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vNode);
     for (i = 0; i < children.length; ++i) {
       const ch = children[i];
       if (ch) {
-        api.appendChild(el, createEl(ch as VNode, insertedVNodeQueue));
+        if (isFragment(ch)) {
+          insertedVNodeQueue.push(ch);
+          flattenFragment(ch, insertedVNodeQueue).forEach((child) => {
+            api.appendChild(el, createEl(child, insertedVNodeQueue));
+          });
+        } else {
+          api.appendChild(el, createEl(ch, insertedVNodeQueue));
+        }
       }
     }
     const hook = vNode.data.hook;
@@ -135,7 +142,7 @@ const createEl = (vNode: VNode, insertedVNodeQueue: VNode[]): Node => {
     }
   } else {
     vNode.el = api.createTextNode(vNode.text);
-    if (isDef(vNode.data) && isDef(vNode.data.hook) && vNode.data.hook.insert) {
+    if (vNode.data && vNode.data.hook && vNode.data.hook.insert) {
       insertedVNodeQueue.push(vNode);
     }
   }
@@ -354,18 +361,20 @@ function patchVNode(oldVNode: VNode, vNode: VNode, insertedVNodeQueue: VNode[]) 
   if (isUndef(vNode.text)) {
     if (isDef(oldCh) && isDef(ch)) {
       if (oldCh !== ch) updateChildren(el, oldCh, ch, insertedVNodeQueue);
-    } else if (isDef(ch)) {
+    } /* else if (isDef(ch)) {
       if (isDef(oldVNode.text)) api.setTextContent(el, '');
       addVNodes(el, null, ch, 0, ch.length - 1, insertedVNodeQueue);
     } else if (isDef(oldCh)) {
       removeVNodes(el, oldCh, 0, oldCh.length - 1);
     } else if (isDef(oldVNode.text)) {
       api.setTextContent(el, '');
-    }
+    } */
+    // ^^^^ Unused because in Devoid children can't be undefined and <VNode>.text is only used for text nodes
+    // not sure if it will cause error so I am keeping it for now
   } else if (oldVNode.text !== vNode.text) {
-    if (isDef(oldCh)) {
+    /* if (isDef(oldCh)) {
       removeVNodes(el, oldCh, 0, oldCh.length - 1);
-    }
+    } */ // Same as above comment
     api.setTextContent(el, vNode.text);
   }
   // We don't use prePatch hook
