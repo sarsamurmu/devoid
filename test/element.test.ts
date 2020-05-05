@@ -23,7 +23,7 @@ const resetRenderBox = () => {
 describe('element', () => {
   it('ref', () => {
     const elRef = ref();
-    assert(elRef.el === null);
+    assert.strictEqual(elRef.el, null);
 
     const element = elR('div', {
       ref: elRef,
@@ -37,7 +37,7 @@ describe('element', () => {
       oldCh: [],
       newCh: element
     });
-    assert(elRef.el === document.querySelector('#firstDiv'), 'Ref is not same as element');
+    assert.strictEqual(elRef.el, document.querySelector('#firstDiv'), 'Ref is not same as element');
 
     const newElement = elR('div', {
       ref: elRef,
@@ -51,14 +51,14 @@ describe('element', () => {
       oldCh: element,
       newCh: newElement
     })
-    assert(elRef.el === document.querySelector('#secondDiv'), 'Ref should update when element is replaced');
+    assert.strictEqual(elRef.el, document.querySelector('#secondDiv'), 'Ref should update when element is replaced');
 
     updateChildren({
       parentEl: renderBox,
       oldCh: newElement,
       newCh: []
     });
-    assert(elRef.el === null, 'Ref should be null when element is removed');
+    assert.strictEqual(elRef.el, null, 'Ref should be null when element is removed');
   });
 
   it('parseSelector', () => {
@@ -192,7 +192,7 @@ describe('element', () => {
       const qs = (selector: string) => renderBox.querySelector(selector) as HTMLElement;
       element = div('With just text');
       mount(element, renderBox);
-      assert(qs('div').innerText === 'With just text');
+      assert.strictEqual(qs('div').innerText, 'With just text');
 
       element = p(
         {
@@ -218,7 +218,7 @@ describe('element', () => {
 
       element = p(null, 'With incompatible child');
       mount(element, renderBox);
-      assert(qs('p:last-child').innerText === 'With incompatible child');
+      assert.strictEqual(qs('p:last-child').innerText, 'With incompatible child');
     }
 
     runTest();

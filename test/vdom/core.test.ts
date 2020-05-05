@@ -34,12 +34,12 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 3));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 1);
+        assert.strictEqual(el.children.length, 1);
 
         el = patch(v1, v2).el;
-        assert(el.children.length === 3);
-        assert(el.children[1].innerHTML === '2');
-        assert(el.children[2].innerHTML === '3');
+        assert.strictEqual(el.children.length, 3);
+        assert.strictEqual(el.children[1].innerHTML, '2');
+        assert.strictEqual(el.children[2].innerHTML, '3');
       });
 
       it('prepends elements', () => {
@@ -47,7 +47,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 3, 4, 5));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 2);
+        assert.strictEqual(el.children.length, 2);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5].map(str));
@@ -58,7 +58,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 3, 4, 5));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 4);
+        assert.strictEqual(el.children.length, 4);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5].map(str));
@@ -69,7 +69,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 3, 4, 5));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 3);
+        assert.strictEqual(el.children.length, 3);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3, 4, 5].map(str));
@@ -80,7 +80,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', { key: 'sp' }, asI(1, 2, 3));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 0);
+        assert.strictEqual(el.children.length, 0);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3].map(str));
@@ -94,7 +94,7 @@ describe('Virtual DOM', () => {
         assert.deepEqual(map(el.children, html), [1, 2, 3].map(str));
 
         el = patch(v1, v2).el;
-        assert(el.children.length === 0);
+        assert.strictEqual(el.children.length, 0);
       });
 
       it('update one child with same key but different sel', () => {
@@ -110,8 +110,8 @@ describe('Virtual DOM', () => {
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3].map(str));
-        assert(el.children.length === 3);
-        assert(el.children[1].tagName === 'I');
+        assert.strictEqual(el.children.length, 3);
+        assert.strictEqual(el.children[1].tagName, 'I');
       });
     });
 
@@ -121,7 +121,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(3, 4, 5));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 5);
+        assert.strictEqual(el.children.length, 5);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [3, 4, 5].map(str));
@@ -132,7 +132,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 3));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 5);
+        assert.strictEqual(el.children.length, 5);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 3].map(str));
@@ -143,7 +143,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 2, 4, 5));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 5);
+        assert.strictEqual(el.children.length, 5);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 2, 4, 5].map(str));
@@ -154,7 +154,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(2, 3, 4));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 5);
+        assert.strictEqual(el.children.length, 5);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [2, 3, 4].map(str));
@@ -167,7 +167,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(2, 3, 1, 4));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 4);
+        assert.strictEqual(el.children.length, 4);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [2, 3, 1, 4].map(str));
@@ -178,7 +178,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(2, 3, 1));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 3);
+        assert.strictEqual(el.children.length, 3);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [2, 3, 1].map(str));
@@ -189,7 +189,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(1, 4, 2, 3));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 4);
+        assert.strictEqual(el.children.length, 4);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [1, 4, 2, 3].map(str));
@@ -200,7 +200,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(4, 2, 3, 1));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 4);
+        assert.strictEqual(el.children.length, 4);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [4, 2, 3, 1].map(str));
@@ -213,7 +213,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(4, 1, 2, 3, 6));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 5);
+        assert.strictEqual(el.children.length, 5);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [4, 1, 2, 3, 6].map(str));
@@ -224,7 +224,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(4, 6));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 3);
+        assert.strictEqual(el.children.length, 3);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [4, 6].map(str));
@@ -235,7 +235,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI(4, 5, 3));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 3);
+        assert.strictEqual(el.children.length, 3);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), [4, 5, 3].map(str));
@@ -246,7 +246,7 @@ describe('Virtual DOM', () => {
         const v2 = h('i', asI('d', 'a', 'b', 'c', 1, 'e'));
 
         el = patch(v0, v1).el;
-        assert(el.children.length === 4);
+        assert.strictEqual(el.children.length, 4);
 
         el = patch(v1, v2).el;
         assert.deepEqual(map(el.children, html), ['d', 'a', 'b', 'c', 1, 'e'].map(str));
@@ -258,7 +258,7 @@ describe('Virtual DOM', () => {
       const v2 = h('i', asI(7, 6, 5, 4, 3, 2, 1));
 
       el = patch(v0, v1).el;
-      assert(el.children.length === 7);
+      assert.strictEqual(el.children.length, 7);
 
       el = patch(v1, v2).el;
       assert.deepEqual(map(el.children, html), [7, 6, 5, 4, 3, 2, 1].map(str));
@@ -279,7 +279,7 @@ describe('Virtual DOM', () => {
         el = patch(el as Element, v1).el;
 
         for (let j = 0; j < elementsCount; j++) {
-          assert(el.children[j].innerHTML === j + '');
+          assert.strictEqual(el.children[j].innerHTML, j + '');
           opacities[j] = Math.random().toFixed(5).toString();
         }
 
@@ -287,8 +287,8 @@ describe('Virtual DOM', () => {
         el = patch(v1, v2).el;
 
         for (let j = 0; j < elementsCount; j++) {
-          assert(el.children[j].innerHTML === shuffledArray[j] + '');
-          assert(opacities[j].indexOf((el.children[j] as HTMLElement).style.opacity) === 0);
+          assert.strictEqual(el.children[j].innerHTML, shuffledArray[j] + '');
+          assert.strictEqual(opacities[j].indexOf((el.children[j] as HTMLElement).style.opacity), 0);
         }
       }
     });
@@ -298,7 +298,7 @@ describe('Virtual DOM', () => {
       const v2 = h('i', asI(null, undefined, 2, null, 4, 6, undefined, null, 3, null, 1, 5));
 
       el = patch(v0, v1).el;
-      assert(el.children.length === 6);
+      assert.strictEqual(el.children.length, 6);
 
       el = patch(v1, v2).el;
       assert.deepEqual(map(el.children, html), [2, 4, 6, 3, 1, 5].map(str));
@@ -311,7 +311,7 @@ describe('Virtual DOM', () => {
       patch(v0, v1);
 
       el = patch(v1, v2).el;
-      assert(el.children.length === 0);
+      assert.strictEqual(el.children.length, 0);
 
       el = patch(v2, v3).el;
       assert.deepEqual(map(el.children, html), [5, 4, 3, 2, 1, 0].map(str));
@@ -356,10 +356,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i', ['Text', h('i', 'Italic')]);
 
       el = patch(v0, v1).el;
-      assert(el.childNodes[0].textContent === 'Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'Text');
 
       el = patch(v1, v2).el;
-      assert(el.childNodes[0].textContent === 'Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'Text');
     });
 
     it('handles changing text children', () => {
@@ -367,10 +367,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i', ['New Text', h('i', 'Italic')]);
 
       el = patch(v0, v1).el;
-      assert(el.childNodes[0].textContent === 'Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'Text');
 
       el = patch(v1, v2).el;
-      assert(el.childNodes[0].textContent === 'New Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'New Text');
     });
 
     it('handles unmoved comment nodes', () => {
@@ -378,10 +378,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i', [h('!', 'Comment'), h('i', 'Italic')]);
 
       el = patch(v0, v1).el;
-      assert(el.childNodes[0].textContent === 'Comment');
+      assert.strictEqual(el.childNodes[0].textContent, 'Comment');
 
       el = patch(v1, v2).el;
-      assert(el.childNodes[0].textContent === 'Comment');
+      assert.strictEqual(el.childNodes[0].textContent, 'Comment');
     });
 
     it('handles changing comment text', () => {
@@ -389,10 +389,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i', [h('!', 'New Comment Text'), h('i', 'Italic')]);
 
       el = patch(v0, v1).el;
-      assert(el.childNodes[0].textContent === 'Comment Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'Comment Text');
 
       el = patch(v1, v2).el;
-      assert(el.childNodes[0].textContent === 'New Comment Text');
+      assert.strictEqual(el.childNodes[0].textContent, 'New Comment Text');
     });
 
     it('handles changing empty comment', () => {
@@ -400,10 +400,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i', [h('!', 'Comment'), h('i', 'Italic')]);
 
       el = patch(v0, v1).el;
-      assert(el.childNodes[0].textContent === '');
+      assert.strictEqual(el.childNodes[0].textContent, '');
 
       el = patch(v1, v2).el;
-      assert(el.childNodes[0].textContent === 'Comment');
+      assert.strictEqual(el.childNodes[0].textContent, 'Comment');
     });
 
     it('prepends element', () => {
@@ -445,10 +445,10 @@ describe('Virtual DOM', () => {
       const v2 = h('i');
 
       el = patch(v0, v1).el;
-      assert(el.textContent === 'Text');
+      assert.strictEqual(el.textContent, 'Text');
 
       el = patch(v1, v2).el;
-      assert(el.textContent === '');
+      assert.strictEqual(el.textContent, '');
     });
 
     it('removes a single text node when children are updated', () => {
@@ -456,7 +456,7 @@ describe('Virtual DOM', () => {
       const v2 = h('i', [h('i', '1'), h('i', '2'), h('i', '3')]);
 
       el = patch(v0, v1).el;
-      assert(el.textContent === 'Text');
+      assert.strictEqual(el.textContent, 'Text');
 
       el = patch(v1, v2).el;
       assert.deepEqual(map(el.children, html), [1, 2, 3].map(str));
@@ -470,9 +470,9 @@ describe('Virtual DOM', () => {
       assert.deepEqual(map(el.childNodes, (node: Node) => node.textContent), ['1', '2'].map(str));
 
       el = patch(v1, v2).el;
-      assert(el.childNodes.length === 1);
-      assert((el.childNodes[0] as Element).tagName === 'U');
-      assert(el.childNodes[0].textContent === '3');
+      assert.strictEqual(el.childNodes.length, 1);
+      assert.strictEqual((el.childNodes[0] as Element).tagName, 'U');
+      assert.strictEqual(el.childNodes[0].textContent, '3');
     });
 
     it('reorders elements', () => {
@@ -538,7 +538,7 @@ describe('Virtual DOM', () => {
       assert.deepEqual(map(el.children, html), ['1', '2']);
 
       el = patch(v1, v2).el;
-      assert(el.children.length === 0);
+      assert.strictEqual(el.children.length, 0);
 
       el = patch(v2, v3).el;
       assert.deepEqual(map(el.children, html), ['2', '1']);

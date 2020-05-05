@@ -9,14 +9,14 @@ it('Context', () => {
   ctx.set(key1, true);
   ctx.set('first', 10);
   ctx.set('second', 20);
-  assert(ctx.get(key1) === true);
-  assert(ctx.get('first') === 10);
-  assert(ctx.get('second') === 20);
+  assert.strictEqual(ctx.get(key1), true);
+  assert.strictEqual(ctx.get('first'), 10);
+  assert.strictEqual(ctx.get('second'), 20);
 
   const copiedCtx = ctx.copy();
   copiedCtx.set(key1, false);
-  assert(copiedCtx.get(key1) === false);
-  assert(ctx.get(key1) === true);
-  assert(copiedCtx.get('first') === 10);
-  assert(copiedCtx.get('second') === 20);
+  assert.strictEqual(copiedCtx.get(key1), false);
+  assert.strictEqual(ctx.get(key1), true);
+  assert.strictEqual(copiedCtx.get('first'), 10);
+  assert.strictEqual(copiedCtx.get('second'), 20);
 });

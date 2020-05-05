@@ -34,9 +34,9 @@ describe('Utility functions', () => {
     const newMap = new Map();
     copyMap(oldMap, newMap);
 
-    assert(newMap.get(arrKey) === 100);
-    assert(newMap.get(10) === 'Ten');
-    assert(newMap.get(objKey) === true);
+    assert.strictEqual(newMap.get(arrKey), 100);
+    assert.strictEqual(newMap.get(10), 'Ten');
+    assert.strictEqual(newMap.get(objKey), true);
   });
 
   it('EventManager', () => {
@@ -89,7 +89,7 @@ describe('Utility functions', () => {
     const firstSymbol = globalKey('sameKey');
     const secondSymbol = globalKey('sameKey');
 
-    assert(firstSymbol === secondSymbol, 'Global key with same name should be same');
+    assert.strictEqual(firstSymbol, secondSymbol, 'Global key with same name should be same');
   });
 
   it('isObject', () => {
@@ -118,13 +118,18 @@ describe('Utility functions', () => {
     (clonedObj.nested.array[0] as any).isObject = false;
     (clonedObj.nested.array[1] as any) = 20;
 
-    assert(
-      obj.direct &&
-      obj.nested.isNested &&
-      (obj.nested.array[0] as any).isObject &&
-      obj.nested.array[1] === 'String',
-      'Deep cloned object should not contain reference to the original object'
-    );
+    assert.deepEqual(obj, {
+      direct: true,
+      nested: {
+        isNested: true,
+        array: [
+          {
+            isObject: true
+          },
+          'String'
+        ]
+      }
+    }, 'Deep cloned object should not contain reference to the original object');
   });
 
   it('mergeProperties', () => {
@@ -159,18 +164,24 @@ describe('Utility functions', () => {
 
     mergeProperties(toMerge, toMergeWith, true);
 
-    assert(
-      toMerge.first === 1 &&
-      toMerge.second === 4 &&
-      (toMerge as any).third === 3 &&
-      toMerge.nested.first === 15 &&
-      toMerge.nested.second === 12 &&
-      (toMerge.nested as any).third === 13 &&
-      toMerge.nested.nested.first === 10 &&
-      toMerge.nested.nested.second === 22 &&
-      (toMerge as any).nestedOther.first === 121 &&
-      (toMerge as any).nestedOther.second === 122
-    );
+    assert.deepEqual<typeof toMerge & typeof toMergeWith>(toMerge as any, {
+      first: 1,
+      second: 4,
+      third: 3,
+      nested: {
+        first: 15,
+        second: 12,
+        third: 13,
+        nested: {
+          first: 10,
+          second: 22
+        }
+      },
+      nestedOther: {
+        first: 121,
+        second: 122
+      }
+    });
   });
 
   it('patchStateProperties', () => {
@@ -199,15 +210,17 @@ describe('Utility functions', () => {
       }
     }, state);
 
-    assert(
-      state.first === 10 &&
-      state.second === 2 &&
-      !('third' in state) &&
-      state.nested.first === 11 &&
-      state.nested.second === 20 &&
-      !('other' in state.nested) &&
-      state.nested.nested.first === 40 &&
-      state.nested.nested.second === 22
-    );
+    assert.deepEqual(state, {
+      first: 10,
+      second: 2,
+      nested: {
+        first: 11,
+        second: 20,
+        nested: {
+          first: 40,
+          second: 22
+        }
+      }
+    });
   })
 });
