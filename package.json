@@ -40,7 +40,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-typescript": "^5.0.2",
     "karma-typescript-es6-transform": "^5.0.2",
-    "mocha": "^7.1.2",
+    "mocha": "^7.2.0",
     "rollup": "^2.7.6",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-banner": "^0.2.1",
